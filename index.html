@@ -9,6 +9,11 @@
 <meta property="og:description" content="Pick chords with your left hand. Shape them with your right. A free webcam instrument that runs in your browser.">
 <meta property="og:type" content="website">
 <meta name="theme-color" content="#16110e">
+<!-- Added to an iPhone home screen, the page opens without Safari's bars -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Synth Conductor">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2316110e'/%3E%3Cpath d='M18 46V22l8-6 8 6v24M34 46V18l8-6 8 6v28' fill='none' stroke='%23d6ab52' stroke-width='5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -92,13 +97,14 @@
       <div class="pads" id="pads"></div>
 
       <div class="row">
-        <button class="btn primary" id="camBtn" type="button">Play with your hands</button>
+        <button class="btn primary fs-keep" id="camBtn" type="button">Play with your hands</button>
         <button class="btn" id="demoBtn" type="button">Play ii–V–I–vi</button>
         <label class="led adv-only" title="Play chords on the number keys; the camera only reads your right hand"><input type="checkbox" id="optRightOnly"><span>Right hand only</span></label>
         <label class="led adv-only" title="Chords only sound while you hold a number key or chord button down"><input type="checkbox" id="optHoldKeys"><span>Hold to sound</span></label>
-        <button class="btn pedalbtn" id="pedalBtn" type="button" aria-pressed="false" title="Sustain pedal: notes keep ringing after you let go, and chords blur together until you lift it. Click to latch, or hold the pedal key">Pedal <span class="pk" id="pedalKeyHint">V</span></button>
+        <button class="btn pedalbtn fs-keep" id="pedalBtn" type="button" aria-pressed="false" title="Sustain pedal: notes keep ringing after you let go, and chords blur together until you lift it. Click to latch, or hold the pedal key">Pedal <span class="pk" id="pedalKeyHint">V</span></button>
         <label class="led adv-only" title="React to gestures faster: fewer steady frames and less smoothing. Can flicker a little more"><input type="checkbox" id="optFast"><span>Fast response</span></label>
         <label class="led" title="Draw on the camera view: what each hand is about to play, the inversion zones, and which knobs each hand movement drives"><input type="checkbox" id="optGuides"><span>Guides</span></label>
+        <button class="btn fs-keep" id="fullBtn" type="button" aria-pressed="false" title="Just the camera, the chord and the pads, filling the screen. Esc to leave">Full screen</button>
       </div>
       <p class="msg" id="camMsg" hidden></p>
     </section>

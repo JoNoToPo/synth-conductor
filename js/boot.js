@@ -295,3 +295,20 @@ $('statusText').addEventListener('click',()=>{
   let on=false; try{on=localStorage.getItem('vh-diag')==='1'}catch(e){}
   const show=v=>{tg.checked=v; sec.hidden=!v; latEl.hidden=!v; try{localStorage.setItem('vh-diag',v?'1':'0')}catch(e){}};
   show(on); tg.addEventListener('change',()=>show(tg.checked)); }
+
+/* Full screen. Uses the browser's real full screen where it exists; iPhone Safari has none for pages, so there the stage just fills the window */
+let fullApi=false;
+function setFull(on){
+  if(document.body.classList.contains('full')===on)return;
+  document.body.classList.toggle('full',on);
+  $('fullBtn').textContent=on?'Exit':'Full screen'; $('fullBtn').setAttribute('aria-pressed',on);
+  const el=document.documentElement, req=el.requestFullscreen||el.webkitRequestFullscreen;
+  if(on&&req&&!document.fullscreenElement){ fullApi=true; Promise.resolve(req.call(el,{navigationUI:'hide'})).catch(()=>{fullApi=false}); }
+  if(!on&&fullApi){ fullApi=false; const ex=document.exitFullscreen||document.webkitExitFullscreen; if(ex&&(document.fullscreenElement||document.webkitFullscreenElement))Promise.resolve(ex.call(document)).catch(()=>{}); }
+  if(on)scrollTo(0,0);
+  dispatchEvent(new Event('resize'));
+}
+$('fullBtn').addEventListener('click',()=>setFull(!document.body.classList.contains('full')));
+// Leaving the browser's full screen (Esc, swipe) leaves ours too
+['fullscreenchange','webkitfullscreenchange'].forEach(t=>document.addEventListener(t,()=>{ if(fullApi&&!(document.fullscreenElement||document.webkitFullscreenElement)){fullApi=false;setFull(false)} }));
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&document.body.classList.contains('full'))setFull(false); });

@@ -376,3 +376,30 @@ body.simple .sq-top{grid-template-columns:minmax(0,1fr)}
 .lok{font-family:var(--font-mono);font-size:.8rem;color:var(--patina);margin-left:4px}
 #supportLink,.credit{color:var(--brass)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* Full screen: just the camera, the chord and the pads */
+body.full{overflow:hidden}
+body.full .stage{position:fixed;inset:0;z-index:40;background:var(--bg);gap:8px;
+  padding:max(10px,env(safe-area-inset-top)) max(10px,env(safe-area-inset-right)) max(10px,env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left))}
+body.full .stage>.lesson{display:none}
+body.full .view{flex:1 1 0;min-height:0;aspect-ratio:auto;border-radius:12px}
+body.full .stage>.readout{flex:none;flex-direction:row;align-items:baseline;gap:12px;padding:6px 14px}
+body.full .stage>.readout .stack,body.full .stage>.readout .meta{display:none}
+body.full .stage>.readout .roman{flex:none;max-width:40%}
+body.full .stage>.readout .chordname{flex:1;min-width:0;font-size:clamp(1.6rem,4.5vh,2.6rem);height:calc(clamp(1.6rem,4.5vh,2.6rem) * 1.05);align-items:center}
+body.full .stage>.readout .chordname.idle{font-size:1rem;white-space:nowrap}
+body.full .pads{flex:none}
+body.full .pad{padding:clamp(6px,1.4vh,12px) 4px}
+body.full .stage>.row{flex:none;flex-wrap:nowrap}
+body.full .stage>.row>:not(.fs-keep){display:none}
+body.full .stage>.row .btn{padding:8px 12px;white-space:nowrap;font-size:.88rem}
+body.full #fullBtn{margin-left:auto}
+/* Sideways phone: camera on the left, chord and pads on the right */
+@media (orientation:landscape) and (max-height:560px){
+  body.full .stage{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);grid-template-rows:auto 1fr auto;column-gap:10px;row-gap:6px}
+  body.full .view{grid-column:1;grid-row:1/-1;height:100%}
+  body.full .stage>.readout{grid-column:2;grid-row:1}
+  body.full .pads{grid-column:2;grid-row:2;grid-template-columns:repeat(4,minmax(0,1fr));align-content:center}
+  body.full .stage>.row{grid-column:2;grid-row:3}
+  body.full .stage>.msg{display:none}
+}
