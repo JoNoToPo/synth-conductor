@@ -395,21 +395,20 @@ body.full .stage>.row>:not(.fs-keep){display:none}
 body.full .stage>.row .btn{padding:8px 12px;white-space:nowrap;font-size:.88rem}
 body.full #fullBtn{margin-left:auto}
 body.full .stage>.row>.led.fs-keep{display:inline-flex!important;white-space:nowrap;font-size:.62rem;padding:7px 9px}
-/* Sideways phone: camera filling the far side, a narrow column of buttons, chords as a number pad down the edge under the thumb */
+/* Sideways phone: camera on the far side with its buttons underneath, chords as a number pad down the edge under the thumb */
 @media (orientation:landscape) and (max-height:560px){
-  body.full .stage{display:grid;grid-template-columns:minmax(0,1fr) clamp(96px,15vw,128px) clamp(200px,30vw,280px);grid-template-rows:auto 1fr;
-    grid-template-areas:"cam btns chord" "cam btns pads";column-gap:8px;row-gap:6px}
+  body.full .stage{display:grid;grid-template-columns:minmax(0,1fr) clamp(200px,30vw,280px);grid-template-rows:auto 1fr auto;
+    grid-template-areas:"cam chord" "cam pads" "btns pads";column-gap:10px;row-gap:6px}
   body.full .view{grid-area:cam;height:100%}
   body.full .stage>.readout{grid-area:chord;padding:4px 12px}
   body.full .pads{grid-area:pads;grid-template-columns:repeat(3,minmax(0,1fr));grid-auto-rows:1fr;gap:6px}
   body.full .pad{justify-content:center;padding:4px}
-  body.full .pad.stop{grid-column:span 2}
-  body.full .stage>.row{grid-area:btns;flex-direction:column;align-items:stretch;gap:6px}
-  body.full .stage>.row>.fs-keep{justify-content:center;text-align:center;white-space:normal!important;padding:7px 6px;line-height:1.2}
-  body.full #fullBtn{margin:auto 0 0}
+  body.full .stage>.row{grid-area:btns}
   body.full .stage>.msg{display:none}
+  /* The pedal joins the number pad, next to Stop, where the thumb already is */
+  body.full .pads>#pedalBtn{border-radius:10px;padding:4px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:.95rem}
   /* Turned the other way the lens is on the right, so the camera goes there and the pad moves to the left edge */
-  body.full.cam-right .stage{grid-template-columns:clamp(200px,30vw,280px) clamp(96px,15vw,128px) minmax(0,1fr);grid-template-areas:"chord btns cam" "pads btns cam"}
+  body.full.cam-right .stage{grid-template-columns:clamp(200px,30vw,280px) minmax(0,1fr);grid-template-areas:"chord cam" "pads cam" "pads btns"}
 }
 /* Camera labels stay on one line in full screen instead of piling onto the guides */
 body.full .hud{font-size:.62rem;top:8px;left:8px;right:8px}
@@ -422,4 +421,8 @@ body.full:not(.rh-only) .pads,body.full:not(.rh-only) .stage>.row>.fs-rh{display
   body.full.cam-right:not(.rh-only) .stage{grid-template-columns:clamp(120px,20vw,180px) minmax(0,1fr);grid-template-areas:"chord cam" "btns cam"}
   body.full:not(.rh-only) .stage>.readout{flex-direction:column;align-items:stretch;gap:0}
   body.full:not(.rh-only) .stage>.readout .roman{max-width:none}
+  body.full:not(.rh-only) .stage{grid-template-rows:auto 1fr}
+  body.full:not(.rh-only) .stage>.row{flex-direction:column;align-items:stretch;flex-wrap:nowrap;gap:6px}
+  body.full:not(.rh-only) .stage>.row>.fs-keep{justify-content:center;text-align:center;white-space:normal!important;line-height:1.2}
+  body.full:not(.rh-only) #fullBtn{margin:auto 0 0}
 }

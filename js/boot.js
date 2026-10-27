@@ -309,6 +309,15 @@ function setFull(on){
   dispatchEvent(new Event('resize'));
 }
 $('optRightOnly').addEventListener('change',()=>document.body.classList.toggle('rh-only',st.rightOnly));
+// Sideways with the number pad showing, the pedal sits in the pad beside Stop; everywhere else it goes back to the button row
+const sidewaysMQ=matchMedia('(orientation:landscape) and (max-height:560px)'), pedalHome=$('pedalBtn').nextElementSibling;
+function placePedal(){
+  const b=$('pedalBtn'), inPad=document.body.classList.contains('full')&&st.rightOnly&&sidewaysMQ.matches;
+  if(inPad&&b.parentNode!==padsEl)padsEl.appendChild(b);
+  else if(!inPad&&b.parentNode===padsEl)pedalHome.before(b);
+}
+(sidewaysMQ.addEventListener?sidewaysMQ.addEventListener('change',placePedal):sidewaysMQ.addListener(placePedal));
+new MutationObserver(placePedal).observe(document.body,{attributes:true,attributeFilter:['class']});
 $('fullBtn').addEventListener('click',()=>setFull(!document.body.classList.contains('full')));
 // Leaving the browser's full screen (Esc, swipe) leaves ours too
 ['fullscreenchange','webkitfullscreenchange'].forEach(t=>document.addEventListener(t,()=>{ if(fullApi&&!(document.fullscreenElement||document.webkitFullscreenElement)){fullApi=false;setFull(false)} }));
