@@ -294,8 +294,7 @@ function loop(){
   const cw=Math.round(rect.width*dpr),ch=Math.round(rect.height*dpr);
   if(cv.width!==cw||cv.height!==ch){cv.width=cw;cv.height=ch}
   const vw=video.videoWidth,vh=video.videoHeight; if(!vw)return;
-  // Full screen fills the box instead of leaving bars, trimming the edges a little (at most 1.4x, so hands out to the side stay in view)
-  const fit=Math.min(cw/vw,ch/vh), sc=document.body.classList.contains('full')?Math.min(Math.max(cw/vw,ch/vh),fit*1.4):fit,ox=(cw-vw*sc)/2,oy=(ch-vh*sc)/2;
+  const sc=Math.min(cw/vw,ch/vh),ox=(cw-vw*sc)/2,oy=(ch-vh*sc)/2;
   g.save();g.clearRect(0,0,cw,ch);g.translate(cw,0);g.scale(-1,1);
   // In the background mode, show the frame the hand was found in so the skeleton stays on the hand
   const pic=cam.inWorker&&cam.shown&&cam.shown.width?cam.shown:video;

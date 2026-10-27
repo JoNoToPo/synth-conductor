@@ -415,3 +415,11 @@ body.full .stage>.row>.led.fs-keep{display:inline-flex!important;white-space:now
 body.full .hud{font-size:.62rem;top:8px;left:8px;right:8px}
 body.full .hud span{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:3px 6px}
 body.full .stage>.readout .chordname.idle{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:calc(clamp(1.6rem,4.5vh,2.6rem) * 1.05)}
+/* Both hands on camera: the left hand picks the chords, so full screen drops the pads and gives the camera the room */
+body.full:not(.rh-only) .pads,body.full:not(.rh-only) .stage>.row>.fs-rh{display:none!important}
+@media (orientation:landscape) and (max-height:560px){
+  body.full:not(.rh-only) .stage{grid-template-columns:minmax(0,1fr) clamp(120px,20vw,180px);grid-template-areas:"cam chord" "cam btns"}
+  body.full.cam-right:not(.rh-only) .stage{grid-template-columns:clamp(120px,20vw,180px) minmax(0,1fr);grid-template-areas:"chord cam" "btns cam"}
+  body.full:not(.rh-only) .stage>.readout{flex-direction:column;align-items:stretch;gap:0}
+  body.full:not(.rh-only) .stage>.readout .roman{max-width:none}
+}

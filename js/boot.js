@@ -308,6 +308,7 @@ function setFull(on){
   if(on)scrollTo(0,0);
   dispatchEvent(new Event('resize'));
 }
+$('optRightOnly').addEventListener('change',()=>document.body.classList.toggle('rh-only',st.rightOnly));
 $('fullBtn').addEventListener('click',()=>setFull(!document.body.classList.contains('full')));
 // Leaving the browser's full screen (Esc, swipe) leaves ours too
 ['fullscreenchange','webkitfullscreenchange'].forEach(t=>document.addEventListener(t,()=>{ if(fullApi&&!(document.fullscreenElement||document.webkitFullscreenElement)){fullApi=false;setFull(false)} }));

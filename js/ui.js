@@ -116,6 +116,7 @@ $('sevSel').addEventListener('change',e=>{st.sevMode=e.target.value;if(!(st.sevM
 
 function render(){
   const key=KEYS[st.key];
+  document.body.classList.toggle('rh-only',st.rightOnly);   // full screen drops the chord pads when the left hand plays them
   // pads
   [...padsEl.querySelectorAll('.pad[data-d]')].forEach(b=>{
     const d=+b.dataset.d,c=tonesOf(d),rel=new Set([0,c.t%12,c.f%12].concat(has7()?[c.s%12]:[]));
