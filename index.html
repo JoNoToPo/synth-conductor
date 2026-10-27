@@ -1,0 +1,470 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Voicing Hands</title>
+<meta name="description" content="A free browser instrument: pick chords with your left hand and shape them with your right, using your webcam. No account, no install.">
+<meta property="og:title" content="Voicing Hands">
+<meta property="og:description" content="Pick chords with your left hand. Shape them with your right. A free webcam instrument that runs in your browser.">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#16110e">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2316110e'/%3E%3Cpath d='M18 46V22l8-6 8 6v24M34 46V18l8-6 8 6v28' fill='none' stroke='%23d6ab52' stroke-width='5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Instrument+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="app">
+  <header>
+    <div class="brand">
+      <h1>Voicing <em>Hands</em></h1>
+      <p>Pick chords with your left hand. Shape them with your right.</p>
+    </div>
+    <div class="hdrtools">
+      <button class="btn" id="learnBtn" type="button">Learn the basics</button>
+      <label class="led" title="Show only the essentials: chords, camera, key, sound and voicing. Turn off to see every control"><input type="checkbox" id="optSimple"><span>Simple view</span></label>
+    </div>
+    <div class="status"><span class="dot" id="audioDot"></span><span id="statusText">Sound off · tap a chord to start</span><span class="lat" id="latency" title="Audio: the browser's output delay. Camera: frames per second. Tracking: time to find your hands in each frame"></span></div>
+  </header>
+
+  <section class="progbar adv-only" aria-label="Presets">
+    <h3 title="Key, sound, voicing, chord style, knob and fader values, effects, arpeggio and tempo">Sound</h3>
+    <div class="plist" id="presetList"></div>
+    <form class="psave" id="presetForm">
+      <label class="sr" for="presetName">Sound preset name</label>
+      <input type="text" id="presetName" placeholder="Name this sound" maxlength="40" autocomplete="off">
+      <button class="btn primary" type="submit">Save</button>
+    </form>
+    <h3 title="Finger slots, left-hand shapes, gestures, which hand movement drives each knob, and keyboard hold keys">Hands</h3>
+    <div class="plist" id="handList"></div>
+    <form class="psave" id="handForm">
+      <label class="sr" for="handName">Hand setup name</label>
+      <input type="text" id="handName" placeholder="Name this hand setup" maxlength="40" autocomplete="off">
+      <button class="btn primary" type="submit">Save</button>
+    </form>
+    <div class="progfoot"><p class="hint" id="presetMsg">Sound presets and hand setups save separately, so you can mix any sound with any way of playing. Both are kept in this browser.</p><details class="pio">
+            <summary>Share or back up presets and hand setups</summary>
+            <div class="piobody">
+              <button class="btn" id="presetExport" type="button">Copy all presets &amp; hand setups</button>
+              <label class="sr" for="presetJson">Presets as text</label>
+              <textarea id="presetJson" rows="4" spellcheck="false" placeholder="Paste presets here, then press Import"></textarea>
+              <button class="btn" id="presetImport" type="button">Import pasted presets</button>
+            </div>
+          </details></div>
+  </section>
+
+  <section class="pianowrap">
+    <div class="pianohead">
+      <span>Sounding notes · <span style="color:var(--patina)">bass</span> and <span style="color:var(--brass)">voicing</span></span>
+      <span class="path" id="path"></span>
+    </div>
+    <div class="pianoscroll" id="piano"></div>
+  </section>
+
+  <div class="main">
+    <section class="stage">
+      <div class="lesson" id="lesson" role="region" aria-label="Lesson" hidden>
+        <div class="lhead"><span class="lstep" id="lessonStep"></span><div class="ldots" id="lessonDots" aria-hidden="true"></div><button class="lclose" id="lessonClose" type="button" aria-label="Close the lesson">✕</button></div>
+        <h3 id="lessonTitle"></h3>
+        <p class="ltext" id="lessonText"></p>
+        <p class="lfix" id="lessonFix" hidden><span id="lessonFixText"></span> <button class="btn" id="lessonFixBtn" type="button"></button></p>
+        <div class="row"><button class="btn" id="lessonBack" type="button">Back</button><button class="btn primary" id="lessonAct" type="button" hidden></button><button class="btn" id="lessonNext" type="button">Skip</button><span class="lok" id="lessonOk" aria-live="polite"></span></div>
+      </div>
+
+      <div class="view" id="view">
+        <canvas id="cv"></canvas>
+        <video id="video" playsinline muted></video>
+        <div class="hud"><span class="lh" id="hudL">Left hand · chord</span><span class="rh" id="hudR">Right hand · voicing</span></div>
+      </div>
+
+      <div class="readout">
+        <div class="roman" id="roman">ii · C major</div>
+        <h2 class="chordname" id="chordName">Dm7</h2>
+        <div class="stack" id="stack"></div>
+        <div class="meta" id="meta"></div>
+      </div>
+
+      <div class="pads" id="pads"></div>
+
+      <div class="row">
+        <button class="btn primary" id="camBtn" type="button">Play with your hands</button>
+        <button class="btn" id="demoBtn" type="button">Play ii–V–I–vi</button>
+        <label class="led adv-only" title="Play chords on the number keys; the camera only reads your right hand"><input type="checkbox" id="optRightOnly"><span>Right hand only</span></label>
+        <label class="led adv-only" title="Chords only sound while you hold a number key or chord button down"><input type="checkbox" id="optHoldKeys"><span>Hold to sound</span></label>
+        <button class="btn pedalbtn" id="pedalBtn" type="button" aria-pressed="false" title="Sustain pedal: notes keep ringing after you let go, and chords blur together until you lift it. Click to latch, or hold the pedal key">Pedal <span class="pk" id="pedalKeyHint">V</span></button>
+        <label class="led adv-only" title="React to gestures faster: fewer steady frames and less smoothing. Can flicker a little more"><input type="checkbox" id="optFast"><span>Fast response</span></label>
+        <label class="led" title="Draw on the camera view: what each hand is about to play, the inversion zones, and which knobs each hand movement drives"><input type="checkbox" id="optGuides"><span>Guides</span></label>
+      </div>
+      <p class="msg" id="camMsg" hidden></p>
+    </section>
+
+    <aside class="panel">
+      <section class="square">
+        <div class="sq-top">
+    <div class="module m-key">
+      <h3>Key</h3>
+      <div class="lcds">
+        <label for="keySel">Tonic<select id="keySel"></select></label>
+        <label for="modeSel">Mode<select id="modeSel"></select></label>
+        <label for="soundSel" class="wide">Sound<select id="soundSel"></select></label>
+        <label for="invSel" class="wide adv-only">Bass note
+          <select id="invSel">
+            <option value="0">Root</option>
+            <option value="1">3rd · 1st inversion</option>
+            <option value="2">5th · 2nd inversion</option>
+            <option value="3">7th · 3rd inversion</option>
+          </select></label>
+        <label for="sevSel" class="wide adv-only">7th type
+          <select id="sevSel">
+            <option value="maj">Major 7th (lean for ♭7)</option>
+            <option value="diatonic">From the key</option>
+            <option value="twist">Twist: left maj7 · right 7</option>
+            <option value="twistE">Twist, Eric style: minor right = °7</option>
+          </select></label>
+        <p class="hint wide adv-only" id="sevNote" hidden>Major 7th follows the key while Lean color is off.</p>
+        <label for="shiftQualSel" class="adv-only" title="What a ♭ or ♯ chord becomes">Shifted chords
+          <select id="shiftQualSel">
+            <option value="common">Common usage</option>
+            <option value="keep">Keep quality</option>
+          </select></label>
+      </div>
+    </div>
+    <div class="module m-chord adv-only">
+      <h3>Chord</h3>
+      <div class="leds">
+        <label class="led" title="Move as few notes as possible between chords"><input type="checkbox" id="optVL" checked><span>Voice leading</span></label>
+        <label class="led" title="Add a 7th to every chord (the right thumb does this too)"><input type="checkbox" id="opt7" checked><span>7ths</span></label>
+        <label class="led" title="Play the bass note an octave or two below the voicing"><input type="checkbox" id="optBass" checked><span>Bass note</span></label>
+        <label class="led" title="Swap major and minor (hold Shift for the same thing)"><input type="checkbox" id="optFlip"><span>Flip maj/min</span></label>
+        <label class="led" title="With 7ths: swap to the other 7th. Without: add a 9th"><input type="checkbox" id="optAlt7"><span>Color</span></label>
+        <label class="led" title="Leaning your right hand turns Color on and off"><input type="checkbox" id="optLeanColor"><span>Lean color</span></label>
+        <label class="led wide" title="Right-hand finger count picks the voicing; the thumb adds 7ths"><input type="checkbox" id="optRH" checked><span>Hand picks voicing</span></label>
+        <label class="led" title="Left-hand height picks root, 1st or 2nd inversion"><input type="checkbox" id="optHandInv" checked><span>Height inversions</span></label>
+        <label class="led" title="A hand movement slides the chord up and down the keyboard. Off = the old automatic placement"><input type="checkbox" id="optPos" checked><span>Hand position</span></label>
+        <label class="led wide" title="On: every degree plays a plain major chord and Flip makes it minor (no diminished chords). Off: chords follow the key"><input type="checkbox" id="optPure"><span>Pure maj/min</span></label>
+      </div>
+      <div class="knobs posknob" id="m-chordpos"></div>
+    </div>
+        </div>
+        <div class="sq-voicing">
+        <div class="cardhead"><h3>Voicing</h3><span class="hint">Hover a voicing for details</span></div>
+        <div class="vgrid" id="voicings" role="radiogroup" aria-label="Voicing"></div>
+        <p class="vinfo" id="vinfo" aria-live="polite"></p>
+        <div class="cardhead sub adv-only"><h3>Right-hand fingers</h3><span class="hint">thumb not counted</span></div>
+        <div class="fslots adv-only" id="rhSlots"></div>
+        <div class="lcds handopts adv-only">
+          <label for="left67Sel" title="Which left-hand shapes play chords 6 and 7">Left hand 6 / 7
+            <select id="left67Sel">
+              <option value="chinese">Chinese · 🤙 / L</option>
+              <option value="horns">Horns / ILY · 🤘 / 🤟</option>
+              <option value="asl">ASL · thumb to pinky / ring</option>
+            </select></label>
+          <label for="leftTwistSel" title="How a left-hand twist changes major and minor">Left twist
+            <select id="leftTwistSel">
+              <option value="flip">Lean right flips</option>
+              <option value="dir">Right major · left minor</option>
+            </select></label>
+          <label for="pedalHandSel" title="Make a fist with your left hand to hold the sustain pedal">Left fist
+            <select id="pedalHandSel">
+              <option value="off">Stops the chord</option>
+              <option value="fist">Holds the pedal</option>
+            </select></label>
+          <label for="palmSel" title="Turn the back of your left hand toward the camera to shift the chord">Palm roll
+            <select id="palmSel">
+              <option value="flat">Flat ♭</option>
+              <option value="sharp">Sharp ♯</option>
+              <option value="off">Off</option>
+            </select></label>
+        </div>
+              </div>
+      </section>
+
+    </aside>
+  </div>
+
+  <section class="synth adv-only" aria-label="Sound panel">
+    <div class="bank g-amp">
+    <div class="module m-amp">
+      <h3>Amp &amp; envelope</h3>
+      <div class="ampbody"><div class="knobs" id="m-amp"></div><div class="faders" id="m-env"></div></div>
+    </div>
+    <div class="module m-mod">
+      <h3>Modulation</h3>
+      <div class="knobs" id="m-mod"></div>
+      <div class="lcds"><label for="midiBendRange" class="wide" title="How far the Bend knob goes at either end. Also sent to a MIDI instrument, for synths that accept it">Bend range
+        <select id="midiBendRange">
+          <option value="1">±1 semitone</option>
+          <option value="2">±2 semitones</option>
+          <option value="7">±7 semitones</option>
+          <option value="12">±12 semitones</option>
+        </select></label>
+        <label for="tremDiv" class="wide">Tremolo / pan rate
+        <select id="tremDiv">
+          <option value="1/4">1/4 note</option>
+          <option value="1/8">1/8 note</option>
+          <option value="1/8T">1/8 triplet</option>
+          <option value="1/16">1/16 note</option>
+        </select></label>
+        <label for="vibDiv" class="wide">Vibrato rate
+        <select id="vibDiv">
+          <option value="free">Free · 5.5 Hz</option>
+          <option value="1/4">1/4 note</option>
+          <option value="1/8">1/8 note</option>
+          <option value="1/8T">1/8 triplet</option>
+          <option value="1/16">1/16 note</option>
+          <option value="1/16T">1/16 triplet</option>
+        </select></label></div>
+    </div>
+    </div>
+    <div class="bank g-filter">
+    <div class="module m-filter"><h3>Filter</h3><div class="knobs" id="m-filter"></div></div>
+    <div class="module m-fx"><h3>Effects</h3><div class="knobs" id="m-fx"></div>
+      <div class="lcds"><label for="verbType" class="wide">Reverb type
+        <select id="verbType">
+          <option value="room">Room</option>
+          <option value="hall">Hall</option>
+          <option value="plate">Plate</option>
+          <option value="spring">Spring</option>
+          <option value="cathedral">Cathedral</option>
+        </select></label></div>
+    </div>
+    </div>
+    <div class="bank g-arp">
+    <div class="module m-arp">
+      <h3>Arp &amp; tempo</h3>
+      <div class="arpbody">
+        <div>
+          <div class="knobs" id="m-arp"></div>
+          <div class="lcds">
+            <label for="arpPat" class="wide">Pattern
+              <select id="arpPat">
+                <option value="up">Up</option>
+                <option value="down">Down</option>
+                <option value="updown">Up &amp; down</option>
+                <option value="random">Random</option>
+              </select></label>
+            <label for="strumDir" class="wide" title="Which way the Strum knob sweeps through a chord. With Arp on too, each new chord is strummed first, then arpeggiated">Strum
+              <select id="strumDir">
+                <option value="up">Up (low to high)</option>
+                <option value="down">Down (high to low)</option>
+                <option value="alt">Down-up (alternates)</option>
+              </select></label>
+          </div>
+        </div>
+        <div>
+          <div class="tempo">
+            <label for="bpm" class="bpmlab">BPM<input type="number" id="bpm" min="40" max="240" step="1" inputmode="numeric"></label>
+            <input type="range" id="bpmSlider" min="40" max="240" step="1" aria-label="BPM">
+            <button class="btn" id="tapBtn" type="button">Tap</button>
+          </div>
+          <div class="leds">
+            <label class="led" title="Lock the arpeggio and vibrato to the BPM"><input type="checkbox" id="optSync"><span>Sync</span></label>
+            <label class="led" title="Metronome click, accent every 4 beats"><input type="checkbox" id="optClick"><span>Click</span></label>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="module m-delay">
+      <h3>Delay &amp; pump</h3>
+      <div class="knobs" id="m-delay"></div>
+      <div class="lcds"><label for="delayDiv" class="wide">Delay time
+        <select id="delayDiv">
+          <option value="1/4">1/4 note</option>
+          <option value="1/8d">Dotted 1/8</option>
+          <option value="1/8">1/8 note</option>
+          <option value="1/8T">1/8 triplet</option>
+          <option value="1/16">1/16 note</option>
+        </select></label></div>
+    </div>
+    <div class="module m-loop">
+      <h3>Chord loop</h3>
+      <div class="lcds">
+        <label for="loopBars">Length
+          <select id="loopBars">
+            <option value="1">1 bar</option>
+            <option value="2">2 bars</option>
+            <option value="4">4 bars</option>
+            <option value="6">6 bars</option>
+            <option value="8">8 bars</option>
+          </select></label>
+        <label for="loopMeter" title="Beats per bar. Also sets the click's accents and where MIDI clock starts. BPM always counts quarter notes">Time
+          <select id="loopMeter">
+            <option value="2/4">2/4</option>
+            <option value="3/4">3/4</option>
+            <option value="4/4">4/4</option>
+            <option value="5/4">5/4</option>
+            <option value="6/4">6/4</option>
+            <option value="5/8">5/8</option>
+            <option value="6/8">6/8</option>
+            <option value="7/8">7/8</option>
+            <option value="9/8">9/8</option>
+            <option value="12/8">12/8</option>
+          </select></label>
+        <label for="loopSnap" title="Pull chord changes onto the nearest step, so a change that lands a little late is still on the beat">Snap
+          <select id="loopSnap">
+            <option value="0">Off</option>
+            <option value="0.25">1/16</option>
+            <option value="0.5">1/8</option>
+            <option value="1">1/4</option>
+          </select></label>
+      </div>
+      <div class="looptl" id="loopTl" aria-label="Recorded chords"><div class="loophead" id="loopHead" hidden></div></div>
+      <div class="row">
+        <button class="btn" id="loopRec" type="button">● Record</button>
+        <button class="btn" id="loopPlay" type="button">▶ Play</button>
+        <button class="btn" id="loopClear" type="button">Clear</button>
+      </div>
+      <p class="hint" id="loopMsg" aria-live="polite"></p>
+    </div>
+    </div>
+    <p class="panelhint">Drag a knob up or down, scroll on it, or use the arrow keys. Double-click resets it. The menu under each control lets a right-hand movement play it, and it turns green while your hand drives it. <b>Pedal ring:</b> giving it a hand holds the sustain pedal down the whole time, and the hand sets how long notes ring. <b>Bend:</b> try Tilt, where an upright hand is in tune and tilting either way bends; it springs back when your hand leaves the frame.</p>
+  </section>
+
+  <div class="adv">
+    <details class="sect adv-only" id="s-midi" open>
+      <summary>MIDI out</summary>
+      <div class="sbody">
+        <p class="hint">Send what you play to another synth, a DAW or a hardware instrument: notes, the sustain pedal, knob moves as controllers and the tempo clock. Or record it straight to a .mid file.</p>
+        <div class="row">
+          <button class="btn primary" id="midiOutBtn" type="button">Turn on MIDI out</button>
+          <span class="hint" id="midiOutMsg">Off</span>
+        </div>
+        <div class="lcds">
+          <label for="midiPort" class="wide">Send to<select id="midiPort" disabled><option value="">Nothing (off)</option></select></label>
+          <label for="midiCh">Channel<select id="midiCh"></select></label>
+          <label for="midiBassCh" title="Send the bass note on its own channel, so a DAW can give it its own instrument">Bass channel<select id="midiBassCh"></select></label>
+          <label for="midiVelMode" title="What sets how hard each note is struck">Velocity from
+            <select id="midiVelMode">
+              <option value="fixed">Fixed</option>
+              <option value="speed">Hand speed</option>
+              <option value="volume">Volume knob</option>
+            </select></label>
+          <label for="midiVel" title="How hard each note is struck, 1–127. With Hand speed, used when no hand is in view">Fixed velocity<input type="number" id="midiVel" min="1" max="127" step="1" inputmode="numeric"></label>
+          <label for="midiSens" class="wide" id="midiSensRow" title="How fast you need to move to strike at full velocity">Speed sensitivity<input type="range" id="midiSens" min="0" max="1" step="0.01"></label>
+          <p class="hint wide" id="midiVelNote"></p>
+        </div>
+        <div class="leds">
+          <label class="led" title="Send knob and fader moves as MIDI controllers"><input type="checkbox" id="midiCC"><span>Knobs as CC</span></label>
+          <label class="led" title="Send MIDI clock at the current BPM, starting on the next bar, so a DAW or drum machine follows along"><input type="checkbox" id="midiClock"><span>Send clock</span></label>
+          <label class="led" title="Silence this page's own synth and hear only the MIDI instrument"><input type="checkbox" id="midiMute"><span>Mute built-in</span></label>
+        </div>
+        <div class="row">
+          <button class="btn" id="recBtn" type="button">● Record .mid</button>
+          <span class="hint" id="recMsg">Records notes, pedal and knob moves. No MIDI device needed.</span>
+        </div>
+        <p class="hint" id="midiCCMap"></p>
+        <p class="hint">On Windows, to play into a DAW on this computer, make a virtual port with loopMIDI and pick it under Send to.</p>
+      </div>
+    </details>
+
+    <details class="sect adv-only" id="s-keys">
+      <summary>Keyboard shortcuts</summary>
+      <div class="sbody">
+        <div class="row">
+          <button class="btn" id="holdBtn" type="button" aria-describedby="holdHint">Shift</button>
+          <span class="hint" id="holdHint">Hold to swap major/minor</span>
+        </div>
+        <div class="row">
+          <button class="btn" id="inv1Btn" type="button" aria-describedby="inv1Hint">Z</button>
+          <span class="hint" id="inv1Hint">Hold for 1st inversion (3rd in the bass)</span>
+        </div>
+        <div class="row">
+          <button class="btn" id="inv2Btn" type="button" aria-describedby="inv2Hint">X</button>
+          <span class="hint" id="inv2Hint">Hold for 2nd inversion (5th in the bass)</span>
+        </div>
+        <div class="row">
+          <button class="btn" id="pedalKeyBtn" type="button" aria-describedby="pedalKeyHint2">V</button>
+          <span class="hint" id="pedalKeyHint2">Hold for the sustain pedal</span>
+        </div>
+        <div class="row">
+          <button class="btn" id="midiBtn" type="button">Connect a foot pedal (MIDI)</button>
+          <span class="hint" id="midiHint">Any USB or MIDI sustain pedal, or a keyboard with one plugged in</span>
+        </div>
+        <div class="row">
+          <button class="btn" id="flatBtn" type="button" aria-describedby="flatHint">,</button>
+          <span class="hint" id="flatHint">Hold for flat (♭): borrowed chords like ♭VI and ♭VII</span>
+        </div>
+        <div class="row">
+          <button class="btn" id="sharpBtn" type="button" aria-describedby="sharpHint">.</button>
+          <span class="hint" id="sharpHint">Hold for sharp (♯): passing chords like ♯iv°7</span>
+        </div>
+        <p class="hint">Click a key button, then press the key you want to use.</p>
+        <p class="hint">1–7 chords · hold <span id="holdHintKey">Shift</span> to flip · hold Z / X for inversions · hold , flat / . sharp · F flip · S 7ths · A color · voicing letters are shown on each voicing button · [ ] key · C chord loop (record, play, stop) · Space stops</p>
+      </div>
+    </details>
+
+    <details class="sect adv-only" id="s-diag" hidden>
+      <summary>Diagnostics</summary>
+      <div class="sbody">
+        <div class="lcds"><label for="trackSel" class="wide">Hand tracking runs on
+          <select id="trackSel">
+            <option value="GPU">Graphics chip (GPU)</option>
+            <option value="CPU">Processor (CPU), usually slower</option>
+          </select></label></div>
+        <p class="hint" id="diagSummary">No freezes recorded yet.</p>
+        <ol class="diaglog" id="diagLog"></ol>
+        <div class="row">
+          <button class="btn" id="diagCopy" type="button">Copy report</button>
+          <button class="btn" id="diagClear" type="button">Clear</button>
+        </div>
+        <p class="hint">Counts stutters (the page pausing 100–250 ms) and records freezes (over 250 ms) and what was running. Copy the report to share it when something feels slow.</p>
+      </div>
+    </details>
+
+    <details class="sect" id="s-about">
+      <summary>About &amp; support</summary>
+      <div class="sbody">
+        <p class="hint">Voicing Hands is free. No account, no ads, no tracking. The camera picture never leaves your computer: hand tracking runs inside the browser, and your settings are kept in this browser only.</p>
+        <p class="hint" id="supportLine" hidden>If it’s useful to you, you can <a id="supportLink" target="_blank" rel="noopener">chip in toward its development</a>. Entirely optional; nothing is locked.</p>
+      </div>
+    </details>
+
+    <details class="sect" id="s-guide">
+      <summary>Hand guide</summary>
+      <div class="sbody">
+        <dl class="legend">
+          <h4>Left hand · which chord (off when "right hand only" is on)</h4>
+          <dt>1–5 fingers</dt><dd>I, ii, iii, IV, V</dd>
+          <dt id="g6t">thumb + pinky 🤙</dt><dd>vi</dd>
+          <dt id="g7t">thumb + index (L)</dt><dd>vii°</dd>
+          <dt>lean right flips</dt><dd>Upright: normal chords. Lean right: flipped (with Pure maj/min: major / minor)</dd>
+          <dt>right major · left minor</dt><dd>Lean right: normal (major). Lean left: flipped (minor). Upright keeps your last choice</dd>
+          <dt>left ↔ right</dt><dd>Slides the chord up and down the keyboard (Hand position on)</dd>
+          <dt>middle of screen</dt><dd>Root in the bass (Height inversions on)</dd>
+          <dt>top of screen</dt><dd>1st inversion (3rd in the bass)</dd>
+          <dt>bottom of screen</dt><dd>2nd inversion (5th in the bass)</dd>
+          <dt>back of hand to camera</dt><dd>Flat ♭ chord, e.g. ♭VII (Palm roll; can be set to sharp or off)</dd>
+          <dt>fist / away</dt><dd>Stop (or hold the sustain pedal, if Left fist is set to Holds the pedal)</dd>
+          <h4>Right hand · how it sounds</h4>
+          <dt class="r">0–4 fingers</dt><dd>The five voicings you assigned (thumb not counted)</dd>
+          <dt class="r">thumb out</dt><dd>Major 7th on every chord (thumb in removes it)</dd>
+          <dt class="r">left ↔ right, height, lean, distance, palm roll</dt><dd>Any knob or fader whose hand menu is set to it. Defaults: cutoff, volume, color switch, reverb</dd>
+          <dt class="r">color switch, thumb out</dt><dd>Flat 7th: IVmaj7 → IV7</dd>
+          <dt class="r">twist left / right, thumb out</dt><dd>maj7 / 7 (7th type: Twist). Upright gives maj7 on major chords, m7 on minor</dd>
+          <dt class="r">color switch, thumb in</dt><dd>Add a 9th: IV → IVadd9</dd>
+        </dl>
+        <p class="hint">The <b>Eric Wei</b> hand setup is an homage to Eric Wei's Gesture Synth: lean your left hand right for major or left for minor, twist your right hand left for maj7 (m7 on minor chords) or right for 7 (°7 on minor chords), and use horns 🤘 / ILY 🤟 for 6 and 7.</p>
+      </div>
+    </details>
+    <label class="devtoggle adv-only"><input type="checkbox" id="diagToggle"> Show diagnostics (speed readout and freeze log, for troubleshooting)</label>
+  </div>
+</div>
+
+<!-- Scripts share one global scope and run in this order; later files use what earlier ones define -->
+<script src="js/theory.js"></script>
+<script src="js/state.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/midi.js"></script>
+<script src="js/controls.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/looper.js"></script>
+<script src="js/hands.js"></script>
+<script src="js/guides.js"></script>
+<script src="js/boot.js"></script>
+<script src="js/midi-panel.js"></script>
+<script src="js/learn.js"></script>
+</body>
+</html>

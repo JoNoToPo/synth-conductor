@@ -1,0 +1,99 @@
+/* ---------- Chord loop: record a progression against the beat, then it repeats while you play over it ----------
+   It records harmony only (chord, major/minor flip, 7th, color, flat/sharp, inversion). Voicing, knobs and sound
+   stay live, so the right hand keeps shaping the loop as it plays. Positions are kept in beats, so changing
+   the BPM speeds the loop up or slows it down. Beats here are always quarter notes; the meter sets how many make a bar. */
+const looper={
+  bars:4, snap:.5, events:[], state:'idle',   // idle · count (waiting for the downbeat) · rec · play
+  get playing(){ return this.state==='play'; },
+  pos:0, lastT:0, startAt:0, timer:null, clickWas:false, lastSnap:null,
+  len(){ return this.bars*meterOf().bar; },
+  snapshot(){ const on=st.sounding&&st.degree!==null;
+    return {deg:on?st.degree:null,flip:st.flip,alt7:st.alt7,s7:st.s7,sevForce:st.sevForce,shift:shiftAmt(),inv:effInv(),
+      roman:on?romanOf(st.degree):'',name:on?currentName():''}; },
+  same(a,b){ return a&&b&&['deg','flip','alt7','s7','sevForce','shift','inv'].every(k=>a[k]===b[k]); },
+  // Called after every chord change you play. While recording, it lands on the nearest snap step, but never past
+  // the loop's end: a change in the last moments stays at the end instead of wrapping round onto the first chord
+  record(){ if(this.state!=='rec')return; const s=this.snapshot(); if(this.same(s,this.lastSnap))return; this.lastSnap=s;
+    const L=this.len(), pos=Math.min(this.pos+(audio.ctx.currentTime-this.lastT)/beatSec(),L-1e-3);   // exact time, not the last tick's
+    let b=this.snap?Math.round(pos/this.snap)*this.snap:pos; if(b>=L)b=this.snap?Math.floor(pos/this.snap)*this.snap:pos; b=Math.round(b*1e4)/1e4;
+    this.events=this.events.filter(e=>Math.abs(e.beat-b)>1e-4); this.events.push({beat:b,...s}); this.events.sort((x,y)=>x.beat-y.beat);
+    loopUI(); },
+  apply(e){
+    st.loopOv={shift:e.shift,inv:e.inv}; st.flip=e.flip; st.alt7=e.alt7; st.s7=e.s7; st.sevForce=e.sevForce;
+    $('optFlip').checked=e.flip; $('optAlt7').checked=e.alt7; $('opt7').checked=e.s7;
+    if(e.deg===null)play(null,{fromLoop:true}); else play(e.deg,{fromLoop:true,retrigger:st.degree===e.deg&&st.sounding});
+  },
+  // Next beat (or bar) on the same grid as the arpeggio, click and MIDI clock
+  nextGrid(beats,minAhead){ const c=audio.ctx, step=beatSec()*beats; let t=audio.t0+Math.ceil((c.currentTime+.03-audio.t0)/step)*step;
+    while(t-c.currentTime<minAhead)t+=step; return t; },
+  start(state,at){ clearInterval(this.timer); this.state=state; this.startAt=at; this.timer=setInterval(()=>this.tick(),10); loopUI(); },
+  arm(){ if(!audio.ctx)return; this.stop(); this.events=[]; this.lastSnap=null;
+    this.clickWas=!!audio.clickTimer; audio.startClick();                  // count-in and recording always click
+    const bar=meterOf().bar; this.recording=true; this.start('count',this.nextGrid(bar,beatSec()*bar*.75)); },   // at least ~a bar of count-in
+  playLoop(){ if(!audio.ctx||!this.events.length)return; this.stop(); this.recording=false; this.start('count',this.nextGrid(1,0)); },
+  stop(){ if(this.state==='idle')return; const was=this.state; clearInterval(this.timer); this.timer=null; this.state='idle'; st.loopOv=null; this.restore();
+    if(!this.clickWas&&!st.click)audio.stopClick(); this.clickWas=false;
+    if(was==='play'||was==='rec')play(null,{fromLoop:true}); if(this.events.length)saveLoop(); loopUI(); },
+  toggle(){ if(this.state==='idle'){ this.events.length?this.playLoop():this.arm(); }
+    else if(this.state==='rec'){ this.finish(); } else this.stop(); },
+  // End recording: the loop carries straight on into playback, no gap
+  finish(){ if(!this.clickWas&&!st.click)audio.stopClick(); this.state='play'; this.recording=false; this.keep(); saveLoop(); loopUI(); },
+  tick(){
+    const now=audio.ctx.currentTime;
+    if(this.state==='count'){ if(now<this.startAt){loopMsg();return}
+      this.state=this.recording?'rec':'play'; this.pos=0; this.lastT=this.startAt;
+      if(this.state==='rec'){ this.lastSnap=null; this.record(); } else { this.keep(); this.fire(-1e-6,0); } loopUI(); }
+    const L=this.len(), prev=this.pos; this.pos+=(now-this.lastT)/beatSec(); this.lastT=now;
+    if(this.state==='rec'){ if(this.pos>=L){ this.pos-=L; this.finish(); this.fire(-1e-6,this.pos); } }
+    else if(this.pos>=L){ this.fire(prev,L); this.pos-=L; this.fire(-1e-6,this.pos); }
+    else this.fire(prev,this.pos);
+    loopHead();
+  },
+  fire(a,b){ for(const e of this.events) if(e.beat>a&&e.beat<=b+1e-9) this.apply(e); },
+  // The loop sets flip, 7ths and color as it plays; yours come back when it stops
+  keep(){ this.mine={flip:st.flip,alt7:st.alt7,s7:st.s7,sevForce:st.sevForce}; },
+  restore(){ const m=this.mine; if(!m)return; this.mine=null; Object.assign(st,m); $('optFlip').checked=m.flip; $('optAlt7').checked=m.alt7; $('opt7').checked=m.s7; },
+};
+const LOOP_BARS=[1,2,4,6,8];
+function saveLoop(){ try{localStorage.setItem('vh-loop',JSON.stringify({bars:looper.bars,snap:looper.snap,events:looper.events}))}catch(e){} }
+
+try{ const s=JSON.parse(localStorage.getItem('vh-loop')||'null');
+  if(s){ if(LOOP_BARS.includes(s.bars))looper.bars=s.bars; if([0,.25,.5,1].includes(s.snap))looper.snap=s.snap;
+    if(Array.isArray(s.events))looper.events=s.events.filter(e=>e&&typeof e.beat==='number'&&e.beat>=0&&e.beat<looper.len()&&(e.deg===null||(e.deg>=0&&e.deg<7))); } }catch(e){}
+
+/* Loop panel: a timeline of the recorded chords with a playhead */
+function loopHead(){ const h=document.getElementById('loopHead'); if(!h)return;
+  const show=looper.state==='play'||looper.state==='rec'; h.hidden=!show; if(show)h.style.left=(looper.pos/looper.len()*100)+'%'; }
+function loopUI(){
+  const tl=document.getElementById('loopTl'); if(!tl)return; const L=looper.len(), ev=looper.events;
+  const m=meterOf(); tl.style.setProperty('--bars',looper.bars); tl.style.setProperty('--pulses',looper.bars*m.n);
+  tl.querySelectorAll('.lseg').forEach(n=>n.remove());
+  ev.forEach((e,i)=>{ if(e.deg===null)return; const end=i+1<ev.length?ev[i+1].beat:L;
+    const s=document.createElement('div'); s.className='lseg'; s.style.left=(e.beat/L*100)+'%'; s.style.width=((end-e.beat)/L*100)+'%';
+    s.title=`${e.name} · bar ${Math.floor(e.beat/m.bar)+1}, ${m.d===8?'eighth':'beat'} ${Math.floor((e.beat%m.bar)/m.step+1e-6)+1}`; const r=document.createElement('b'); r.textContent=e.roman; const n=document.createElement('span'); n.textContent=e.name;
+    s.append(r,n); tl.insertBefore(s,document.getElementById('loopHead')); });
+  const st0=looper.state, rec=$('loopRec'), pl=$('loopPlay');
+  rec.textContent=st0==='rec'?'■ Finish':looper.recording&&st0==='count'?'Cancel':'● Record';
+  rec.classList.toggle('recording',looper.recording&&(st0==='rec'||st0==='count'));
+  pl.textContent=st0==='play'||(!looper.recording&&st0==='count')?'■ Stop':'▶ Play'; pl.disabled=!ev.length&&st0==='idle';
+  $('loopClear').disabled=!ev.length||st0!=='idle';
+  loopMsg(); loopHead();
+}
+function loopMsg(){
+  const m=$('loopMsg'), st0=looper.state, ev=looper.events, n=ev.filter(e=>e.deg!==null).length;
+  if(st0==='count'){ const left=Math.max(1,Math.ceil((looper.startAt-audio.ctx.currentTime)/(beatSec()*meterOf().step))); m.textContent=looper.recording?`Count-in… ${left}`:'Starting on the next beat…'; }
+  else if(st0==='rec') m.textContent=`Recording ${looper.bars} bar${looper.bars>1?'s':''} of ${st.meter}: play your chords. C finishes early.`;
+  else if(st0==='play') m.textContent='Looping. Play voicings and knobs over it; C or Space stops.';
+  else m.textContent=n?`${n} chord${n>1?'s':''} recorded. C plays the loop.`:'Records your chord changes against the BPM, starting on the next bar after a count-in. Press C to record, play or stop.';
+}
+$('loopBars').value=String(looper.bars); $('loopSnap').value=String(looper.snap); $('loopMeter').value=st.meter;
+// Changing the meter changes the bar length; chords past the new end are dropped. It also sets the click and MIDI clock bars
+$('loopMeter').addEventListener('change',e=>{ st.meter=e.target.value; saveTempo();
+  looper.events=looper.events.filter(x=>x.beat<looper.len()); if(looper.pos>=looper.len())looper.pos%=looper.len();
+  if(audio.clickTimer){audio.stopClick();audio.startClick()} if(midiOut.clockTimer){midiOut.stopClock();midiOut.startClock()} saveLoop(); loopUI(); });
+$('loopBars').addEventListener('change',e=>{ const b=+e.target.value; looper.bars=b; looper.events=looper.events.filter(x=>x.beat<looper.len()); saveLoop(); loopUI(); });
+$('loopSnap').addEventListener('change',e=>{ looper.snap=+e.target.value; saveLoop(); });
+$('loopRec').addEventListener('click',()=>{ audio.init(); if(looper.state==='rec')looper.finish(); else if(looper.recording&&looper.state==='count')looper.stop(); else looper.arm(); });
+$('loopPlay').addEventListener('click',()=>{ audio.init(); if(looper.state==='idle')looper.playLoop(); else looper.stop(); });
+$('loopClear').addEventListener('click',()=>{ looper.events=[]; saveLoop(); loopUI(); });
+loopUI();

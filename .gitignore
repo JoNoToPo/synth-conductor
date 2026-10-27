@@ -1,0 +1,6 @@
+# Local tool settings
+.claude/
+# OS clutter
+.DS_Store
+Thumbs.db
+desktop.ini
