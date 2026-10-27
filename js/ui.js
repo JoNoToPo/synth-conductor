@@ -142,10 +142,10 @@ function render(){
     const span=st.upper[st.upper.length-1]-st.upper[0];
     const invNames=['root position','1st inversion','2nd inversion','3rd inversion'];
     const inv=effInv(), invTxt=inv>0&&bassInterval(st.degree)!==0?`<span><b>${invNames[inv]}</b></span>`:'';
-    $('meta').innerHTML=`<span>Voicing <b>${v.name}</b></span>${invTxt}<span>Spread <b>${span}</b> semitones</span>`+
-      (st.moved!==null?`<span>Voices moved <b>${st.moved}</b> semitones</span>`:'');
+    $('meta').innerHTML=`<span>Voicing <b>${v.name}</b></span>${invTxt}<span title="Semitones from the lowest to the highest voicing note">Spread <b>${span}</b></span>`+
+      (st.moved!==null?`<span title="Total semitones the voices moved from the last chord">Moved <b>${st.moved}</b></span>`:'');
   }
-  $('path').textContent=st.history.length?st.history.join('  →  '):'';
+  $('path').innerHTML=st.history.length?'<span>'+st.history.join('  →  ')+'</span>':'';
   if(!demoTimer)$('demoBtn').textContent=demoLabel();
   drawPiano();
   status();
