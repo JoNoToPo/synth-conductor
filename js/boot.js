@@ -312,3 +312,12 @@ $('fullBtn').addEventListener('click',()=>setFull(!document.body.classList.conta
 // Leaving the browser's full screen (Esc, swipe) leaves ours too
 ['fullscreenchange','webkitfullscreenchange'].forEach(t=>document.addEventListener(t,()=>{ if(fullApi&&!(document.fullscreenElement||document.webkitFullscreenElement)){fullApi=false;setFull(false)} }));
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&document.body.classList.contains('full'))setFull(false); });
+// Which side the phone's lens is on when it's sideways: turned left (top of the phone to the left) puts it on the left
+function camSide(){
+  const t=screen.orientation&&screen.orientation.type, o=window.orientation;
+  const right=t?t==='landscape-secondary':o===-90;
+  document.body.classList.toggle('cam-right',right);
+}
+camSide();
+if(screen.orientation&&screen.orientation.addEventListener)screen.orientation.addEventListener('change',camSide);
+addEventListener('orientationchange',camSide); addEventListener('resize',camSide);

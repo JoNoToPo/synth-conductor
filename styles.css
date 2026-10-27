@@ -390,10 +390,11 @@ body.full .stage>.readout .chordname{flex:1;min-width:0;font-size:clamp(1.6rem,4
 body.full .stage>.readout .chordname.idle{font-size:1rem;white-space:nowrap}
 body.full .pads{flex:none}
 body.full .pad{padding:clamp(6px,1.4vh,12px) 4px}
-body.full .stage>.row{flex:none;flex-wrap:nowrap}
+body.full .stage>.row{flex:none;row-gap:6px}
 body.full .stage>.row>:not(.fs-keep){display:none}
 body.full .stage>.row .btn{padding:8px 12px;white-space:nowrap;font-size:.88rem}
 body.full #fullBtn{margin-left:auto}
+body.full .stage>.row>.led.fs-keep{display:inline-flex!important;white-space:nowrap;font-size:.62rem;padding:7px 9px}
 /* Sideways phone: camera on the left, chord and pads on the right */
 @media (orientation:landscape) and (max-height:560px){
   body.full .stage{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);grid-template-rows:auto 1fr auto;column-gap:10px;row-gap:6px}
@@ -402,4 +403,8 @@ body.full #fullBtn{margin-left:auto}
   body.full .pads{grid-column:2;grid-row:2;grid-template-columns:repeat(4,minmax(0,1fr));align-content:center}
   body.full .stage>.row{grid-column:2;grid-row:3}
   body.full .stage>.msg{display:none}
+  /* Turned the other way the lens is on the right, so the camera view goes there and the controls move to the left */
+  body.full.cam-right .stage{grid-template-columns:minmax(0,1fr) minmax(0,1.35fr)}
+  body.full.cam-right .view{grid-column:2}
+  body.full.cam-right .stage>.readout,body.full.cam-right .pads,body.full.cam-right .stage>.row{grid-column:1}
 }
