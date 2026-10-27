@@ -20,7 +20,9 @@ const VOWELS=[[730,1090,2440],[530,1840,2480],[270,2290,3010],[570,840,2410],[30
 const audio={
   ctx:null,voices:new Map(),strum:0,detuneAmt:0,pedal:false,ringSec:4,sustained:[],
   init(){
-    if(this.ctx){ if(this.ctx.state==='suspended')this.ctx.resume(); return; }
+    this.unmuteIOS();
+    // iOS also leaves sound "interrupted" after a call, Siri or the lock screen, not just "suspended"
+    if(this.ctx){ if(this.ctx.state!=='running')this.ctx.resume().catch(()=>{}); return; }
     const AC=window.AudioContext||window.webkitAudioContext; const ctx=this.ctx=new AC();
     const G=v=>{const g=ctx.createGain();g.gain.value=v;return g};
     // Chain: voices → bus → drive → high-pass → low-pass → vowel formants → chorus → post → (dry + reverb) → comp → master
@@ -85,6 +87,24 @@ const audio={
     this.t0=ctx.currentTime;
     applyAllRoutes(); setVibRate(); setTimeFx(); if(st.click)this.startClick(); if(midiOut.clock)midiOut.startClock();
     document.getElementById('audioDot').classList.add('on'); status();
+  },
+  /* iPhone and iPad: Safari mutes web audio when the ring/silent switch is on, unless the page asks to play as
+     media. iOS 17+ has a setting for that; older iOS switches over while an <audio> element plays, so a
+     silent one loops quietly. Must run inside a tap, which every caller of init() is. */
+  silentEl:null,
+  unmuteIOS(){
+    try{ if(navigator.audioSession){ if(navigator.audioSession.type!=='playback')navigator.audioSession.type='playback'; return; } }catch(e){}
+    const ios=/iP(hone|ad|od)/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+    if(!ios)return;
+    if(!this.silentEl){
+      // Half a second of 8-bit silence as a WAV file
+      const n=4000,b=new Uint8Array(44+n),v=new DataView(b.buffer),s=(o,t)=>[...t].forEach((c,i)=>b[o+i]=c.charCodeAt(0));
+      s(0,'RIFF');v.setUint32(4,36+n,true);s(8,'WAVEfmt ');v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);
+      v.setUint32(24,8000,true);v.setUint32(28,8000,true);v.setUint16(32,1,true);v.setUint16(34,8,true);s(36,'data');v.setUint32(40,n,true);b.fill(128,44);
+      const el=this.silentEl=document.createElement('audio'); el.setAttribute('playsinline',''); el.setAttribute('x-webkit-airplay','deny');
+      el.loop=true; el.preload='auto'; el.src=URL.createObjectURL(new Blob([b],{type:'audio/wav'}));
+    }
+    if(this.silentEl.paused)this.silentEl.play().catch(()=>{});
   },
   ramp(param,v,tc=.06){ if(this.ctx) param.setTargetAtTime(v,this.ctx.currentTime,tc); },
   setDrive(k){ // k 0..1

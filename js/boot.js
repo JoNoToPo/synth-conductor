@@ -267,6 +267,9 @@ function idleStage(){
 }
 idleStage();addEventListener('resize',idleStage);
 
+// Phones pause sound for calls, Siri and the lock screen: once it has started, any tap brings it back
+for(const ev of ['pointerdown','touchend','keydown'])
+  addEventListener(ev,()=>{ if(audio.ctx&&audio.ctx.state!=='running')audio.init(); },{capture:true,passive:true});
 // Diagnostics are a troubleshooting tool, hidden until turned on
 { const tg=document.getElementById('diagToggle'), sec=document.getElementById('s-diag'), latEl=document.getElementById('latency');
   let on=false; try{on=localStorage.getItem('vh-diag')==='1'}catch(e){}
