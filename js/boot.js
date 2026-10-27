@@ -270,6 +270,26 @@ idleStage();addEventListener('resize',idleStage);
 // Phones pause sound for calls, Siri and the lock screen: once it has started, any tap brings it back
 for(const ev of ['pointerdown','touchend','keydown'])
   addEventListener(ev,()=>{ if(audio.ctx&&audio.ctx.state!=='running')audio.init(); },{capture:true,passive:true});
+// Problems on devices we can't test: show script errors where people will see them, so they can report them
+const errSeen=new Set();
+function showError(msg,where){ const t=`Something went wrong: ${msg}${where?' ('+where+')':''}`; if(errSeen.has(t))return; errSeen.add(t);
+  camMsg([...errSeen].slice(-3).join('\n')); }
+addEventListener('error',e=>showError(e.message||String(e.error),e.filename?e.filename.split('/').pop()+':'+e.lineno:''));
+(window.vhErrors||[]).forEach(([m,w])=>showError(m,w));
+addEventListener('unhandledrejection',e=>showError(e.reason&&e.reason.message||String(e.reason),'promise'));
+// Sound check: tap the status line for a plain beep straight to the speaker, skipping every effect, plus what the browser reports
+$('statusText').title='Tap for a sound check';
+$('statusText').style.cursor='pointer';
+$('statusText').addEventListener('click',()=>{
+  audio.init(); const c=audio.ctx;
+  try{ const o=c.createOscillator(), g=c.createGain(), t=c.currentTime+.02; o.frequency.value=660;
+    g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(.3,t+.01); g.gain.setValueAtTime(.3,t+.35); g.gain.linearRampToValueAtTime(0,t+.4);
+    o.connect(g); g.connect(c.destination); o.start(t); o.stop(t+.45); }catch(e){ showError(e.message,'sound check'); return; }
+  setTimeout(()=>camMsg(`Sound check: played a beep. Audio is ${c.state}, ${c.sampleRate} Hz, `+
+    `${navigator.audioSession?'audio session '+navigator.audioSession.type:'no audio session setting'}, `+
+    `built-in sound ${midiOut.mute?'muted':'on'}, volume knob ${Math.round(st.ctrl.volume.v*100)}%, `+
+    `${audio.voices.size} note${audio.voices.size===1?'':'s'} held. If you heard nothing, check the volume buttons and Bluetooth.`),500);
+});
 // Diagnostics are a troubleshooting tool, hidden until turned on
 { const tg=document.getElementById('diagToggle'), sec=document.getElementById('s-diag'), latEl=document.getElementById('latency');
   let on=false; try{on=localStorage.getItem('vh-diag')==='1'}catch(e){}

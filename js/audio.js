@@ -24,6 +24,9 @@ const audio={
     // iOS also leaves sound "interrupted" after a call, Siri or the lock screen, not just "suspended"
     if(this.ctx){ if(this.ctx.state!=='running')this.ctx.resume().catch(()=>{}); return; }
     const AC=window.AudioContext||window.webkitAudioContext; const ctx=this.ctx=new AC();
+    // Some browsers create it paused even inside a tap; ask for it to start while the tap still counts
+    if(ctx.state!=='running')ctx.resume().catch(()=>{});
+    ctx.onstatechange=()=>status();
     const G=v=>{const g=ctx.createGain();g.gain.value=v;return g};
     // Chain: voices → bus → drive → high-pass → low-pass → vowel formants → chorus → post → (dry + reverb) → comp → master
     this.bus=G(1);

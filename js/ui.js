@@ -150,8 +150,10 @@ function render(){
   drawPiano();
   status();
 }
+// The real state of the sound, not just whether it was started: a browser can hold it paused
 function status(){
-  const parts=[audio.ctx?'Sound on':'Sound off · tap a chord to start'];
+  const s=audio.ctx&&audio.ctx.state;
+  const parts=[!s?'Sound off · tap a chord to start':s==='running'?'Sound on':`Sound paused by the browser (${s}) · tap anywhere`];
   if(cam.on)parts.push(cam.ready?'hands tracking':'starting camera');
   $('statusText').textContent=parts.join(' · ');
 }
