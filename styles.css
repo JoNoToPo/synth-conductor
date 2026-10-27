@@ -363,5 +363,5 @@ body.simple .sq-top{grid-template-columns:minmax(0,1fr)}
 .lfix[hidden]{display:none}
 .lfix .btn{padding:5px 12px;font-size:.82rem}
 .lok{font-family:var(--font-mono);font-size:.8rem;color:var(--patina);margin-left:4px}
-#supportLink{color:var(--brass)}
+#supportLink,.credit{color:var(--brass)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}

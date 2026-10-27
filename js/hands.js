@@ -59,13 +59,13 @@ function renderDiag(){
   if(gap>100&&gap<=250&&!document.hidden&&!diag.building){
     diag.stutters++;
     const top=diag.frameTop;
-    if(gap>160) diagAdd(top&&top.ms>gap*.5?`Stutter ${Math.round(gap)} ms: ${top.name} took ${Math.round(top.ms)} ms`:`Stutter ${Math.round(gap)} ms outside Voicing Hands' own code`,false);
+    if(gap>160) diagAdd(top&&top.ms>gap*.5?`Stutter ${Math.round(gap)} ms: ${top.name} took ${Math.round(top.ms)} ms`:`Stutter ${Math.round(gap)} ms outside Synth Conductor's own code`,false);
   }
   if(gap>250&&gap<15000&&!document.hidden&&!diag.building){
     diag.stalls++;
     const top=diag.frameTop;
     if(top&&top.ms>gap*.5) diagAdd(`Froze ${Math.round(gap)} ms: ${top.name} took ${Math.round(top.ms)} ms`,true);
-    else diagAdd(`Froze ${Math.round(gap)} ms outside Voicing Hands' own code (browser or graphics). Our code ran ${Math.round(diag.appMs)} ms`,true);
+    else diagAdd(`Froze ${Math.round(gap)} ms outside Synth Conductor's own code (browser or graphics). Our code ran ${Math.round(diag.appMs)} ms`,true);
   }
   diag.last=now; diag.appMs=0; diag.frameTop=null;
   requestAnimationFrame(watch);

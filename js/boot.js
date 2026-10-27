@@ -198,7 +198,7 @@ $('trackSel').addEventListener('change',async e=>{trackDelegate=e.target.value;t
   renderDiag(); if(cam.on&&cam.vision){camMsg('Switching hand tracking to '+trackDelegate+'…');try{await loadTracker();camMsg('')}catch(err){camMsg('Couldn’t switch hand tracking: '+err.message)}}});
 $('diagClear').addEventListener('click',()=>{diag.log=[];diag.stalls=0;diag.stutters=0;renderDiag()});
 $('diagCopy').addEventListener('click',()=>{
-  const lines=['Voicing Hands diagnostics','Browser: '+navigator.userAgent,'Hand tracking: '+(cam.delegate||trackDelegate)+(cam.inWorker?' (background worker)':cam.ready?' (on the page)':''),
+  const lines=['Synth Conductor diagnostics','Browser: '+navigator.userAgent,'Hand tracking: '+(cam.delegate||trackDelegate)+(cam.inWorker?' (background worker)':cam.ready?' (on the page)':''),
     `Tracking looks for ${cam.numHands||'?'} hand(s)`,
     `Settings: ${SOUNDS[st.sound].label} · voicing ${st.voicing} · arp ${st.ctrl.arp.v>=.03?'on':'off'} · right hand only ${st.rightOnly} · fast ${st.fast} · position ${st.ctrl.position.v>=.03?'on':'off'}`,
     'Latency: '+($('latency').textContent||'n/a'),'',...diag.log.map(e=>`${e.time} | ${e.msg} | ${e.ctx}`)];

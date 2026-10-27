@@ -69,7 +69,7 @@ $('midiBtn').addEventListener('click',async()=>{
     clearInterval(recTimer); rb.textContent='● Record .mid'; rb.classList.remove('recording');
     const r=M.stopRec(); if(!r||!r.notes){rm.textContent='Nothing was played, so nothing was saved.';return}
     const d=new Date(), p=n=>String(n).padStart(2,'0');
-    const name=`voicing-hands-${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}.mid`;
+    const name=`synth-conductor-${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}.mid`;
     const a=document.createElement('a'); a.href=URL.createObjectURL(r.blob); a.download=name; document.body.appendChild(a); a.click(); a.remove();
     setTimeout(()=>URL.revokeObjectURL(a.href),5000);
     rm.textContent=`Saved ${name} · ${r.notes} notes, ${fmtT(r.sec)}`;
