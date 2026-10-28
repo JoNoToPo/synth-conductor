@@ -335,15 +335,12 @@ select{background:var(--surface);border:1px solid var(--line);border-radius:10px
 .bank .fader.driven input[type=range]{accent-color:var(--patina)}
 @media (max-width:1100px){.synth{grid-template-columns:repeat(2,minmax(0,1fr))}.synth>.g-amp{grid-column:1/-1}}
 @media (max-width:620px){.synth{grid-template-columns:minmax(0,1fr)}}
-/* With the timing stack hidden, the other two share the width */
-@media (min-width:1101px){.synth.two{grid-template-columns:minmax(0,1.25fr) minmax(0,1fr)}}
 /* A panel switched to its basics keeps the main knobs and hides the finer ones */
 .panel-min .pa{display:none!important}
 /* MIDI out gets a row of its own, laid out across the width on bigger screens */
 .synth.midirow{display:block;margin-top:12px}
 .midirow .module{background:var(--tint);border-color:var(--tline)}
 .midirow .module h3{color:var(--g);border-bottom-color:var(--tline)}
-.midirow:not(:has(.module:not(.panel-off))){display:none}
 @media (min-width:900px){.m-midi>.lcds{grid-template-columns:repeat(4,minmax(0,1fr))}.m-midi>.leds{grid-template-columns:repeat(3,minmax(0,1fr))}}
 .adv{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;align-items:start}
 @media (max-width:720px){.adv{grid-template-columns:minmax(0,1fr)}}
@@ -451,6 +448,15 @@ body.full:not(.rh-only) .pads,body.full:not(.rh-only) .stage>.row>.fs-rh{display
 /* Panels: each part of the page can be shown or hidden; the choice is kept in this browser */
 [data-panel].panel-off{display:none!important}
 .phide[hidden]{display:none}
+/* The + left where a hidden panel was */
+.padd{display:flex;align-items:center;justify-content:center;gap:6px;min-height:40px;padding:8px 12px;border:1px dashed var(--tline,var(--line));border-radius:10px;
+  background:none;color:var(--muted);font:500 .74rem var(--font-mono);letter-spacing:.1em;text-transform:uppercase;cursor:pointer}
+.padd span{font-size:1.05rem;line-height:1;color:var(--g,var(--brass))}
+.padd:hover,.padd:focus-visible{color:var(--ivory);border-style:solid;background:rgba(255,255,255,.03)}
+.padd[hidden],body.full .padd{display:none}
+/* A bigger box holding only a + stays light */
+.padd{width:100%}
+.midirow:has(>.padd:not([hidden])){padding:0;border:0;background:none;box-shadow:none}
 .hdrtools{position:relative}
 .pcount{font-family:var(--font-mono);font-size:.72rem;color:var(--muted);margin-left:4px}
 .panelmenu{position:fixed;z-index:30;max-height:calc(100vh - 24px);max-height:calc(100dvh - 24px);overflow:auto;width:min(360px,calc(100vw - 32px));display:flex;flex-direction:column;gap:10px;

@@ -39,7 +39,7 @@ function panelsApply(){
     if(el.hasAttribute('data-panel-min')){ el.classList.toggle('panel-min',!on); const b=el.querySelector(':scope>.phide');
       b.textContent=on?'Less':'More'; b.title=on?'Show just the main knobs':'Show every knob'; b.setAttribute('aria-expanded',on); }
     else el.classList.toggle('panel-off',!on); });
-  $('synth').classList.toggle('two',![...$('timeBank').querySelectorAll('[data-panel]')].some(m=>panelShown(m.dataset.panel)));
+  document.querySelectorAll('.padd').forEach(b=>b.hidden=panelShown(b.dataset.for));
   document.body.classList.toggle('simple',!panels.details);
   // Tempo can't be hidden while something uses it: its box is ticked and greyed, and its ✕ is gone
   const need=tempoNeededBy(), tb=$('panelList').querySelector('input[value=tempo]');
@@ -64,7 +64,11 @@ document.querySelectorAll('[data-panel]').forEach(el=>{
   // A panel with main knobs that always stay folds down to them (More/Less); any other one hides (✕)
   if(el.hasAttribute('data-panel-min')){ b.classList.add('pmore'); b.addEventListener('click',e=>{ e.preventDefault(); e.stopPropagation(); setPanel(k,!panels[k]); }); }
   else{ b.textContent='✕'; b.title=`Hide ${name}. Bring it back from Panels at the top`; b.setAttribute('aria-label',`Hide ${name}`);
-    b.addEventListener('click',e=>{ e.preventDefault(); e.stopPropagation(); setPanel(k,false); }); }
+    b.addEventListener('click',e=>{ e.preventDefault(); e.stopPropagation(); setPanel(k,false); });
+    // A hidden panel leaves a + in its place to bring it back right there
+    const add=document.createElement('button'); add.type='button'; add.className='padd'; add.dataset.for=k; add.hidden=true;
+    add.innerHTML=`<span aria-hidden="true">+</span> ${name}`; add.title=`Show ${name} here again`;
+    add.addEventListener('click',()=>{ setPanel(k,true); el.querySelector(':scope>.phide,:scope>summary>.phide')?.focus(); }); el.after(add); }
   const sum=el.tagName==='DETAILS'&&el.querySelector(':scope>summary'); (sum||el).appendChild(b);
 });
 { const btn=$('panelsBtn'), menu=$('panelMenu');
