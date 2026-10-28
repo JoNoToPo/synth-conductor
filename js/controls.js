@@ -132,9 +132,11 @@ let saveTimer=null;
 function saveRoutes(){clearTimeout(saveTimer);saveTimer=setTimeout(()=>{try{
   localStorage.setItem('vh-ctrl',JSON.stringify(st.ctrl));localStorage.setItem('vh-leancolor',st.leanColor?'1':'0')}catch(e){}},300)}
 // Which module each control lives in, and its short panel name
-const MODULE_OF={main:['volume','pedal','cutoff','reverb','chorus'],amp:['bass','treble'],env:['attack','decay','sustain','release'],
-  filter:['resonance','highpass','vowel'],fx:['drive','phaser','flanger'],mod:['bend','detune','vibrato','tremolo','autopan','rotary'],
+const MODULE_OF={amp:['volume','pedal','bass','treble'],env:['attack','decay','sustain','release'],
+  filter:['cutoff','resonance','highpass','vowel'],fx:['reverb','chorus','drive','phaser','flanger'],mod:['bend','detune','vibrato','tremolo','autopan','rotary'],
   pump:['pump'],delay:['delay','feedback'],arp:['arp','strum'],chordpos:['position']};
+// The finer knobs: hidden when their panel is switched to just the basics
+const CTRL_ADV=new Set(['bass','treble','resonance','highpass','vowel','drive','phaser','flanger']);
 const KSHORT={bass:'Bass',treble:'Treble',pedal:'Pedal ring',volume:'Volume',cutoff:'Cutoff',resonance:'Reso',highpass:'Hi-pass',vowel:'Vowel',reverb:'Reverb',chorus:'Chorus',
   drive:'Drive',detune:'Detune',vibrato:'Vibrato',strum:'Strum',arp:'Arp rate',phaser:'Phaser',flanger:'Flanger',tremolo:'Tremolo',autopan:'Auto-pan',rotary:'Rotary',delay:'Delay',feedback:'Feedback',pump:'Pump',position:'Position',bend:'Bend',attack:'A',decay:'D',sustain:'S',release:'R'};
 // Hand menu: source + direction in one choice
@@ -157,7 +159,7 @@ function srcSelect(k){
   return s;
 }
 function makeKnob(k,big){
-  const t=TARGETS[k],w=document.createElement('div');w.className='knob'+(big?' big':'');w.dataset.k=k;w.title=t.label;
+  const t=TARGETS[k],w=document.createElement('div');w.className='knob'+(big?' big':'')+(CTRL_ADV.has(k)?' pa':'');w.dataset.k=k;w.title=t.label;
   w.innerHTML=`<div class="kdial" role="slider" tabindex="0" aria-label="${t.label}" aria-valuemin="0" aria-valuemax="100">
       <svg viewBox="0 0 60 60" aria-hidden="true"><path class="trk" d="${arcPath(A0,A1,25)}" fill="none" stroke-width="4" stroke-linecap="round"/>
       <path class="arc" fill="none" stroke-width="4" stroke-linecap="round"/><circle class="cap" cx="30" cy="30" r="18" stroke-width="1.5"/>

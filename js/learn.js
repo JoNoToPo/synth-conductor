@@ -12,15 +12,14 @@ const PANELS=[
   ['loop','Chord loop','Record chords to the beat, then play over them'],
   ['chord','Chord options','7ths, major/minor flips, inversions, ♭ and ♯'],
   ['presets','Presets','Save and load sounds and hand setups'],
-  ['amp','Amp & tone','Bass, treble and the envelope'],
+  ['amp','Amp & tone','Bass, treble and the envelope. Volume and pedal ring always show'],
   ['mod','Modulation','Bend, detune, vibrato, tremolo, auto-pan and rotary'],
-  ['filter','Filter','Resonance, high-pass and the vowel filter'],
-  ['fx','Effects','Drive, phaser, flanger and the reverb type'],
+  ['filter','Filter','Resonance, high-pass and the vowel filter. Cutoff always shows'],
+  ['fx','Effects','Drive, phaser, flanger and the reverb type. Reverb and chorus always show'],
   ['tempo','Tempo & pump','BPM, tap, sync, click and pump'],
   ['arp','Arp & strum','Play chords as arpeggios, or strum them'],
   ['delay','Delay','Echoes in time with the tempo'],
   ['midi','MIDI out','Play other synths or a DAW, or record a .mid file'],
-  ['keys','Keyboard shortcuts','Change which keys hold flips, inversions and the pedal'],
   ['details','Extra options','Finer settings inside the panels, like finger slots'],
 ];
 const PANELS_ESSENTIAL=['piano','loop'];
@@ -36,7 +35,11 @@ let panels={};
 const tempoNeededBy=()=>Object.keys(NEEDS_TEMPO).filter(k=>panels[k]);
 const panelShown=k=>panels[k]||(k==='tempo'&&tempoNeededBy().length>0);
 function panelsApply(){
-  document.querySelectorAll('[data-panel]').forEach(el=>el.classList.toggle('panel-off',!panelShown(el.dataset.panel)));
+  document.querySelectorAll('[data-panel]').forEach(el=>{ const on=panelShown(el.dataset.panel);
+    if(el.hasAttribute('data-panel-min')){ el.classList.toggle('panel-min',!on); const b=el.querySelector(':scope>.phide');
+      b.textContent=on?'Less':'More'; b.title=on?'Show just the main knobs':'Show every knob'; b.setAttribute('aria-expanded',on); }
+    else el.classList.toggle('panel-off',!on); });
+  $('synth').classList.toggle('two',![...$('timeBank').querySelectorAll('[data-panel]')].some(m=>panelShown(m.dataset.panel)));
   document.body.classList.toggle('simple',!panels.details);
   // Tempo can't be hidden while something uses it: its box is ticked and greyed, and its ✕ is gone
   const need=tempoNeededBy(), tb=$('panelList').querySelector('input[value=tempo]');
@@ -57,9 +60,11 @@ PANELS.forEach(([k,name,desc])=>{
 // A ✕ in each panel's corner; on a collapsible section it sits in the title bar so it shows when closed too
 document.querySelectorAll('[data-panel]').forEach(el=>{
   const k=el.dataset.panel, name=(PANELS.find(p=>p[0]===k)||[])[1]; if(!name||el.classList.contains('panelhint'))return;
-  const b=document.createElement('button'); b.type='button'; b.className='phide'; b.textContent='✕';
-  b.title=`Hide ${name}. Bring it back from Panels at the top`; b.setAttribute('aria-label',`Hide ${name}`);
-  b.addEventListener('click',e=>{ e.preventDefault(); e.stopPropagation(); setPanel(k,false); });
+  const b=document.createElement('button'); b.type='button'; b.className='phide';
+  // A panel with main knobs that always stay folds down to them (More/Less); any other one hides (✕)
+  if(el.hasAttribute('data-panel-min')){ b.classList.add('pmore'); b.addEventListener('click',e=>{ e.preventDefault(); e.stopPropagation(); setPanel(k,!panels[k]); }); }
+  else{ b.textContent='✕'; b.title=`Hide ${name}. Bring it back from Panels at the top`; b.setAttribute('aria-label',`Hide ${name}`);
+    b.addEventListener('click',e=>{ e.preventDefault(); e.stopPropagation(); setPanel(k,false); }); }
   const sum=el.tagName==='DETAILS'&&el.querySelector(':scope>summary'); (sum||el).appendChild(b);
 });
 { const btn=$('panelsBtn'), menu=$('panelMenu');
