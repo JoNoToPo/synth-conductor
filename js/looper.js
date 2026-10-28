@@ -27,7 +27,7 @@ const looper={
   nextGrid(beats,minAhead){ const c=audio.ctx, step=beatSec()*beats; let t=audio.t0+Math.ceil((c.currentTime+.03-audio.t0)/step)*step;
     while(t-c.currentTime<minAhead)t+=step; return t; },
   start(state,at){ clearInterval(this.timer); this.state=state; this.startAt=at; this.timer=setInterval(()=>this.tick(),10); loopUI(); },
-  arm(){ if(!audio.ctx)return; this.stop(); this.events=[]; this.lastSnap=null;
+  arm(){ if(!audio.ctx)return; this.stop(); if(this.events.length)loopPush(); this.events=[]; this.lastSnap=null; loopSel=null;
     this.clickWas=!!audio.clickTimer; audio.startClick();                  // count-in and recording always click
     const bar=meterOf().bar; this.recording=true; this.start('count',this.nextGrid(bar,beatSec()*bar*.75)); },   // at least ~a bar of count-in
   playLoop(){ if(!audio.ctx||!this.events.length)return; this.stop(); this.recording=false; this.start('count',this.nextGrid(1,0)); },
@@ -68,10 +68,16 @@ function loopUI(){
   const tl=document.getElementById('loopTl'); if(!tl)return; const L=looper.len(), ev=looper.events;
   const m=meterOf(); tl.style.setProperty('--bars',looper.bars); tl.style.setProperty('--pulses',looper.bars*m.n);
   tl.querySelectorAll('.lseg').forEach(n=>n.remove());
-  ev.forEach((e,i)=>{ if(e.deg===null)return; const end=i+1<ev.length?ev[i+1].beat:L;
-    const s=document.createElement('div'); s.className='lseg'; s.style.left=(e.beat/L*100)+'%'; s.style.width=((end-e.beat)/L*100)+'%';
-    s.title=`${e.name} · bar ${Math.floor(e.beat/m.bar)+1}, ${m.d===8?'eighth':'beat'} ${Math.floor((e.beat%m.bar)/m.step+1e-6)+1}`; const r=document.createElement('b'); r.textContent=e.roman; const n=document.createElement('span'); n.textContent=e.name;
+  if(!ev.includes(loopSel))loopSel=null;
+  // Rests (where you stopped) are drawn too, so their timing can be fixed like any chord
+  ev.forEach((e,i)=>{ const end=i+1<ev.length?ev[i+1].beat:L;
+    const s=document.createElement('div'); s.className='lseg'+(e.deg===null?' rest':'')+(e===loopSel?' sel':''); s.dataset.i=i;
+    s.style.left=(e.beat/L*100)+'%'; s.style.width=((end-e.beat)/L*100)+'%';
+    s.title=`${e.deg===null?'Rest':e.name} · ${loopWhere(e.beat)}`; const r=document.createElement('b'); r.textContent=e.deg===null?'—':e.roman; const n=document.createElement('span'); n.textContent=e.deg===null?'rest':e.name;
     s.append(r,n); tl.insertBefore(s,document.getElementById('loopHead')); });
+  const ed=loopEditable(); $('loopEdit').hidden=!loopSel||!ed;
+  if(loopSel)$('loopSelName').textContent=`${loopSel.deg===null?'Rest':loopSel.name} · ${loopWhere(loopSel.beat)}`;
+  $('loopUndo').disabled=!loopUndo.length||!ed;
   const st0=looper.state, rec=$('loopRec'), pl=$('loopPlay');
   rec.textContent=st0==='rec'?'■ Finish':looper.recording&&st0==='count'?'Cancel':'● Record';
   rec.classList.toggle('recording',looper.recording&&(st0==='rec'||st0==='count'));
@@ -83,17 +89,50 @@ function loopMsg(){
   const m=$('loopMsg'), st0=looper.state, ev=looper.events, n=ev.filter(e=>e.deg!==null).length;
   if(st0==='count'){ const left=Math.max(1,Math.ceil((looper.startAt-audio.ctx.currentTime)/(beatSec()*meterOf().step))); m.textContent=looper.recording?`Count-in… ${left}`:'Starting on the next beat…'; }
   else if(st0==='rec') m.textContent=`Recording ${looper.bars} bar${looper.bars>1?'s':''} of ${st.meter}: play your chords. C finishes early.`;
-  else if(st0==='play') m.textContent='Looping. Play voicings and knobs over it; C or Space stops.';
-  else m.textContent=n?`${n} chord${n>1?'s':''} recorded. C plays the loop.`:'Records your chord changes against the BPM, starting on the next bar after a count-in. Press C to record, play or stop.';
+  else if(st0==='play') m.textContent='Looping. Play voicings and knobs over it; C or Space stops. Drag a chord to move it.';
+  else m.textContent=n?`${n} chord${n>1?'s':''} recorded. Drag a chord along the timeline to fix its timing; C plays the loop.`:'Records your chord changes against the BPM, starting on the next bar after a count-in. Press C to record, play or stop.';
 }
 $('loopBars').value=String(looper.bars); $('loopSnap').value=String(looper.snap); $('loopMeter').value=st.meter;
 // Changing the meter changes the bar length; chords past the new end are dropped. It also sets the click and MIDI clock bars
-$('loopMeter').addEventListener('change',e=>{ st.meter=e.target.value; saveTempo();
+$('loopMeter').addEventListener('change',e=>{ if(looper.events.length)loopPush(); st.meter=e.target.value; saveTempo();
   looper.events=looper.events.filter(x=>x.beat<looper.len()); if(looper.pos>=looper.len())looper.pos%=looper.len();
   if(audio.clickTimer){audio.stopClick();audio.startClick()} if(midiOut.clockTimer){midiOut.stopClock();midiOut.startClock()} saveLoop(); loopUI(); });
-$('loopBars').addEventListener('change',e=>{ const b=+e.target.value; looper.bars=b; looper.events=looper.events.filter(x=>x.beat<looper.len()); saveLoop(); loopUI(); });
+$('loopBars').addEventListener('change',e=>{ const b=+e.target.value; loopPush(); looper.bars=b; looper.events=looper.events.filter(x=>x.beat<looper.len()); saveLoop(); loopUI(); });
 $('loopSnap').addEventListener('change',e=>{ looper.snap=+e.target.value; saveLoop(); });
 $('loopRec').addEventListener('click',()=>{ audio.init(); if(looper.state==='rec')looper.finish(); else if(looper.recording&&looper.state==='count')looper.stop(); else looper.arm(); });
 $('loopPlay').addEventListener('click',()=>{ audio.init(); if(looper.state==='idle')looper.playLoop(); else looper.stop(); });
-$('loopClear').addEventListener('click',()=>{ looper.events=[]; saveLoop(); loopUI(); });
+$('loopClear').addEventListener('click',()=>{ loopPush(); looper.events=[]; saveLoop(); loopUI(); });
+
+/* Editing after the fact: drag a chord (or rest) along the timeline, nudge it, delete it, undo.
+   Each chord rings until the next change, so moving one moves the boundary with the chord before it.
+   Chords keep their order; moves land on the Snap grid (1/16 when Snap is off for the buttons). */
+let loopSel=null, loopDrag=null; const loopUndo=[];
+function loopPush(){ loopUndo.push(JSON.stringify(looper.events)); if(loopUndo.length>40)loopUndo.shift(); }
+function loopEditable(){ return !(looper.recording&&(looper.state==='rec'||looper.state==='count')); }
+function loopWhere(b){ const m=meterOf(); return `bar ${Math.floor(b/m.bar+1e-6)+1}, ${m.d===8?'eighth':'beat'} ${Math.floor((b%m.bar)/m.step+1e-6)+1}`; }
+function loopMove(e,b){ const ev=looper.events,i=ev.indexOf(e),g=looper.snap||.25;
+  const lo=i>0?ev[i-1].beat+g:0, hi=i+1<ev.length?ev[i+1].beat-g:looper.len()-g; if(hi<lo)return false;
+  b=Math.round(Math.max(lo,Math.min(hi,b))*1e4)/1e4; if(Math.abs(b-e.beat)<1e-6)return false; e.beat=b; return true; }
+function loopNudge(dir){ if(!loopSel||!loopEditable())return; loopPush(); if(loopMove(loopSel,loopSel.beat+dir*(looper.snap||.25))){saveLoop();loopUI()} else loopUndo.pop(); }
+function loopDelete(){ if(!loopSel||!loopEditable())return; loopPush(); looper.events.splice(looper.events.indexOf(loopSel),1); loopSel=null; saveLoop(); loopUI(); }
+const loopTl=$('loopTl');
+loopTl.addEventListener('pointerdown',ev=>{ if(ev.button>0||!loopEditable())return; const seg=ev.target.closest('.lseg');
+  if(!seg){ if(loopSel){loopSel=null;loopUI()} return; }
+  const e=looper.events[+seg.dataset.i]; loopSel=e; ev.preventDefault();
+  loopDrag={e,x:ev.clientX,b0:e.beat,w:loopTl.getBoundingClientRect().width,moved:false};
+  try{loopTl.setPointerCapture(ev.pointerId)}catch(err){} loopUI(); });
+loopTl.addEventListener('pointermove',ev=>{ const d=loopDrag; if(!d)return; const dx=ev.clientX-d.x;
+  if(!d.moved){ if(Math.abs(dx)<5)return; d.moved=true; loopPush(); }
+  const raw=d.b0+dx/d.w*looper.len(), step=looper.snap; if(loopMove(d.e,step?Math.round(raw/step)*step:raw))loopUI(); });
+const loopDrop=()=>{ if(!loopDrag)return; const moved=loopDrag.moved; loopDrag=null; if(moved)saveLoop(); loopUI(); };
+loopTl.addEventListener('pointerup',loopDrop); loopTl.addEventListener('pointercancel',loopDrop);
+loopTl.addEventListener('keydown',e=>{
+  if(e.key==='ArrowLeft'||e.key==='ArrowRight'){ if(!loopSel&&looper.events.length){loopSel=looper.events[0];loopUI()} else loopNudge(e.key==='ArrowLeft'?-1:1); }
+  else if(e.key==='Delete'||e.key==='Backspace')loopDelete(); else return;
+  e.preventDefault(); e.stopPropagation(); });
+$('loopEarlier').addEventListener('click',()=>loopNudge(-1));
+$('loopLater').addEventListener('click',()=>loopNudge(1));
+$('loopDel').addEventListener('click',loopDelete);
+$('loopUndo').addEventListener('click',()=>{ if(!loopUndo.length||!loopEditable())return;
+  try{looper.events=JSON.parse(loopUndo.pop()).filter(x=>x.beat<looper.len())}catch(e){} loopSel=null; saveLoop(); loopUI(); });
 loopUI();

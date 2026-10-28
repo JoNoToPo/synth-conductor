@@ -320,13 +320,28 @@
             <option value="1">1/4</option>
           </select></label>
       </div>
-      <div class="looptl" id="loopTl" aria-label="Recorded chords"><div class="loophead" id="loopHead" hidden></div></div>
+      <div class="looptl" id="loopTl" tabindex="0" aria-label="Recorded chords. Drag a chord to move it; arrow keys nudge the selected one, Delete removes it"><div class="loophead" id="loopHead" hidden></div></div>
+      <div class="row loopedit" id="loopEdit" hidden>
+        <span class="lsel" id="loopSelName"></span>
+        <button class="btn" id="loopEarlier" type="button" title="Move the selected chord one snap step earlier">‹ Earlier</button>
+        <button class="btn" id="loopLater" type="button" title="Move the selected chord one snap step later">Later ›</button>
+        <button class="btn" id="loopDel" type="button" title="Remove this change: the chord before it rings on instead">Delete</button>
+      </div>
       <div class="row">
         <button class="btn" id="loopRec" type="button">● Record</button>
         <button class="btn" id="loopPlay" type="button">▶ Play</button>
+        <button class="btn" id="loopUndo" type="button" title="Undo the last move, delete, clear or recording">Undo</button>
         <button class="btn" id="loopClear" type="button">Clear</button>
       </div>
       <p class="hint" id="loopMsg" aria-live="polite"></p>
+      <h4 class="lsub">Saved loops</h4>
+      <div class="plist" id="loopList"></div>
+      <form class="psave" id="loopForm">
+        <label class="sr" for="loopName">Loop name</label>
+        <input type="text" id="loopName" placeholder="Name this loop" maxlength="40" autocomplete="off">
+        <button class="btn primary" type="submit">Save</button>
+      </form>
+      <p class="hint" id="loopBankMsg" aria-live="polite"></p>
     </div>
     </div>
     <p class="panelhint">Drag a knob up or down, scroll on it, or use the arrow keys. Double-click resets it. The menu under each control lets a right-hand movement play it, and it turns green while your hand drives it. <b>Pedal ring:</b> giving it a hand holds the sustain pedal down the whole time, and the hand sets how long notes ring. <b>Bend:</b> try Tilt, where an upright hand is in tune and tilting either way bends; it springs back when your hand leaves the frame.</p>

@@ -118,6 +118,7 @@ const handSummary=h=>{const n=h.src?Object.values(h.src).filter(x=>x&&x.src&&x.s
 /* ----- One preset row, used twice ----- */
 function presetMsg(t){$('presetMsg').textContent=t}
 function makeBank(o){
+  const msg=o.msg||presetMsg;
   const render=()=>{
     const mine=loadBank(o.key),all={...o.builtins,...mine},list=$(o.list);list.innerHTML='';
     const builtinOnly=n=>o.builtins[n]&&!mine[n];
@@ -127,14 +128,14 @@ function makeBank(o){
       const load=document.createElement('button');load.type='button';load.className='pload';
       load.textContent=name;const sm=document.createElement('small');sm.textContent=(builtinOnly(name)?'Included · ':'')+o.summary(c);load.appendChild(sm);
       load.title=sm.textContent; if(builtinOnly(name))row.classList.add('builtin');
-      load.addEventListener('click',()=>{audio.init();o.apply(c);o.setActive(name);$(o.name).value=name;render();presetMsg(`Loaded ${o.noun} "${name}".`)});
+      load.addEventListener('click',()=>{audio.init();o.apply(c);o.setActive(name);$(o.name).value=name;render();msg(`Loaded ${o.noun} "${name}".`)});
       row.appendChild(load);
       if(!builtinOnly(name)){
         const del=document.createElement('button');del.type='button';del.className='pdel';del.textContent='Delete';del.setAttribute('aria-label','Delete '+name);
         let armed=null;
         del.addEventListener('click',()=>{
           if(!armed){del.textContent='Confirm';del.classList.add('confirm');armed=setTimeout(()=>{armed=null;del.textContent='Delete';del.classList.remove('confirm')},3000);return}
-          clearTimeout(armed);const m=loadBank(o.key);delete m[name];storeBank(o.key,m);if(o.active()===name)o.setActive(null);render();presetMsg(`Deleted ${o.noun} "${name}".`);
+          clearTimeout(armed);const m=loadBank(o.key);delete m[name];storeBank(o.key,m);if(o.active()===name)o.setActive(null);render();msg(`Deleted ${o.noun} "${name}".`);
         });
         row.appendChild(del);
       }
@@ -143,10 +144,10 @@ function makeBank(o){
   };
   $(o.form).addEventListener('submit',e=>{
     e.preventDefault();const name=$(o.name).value.trim();
-    if(!name){presetMsg(`Type a name for this ${o.noun} first.`);$(o.name).focus();return}
+    if(!name){msg(`Type a name for this ${o.noun} first.`);$(o.name).focus();return}
     const m=loadBank(o.key),existed=!!m[name];m[name]=o.capture();
-    if(!storeBank(o.key,m)){presetMsg('Couldn’t save here: this browser is blocking storage for the page.');return}
-    o.setActive(name);render();presetMsg(existed?`Updated ${o.noun} "${name}".`:`Saved ${o.noun} "${name}".`);
+    if(!storeBank(o.key,m)){msg('Couldn’t save here: this browser is blocking storage for the page.');return}
+    o.setActive(name);render();msg(existed?`Updated ${o.noun} "${name}".`:`Saved ${o.noun} "${name}".`);
   });
   render(); return render;
 }
@@ -331,3 +332,20 @@ function camSide(){
 camSide();
 if(screen.orientation&&screen.orientation.addEventListener)screen.orientation.addEventListener('change',camSide);
 addEventListener('orientationchange',camSide); addEventListener('resize',camSide);
+
+/* Saved loops: a loop keeps its own bars, meter, snap, tempo and key, so it plays back the way it was recorded */
+let loopActive=null;
+const renderLoops=makeBank({key:'vh-loops',builtins:{},list:'loopList',form:'loopForm',name:'loopName',noun:'loop',
+  msg:t=>{$('loopBankMsg').textContent=t},
+  summary:c=>{const n=c.events.filter(e=>e.deg!==null).length;return `${c.bars} bar${c.bars>1?'s':''} · ${c.meter} · ${c.bpm} BPM · ${n} chord${n===1?'':'s'}`},
+  capture:()=>({bars:looper.bars,snap:looper.snap,meter:st.meter,bpm:st.bpm,key:st.key,mode:st.mode,events:JSON.parse(JSON.stringify(looper.events)),saved:Date.now()}),
+  apply:c=>{ if(!c||!Array.isArray(c.events))return; looper.stop(); if(looper.events.length)loopPush();
+    if(METERS[c.meter]&&c.meter!==st.meter){const s=$('loopMeter');s.value=c.meter;s.dispatchEvent(new Event('change'))}
+    if(LOOP_BARS.includes(c.bars)){looper.bars=c.bars;$('loopBars').value=String(c.bars)}
+    if([0,.25,.5,1].includes(c.snap)){looper.snap=c.snap;$('loopSnap').value=String(c.snap)}
+    if(c.bpm>=40&&c.bpm<=240)setBpm(c.bpm);
+    if(MODES[c.mode]&&c.mode!==st.mode){const s=$('modeSel');s.value=c.mode;s.dispatchEvent(new Event('change'))}
+    if(Number.isInteger(c.key)&&c.key>=0&&c.key<12&&c.key!==st.key){const s=$('keySel');s.value=String(c.key);s.dispatchEvent(new Event('change'))}
+    looper.events=c.events.filter(e=>e&&typeof e.beat==='number'&&e.beat>=0&&e.beat<looper.len()).map(e=>({...e}));
+    saveLoop(); loopUI(); },
+  active:()=>loopActive, setActive:n=>{loopActive=n}});
