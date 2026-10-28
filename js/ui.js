@@ -8,9 +8,9 @@ function buildPads(){
     const b=document.createElement('button');b.type='button';b.className='pad';b.dataset.d=d;
     b.innerHTML=`<span class="r">${r}</span><span class="c"></span><span class="k">${d+1}</span>`;
     b.addEventListener('click',e=>{ if(holdKeys&&e.detail>0)return;   // in hold mode, pressing and letting go is handled below
-      audio.init();stopDemo();handOwnsChord=false;play(d,{retrigger:st.degree===d&&st.sounding})});
+      audio.init();handOwnsChord=false;play(d,{retrigger:st.degree===d&&st.sounding})});
     b.addEventListener('pointerdown',e=>{ if(!holdKeys||e.button>0)return; e.preventDefault(); try{b.setPointerCapture(e.pointerId)}catch(err){}
-      audio.init();stopDemo();handOwnsChord=false; const i=heldDigits.indexOf(d); if(i>=0)heldDigits.splice(i,1); heldDigits.push(d);
+      audio.init();handOwnsChord=false; const i=heldDigits.indexOf(d); if(i>=0)heldDigits.splice(i,1); heldDigits.push(d);
       play(d,{retrigger:st.degree===d&&st.sounding}); });
     const up=()=>{ if(!holdKeys)return; const i=heldDigits.indexOf(d); if(i<0)return; heldDigits.splice(i,1);
       if(heldDigits.length)play(heldDigits[heldDigits.length-1]); else play(null); };
@@ -19,7 +19,7 @@ function buildPads(){
   });
   const s=document.createElement('button');s.type='button';s.className='pad stop';
   s.innerHTML='<span class="r">Stop</span><span class="c">silence</span><span class="k">space</span>';
-  s.addEventListener('click',()=>{stopDemo();looper.stop();play(null);audio.damp()});padsEl.appendChild(s);
+  s.addEventListener('click',()=>{looper.stop();play(null);audio.damp()});padsEl.appendChild(s);
 }
 // Voicings as buttons; the description shows on hover (and below the grid, so touch screens get it too)
 let vHover=null;
@@ -147,7 +147,6 @@ function render(){
       (st.moved!==null?`<span title="Total semitones the voices moved from the last chord">Moved <b>${st.moved}</b></span>`:'');
   }
   $('path').innerHTML=st.history.length?'<span>'+st.history.join('  →  ')+'</span>':'';
-  if(!demoTimer)$('demoBtn').textContent=demoLabel();
   drawPiano();
   status();
 }
@@ -189,18 +188,6 @@ function drawPiano(){
   $('piano').innerHTML=s;
 }
 
-/* Demo progression */
-let demoTimer=null;
-const DEMO=[1,4,0,5];
-const demoLabel=()=>'Play '+DEMO.map(romanOf).join('–');
-function stopDemo(){if(demoTimer){clearTimeout(demoTimer);demoTimer=null;$('demoBtn').textContent=demoLabel()}}
-$('demoBtn').addEventListener('click',()=>{
-  audio.init();
-  if(demoTimer){stopDemo();play(null);return}
-  const seq=[1,4,0,5];let i=0;$('demoBtn').textContent='Stop demo';
-  const step=()=>{ if(i<seq.length){play(seq[i++]);demoTimer=setTimeout(step,1500)} else {play(null);stopDemo()} };
-  step();
-});
 
 /* Assignable hold keys: flip major/minor, 1st inversion, 2nd inversion */
 const HOLD_DEFAULT={flip:'shift',inv1:'z',inv2:'x',flat:',',sharp:'.',pedal:'v'};
@@ -282,10 +269,10 @@ document.addEventListener('keydown',e=>{
   // Read digits from the physical key so they still work while Shift (or another hold key) is down
   const dm=/^(?:Digit|Numpad)([1-7])$/.exec(e.code);
   if(dm){
-    const d=+dm[1]-1;audio.init();stopDemo();handOwnsChord=false;
+    const d=+dm[1]-1;audio.init();handOwnsChord=false;
     const i=heldDigits.indexOf(d); if(i>=0)heldDigits.splice(i,1); heldDigits.push(d);
     play(d,{retrigger:st.degree===d&&st.sounding});e.preventDefault();return}
-  if(k===' '){stopDemo();looper.stop();play(null);audio.damp();e.preventDefault();return}
+  if(k===' '){looper.stop();play(null);audio.damp();e.preventDefault();return}
   if(k==='c'){audio.init();looper.toggle();return}
   if(k==='f'){setFlip(!st.flip);return}
   if(k==='s'){setSevenths(!st.s7);return}

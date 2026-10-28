@@ -33,12 +33,17 @@
     </div>
     <div class="hdrtools">
       <button class="btn" id="learnBtn" type="button">Learn the basics</button>
-      <label class="led" title="Show only the essentials: chords, camera, key, sound and voicing. Turn off to see every control"><input type="checkbox" id="optSimple"><span>Simple view</span></label>
+      <button class="btn" id="panelsBtn" type="button" aria-expanded="false" aria-controls="panelMenu">Panels <span class="pcount" id="panelsCount"></span></button>
+      <div class="panelmenu" id="panelMenu" role="dialog" aria-label="Choose which panels to show" hidden>
+        <p class="hint">Show only what you use. Every panel also has a ✕ to hide it, and you can bring it back here.</p>
+        <div class="pmlist" id="panelList"></div>
+        <div class="row"><button class="btn" id="panelsEssentials" type="button">Just the essentials</button><button class="btn" id="panelsAll" type="button">Show everything</button></div>
+      </div>
     </div>
     <div class="status"><span class="dot" id="audioDot"></span><span id="statusText">Sound off · tap a chord to start</span><span class="lat" id="latency" title="Audio: the browser's output delay. Camera: frames per second. Tracking: time to find your hands in each frame"></span></div>
   </header>
 
-  <section class="progbar adv-only" aria-label="Presets">
+  <section class="progbar" aria-label="Presets" data-panel="presets">
     <h3 title="Key, sound, voicing, chord style, knob and fader values, effects, arpeggio and tempo">Sound</h3>
     <div class="plist" id="presetList"></div>
     <form class="psave" id="presetForm">
@@ -64,7 +69,7 @@
           </details></div>
   </section>
 
-  <section class="pianowrap">
+  <section class="pianowrap" data-panel="piano">
     <div class="pianohead">
       <span>Sounding notes · <span style="color:var(--patina)">bass</span> and <span style="color:var(--brass)">voicing</span></span>
       <span class="path" id="path"></span>
@@ -99,7 +104,6 @@
 
       <div class="row">
         <button class="btn primary fs-keep" id="camBtn" type="button">Play with your hands</button>
-        <button class="btn" id="demoBtn" type="button">Play ii–V–I–vi</button>
         <label class="led adv-only fs-keep" title="Play chords on the number keys; the camera only reads your right hand"><input type="checkbox" id="optRightOnly"><span>Right hand only</span></label>
         <label class="led adv-only fs-keep fs-rh" title="Chords only sound while you hold a number key or chord button down"><input type="checkbox" id="optHoldKeys"><span>Hold to sound</span></label>
         <button class="btn pedalbtn fs-keep" id="pedalBtn" type="button" aria-pressed="false" title="Sustain pedal: notes keep ringing after you let go, and chords blur together until you lift it. Click to latch, or hold the pedal key">Pedal <span class="pk" id="pedalKeyHint">V</span></button>
@@ -108,6 +112,65 @@
         <button class="btn fs-keep" id="fullBtn" type="button" aria-pressed="false" title="Just the camera, the chord and the pads, filling the screen. Esc to leave">Full screen</button>
       </div>
       <p class="msg" id="camMsg" hidden></p>
+      <section class="module m-loop g-arp" id="loopCard" data-panel="loop" aria-label="Chord loop">
+      <h3>Chord loop</h3>
+      <div class="looptl" id="loopTl" tabindex="0" aria-label="Recorded chords. Drag a chord to move it; arrow keys nudge the selected one, Delete removes it"><div class="loophead" id="loopHead" hidden></div></div>
+      <div class="row loopedit" id="loopEdit" hidden>
+        <span class="lsel" id="loopSelName"></span>
+        <button class="btn" id="loopEarlier" type="button" title="Move the selected chord one snap step earlier">‹ Earlier</button>
+        <button class="btn" id="loopLater" type="button" title="Move the selected chord one snap step later">Later ›</button>
+        <button class="btn" id="loopDel" type="button" title="Remove this change: the chord before it rings on instead">Delete</button>
+      </div>
+      <div class="row">
+        <button class="btn" id="loopRec" type="button">● Record</button>
+        <button class="btn" id="loopPlay" type="button">▶ Play</button>
+        <button class="btn" id="loopUndo" type="button" title="Undo the last move, delete, clear or recording">Undo</button>
+        <button class="btn" id="loopClear" type="button">Clear</button>
+      </div>
+      <p class="hint" id="loopMsg" aria-live="polite"></p>
+      <div class="plist lchips" id="loopList" aria-label="Saved loops"></div>
+      <details class="lmore" id="loopMore">
+        <summary>Length, time, snap · save this loop</summary>
+      <div class="lcds">
+        <label for="loopBars">Length
+          <select id="loopBars">
+            <option value="1">1 bar</option>
+            <option value="2">2 bars</option>
+            <option value="4">4 bars</option>
+            <option value="6">6 bars</option>
+            <option value="8">8 bars</option>
+          </select></label>
+        <label for="loopMeter" title="Beats per bar. Also sets the click's accents and where MIDI clock starts. BPM always counts quarter notes">Time
+          <select id="loopMeter">
+            <option value="2/4">2/4</option>
+            <option value="3/4">3/4</option>
+            <option value="4/4">4/4</option>
+            <option value="5/4">5/4</option>
+            <option value="6/4">6/4</option>
+            <option value="5/8">5/8</option>
+            <option value="6/8">6/8</option>
+            <option value="7/8">7/8</option>
+            <option value="9/8">9/8</option>
+            <option value="12/8">12/8</option>
+          </select></label>
+        <label for="loopBpm" title="Tempo in beats per minute: the same BPM as the Arp &amp; tempo panel">BPM
+          <input type="number" id="loopBpm" min="40" max="240" step="1" inputmode="numeric"></label>
+        <label for="loopSnap" title="Pull chord changes onto the nearest step, so a change that lands a little late is still on the beat">Snap
+          <select id="loopSnap">
+            <option value="0">Off</option>
+            <option value="0.25">1/16</option>
+            <option value="0.5">1/8</option>
+            <option value="1">1/4</option>
+          </select></label>
+      </div>
+      <form class="psave" id="loopForm">
+        <label class="sr" for="loopName">Loop name</label>
+        <input type="text" id="loopName" placeholder="Name this loop" maxlength="40" autocomplete="off">
+        <button class="btn primary" type="submit">Save</button>
+      </form>
+      <p class="hint" id="loopBankMsg" aria-live="polite"></p>
+      </details>
+      </section>
     </section>
 
     <aside class="panel">
@@ -141,7 +204,7 @@
           </select></label>
       </div>
     </div>
-    <div class="module m-chord adv-only">
+    <div class="module m-chord" data-panel="chord">
       <h3>Chord</h3>
       <div class="leds">
         <label class="led" title="Move as few notes as possible between chords"><input type="checkbox" id="optVL" checked><span>Voice leading</span></label>
@@ -194,8 +257,8 @@
     </aside>
   </div>
 
-  <section class="synth adv-only" aria-label="Sound panel">
-    <div class="bank g-amp">
+  <section class="synth" id="synth" aria-label="Sound panel">
+    <div class="bank g-amp" data-panel="sound">
     <div class="module m-amp">
       <h3>Amp &amp; envelope</h3>
       <div class="ampbody"><div class="knobs" id="m-amp"></div><div class="faders" id="m-env"></div></div>
@@ -228,7 +291,7 @@
         </select></label></div>
     </div>
     </div>
-    <div class="bank g-filter">
+    <div class="bank g-filter" data-panel="sound">
     <div class="module m-filter"><h3>Filter</h3><div class="knobs" id="m-filter"></div></div>
     <div class="module m-fx"><h3>Effects</h3><div class="knobs" id="m-fx"></div>
       <div class="lcds"><label for="verbType" class="wide">Reverb type
@@ -241,7 +304,7 @@
         </select></label></div>
     </div>
     </div>
-    <div class="bank g-arp">
+    <div class="bank g-arp" data-panel="rhythm">
     <div class="module m-arp">
       <h3>Arp &amp; tempo</h3>
       <div class="arpbody">
@@ -288,67 +351,12 @@
           <option value="1/16">1/16 note</option>
         </select></label></div>
     </div>
-    <div class="module m-loop">
-      <h3>Chord loop</h3>
-      <div class="lcds">
-        <label for="loopBars">Length
-          <select id="loopBars">
-            <option value="1">1 bar</option>
-            <option value="2">2 bars</option>
-            <option value="4">4 bars</option>
-            <option value="6">6 bars</option>
-            <option value="8">8 bars</option>
-          </select></label>
-        <label for="loopMeter" title="Beats per bar. Also sets the click's accents and where MIDI clock starts. BPM always counts quarter notes">Time
-          <select id="loopMeter">
-            <option value="2/4">2/4</option>
-            <option value="3/4">3/4</option>
-            <option value="4/4">4/4</option>
-            <option value="5/4">5/4</option>
-            <option value="6/4">6/4</option>
-            <option value="5/8">5/8</option>
-            <option value="6/8">6/8</option>
-            <option value="7/8">7/8</option>
-            <option value="9/8">9/8</option>
-            <option value="12/8">12/8</option>
-          </select></label>
-        <label for="loopSnap" title="Pull chord changes onto the nearest step, so a change that lands a little late is still on the beat">Snap
-          <select id="loopSnap">
-            <option value="0">Off</option>
-            <option value="0.25">1/16</option>
-            <option value="0.5">1/8</option>
-            <option value="1">1/4</option>
-          </select></label>
-      </div>
-      <div class="looptl" id="loopTl" tabindex="0" aria-label="Recorded chords. Drag a chord to move it; arrow keys nudge the selected one, Delete removes it"><div class="loophead" id="loopHead" hidden></div></div>
-      <div class="row loopedit" id="loopEdit" hidden>
-        <span class="lsel" id="loopSelName"></span>
-        <button class="btn" id="loopEarlier" type="button" title="Move the selected chord one snap step earlier">‹ Earlier</button>
-        <button class="btn" id="loopLater" type="button" title="Move the selected chord one snap step later">Later ›</button>
-        <button class="btn" id="loopDel" type="button" title="Remove this change: the chord before it rings on instead">Delete</button>
-      </div>
-      <div class="row">
-        <button class="btn" id="loopRec" type="button">● Record</button>
-        <button class="btn" id="loopPlay" type="button">▶ Play</button>
-        <button class="btn" id="loopUndo" type="button" title="Undo the last move, delete, clear or recording">Undo</button>
-        <button class="btn" id="loopClear" type="button">Clear</button>
-      </div>
-      <p class="hint" id="loopMsg" aria-live="polite"></p>
-      <h4 class="lsub">Saved loops</h4>
-      <div class="plist" id="loopList"></div>
-      <form class="psave" id="loopForm">
-        <label class="sr" for="loopName">Loop name</label>
-        <input type="text" id="loopName" placeholder="Name this loop" maxlength="40" autocomplete="off">
-        <button class="btn primary" type="submit">Save</button>
-      </form>
-      <p class="hint" id="loopBankMsg" aria-live="polite"></p>
     </div>
-    </div>
-    <p class="panelhint">Drag a knob up or down, scroll on it, or use the arrow keys. Double-click resets it. The menu under each control lets a right-hand movement play it, and it turns green while your hand drives it. <b>Pedal ring:</b> giving it a hand holds the sustain pedal down the whole time, and the hand sets how long notes ring. <b>Bend:</b> try Tilt, where an upright hand is in tune and tilting either way bends; it springs back when your hand leaves the frame.</p>
+    <p class="panelhint" data-panel="sound">Drag a knob up or down, scroll on it, or use the arrow keys. Double-click resets it. The menu under each control lets a right-hand movement play it, and it turns green while your hand drives it. <b>Pedal ring:</b> giving it a hand holds the sustain pedal down the whole time, and the hand sets how long notes ring. <b>Bend:</b> try Tilt, where an upright hand is in tune and tilting either way bends; it springs back when your hand leaves the frame.</p>
   </section>
 
   <div class="adv">
-    <details class="sect adv-only" id="s-midi" open>
+    <details class="sect" id="s-midi" data-panel="midi" open>
       <summary>MIDI out</summary>
       <div class="sbody">
         <p class="hint">Send what you play to another synth, a DAW or a hardware instrument: notes, the sustain pedal, knob moves as controllers and the tempo clock. Or record it straight to a .mid file.</p>
@@ -384,7 +392,7 @@
       </div>
     </details>
 
-    <details class="sect adv-only" id="s-keys">
+    <details class="sect" id="s-keys" data-panel="keys">
       <summary>Keyboard shortcuts</summary>
       <div class="sbody">
         <div class="row">

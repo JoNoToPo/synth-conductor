@@ -401,7 +401,7 @@ function handleHands(L,R){
     $('hudL').textContent=`Left · ${fs.filter(Boolean).length} up → ${deg===null?'stop':romanOf(deg)} · lean ${Math.round(a)}°${palmTxt}${st.handInv?' · '+['root','1st inv','2nd inv'][sL.zone??0]:''}${posTarget()!==null&&st.ctrl.position.src.startsWith('lx')?' · pos '+midiName(Math.round(posTarget())):''}`;
     // With "Left fist holds the pedal", a fist lets the chord go but keeps it ringing under the pedal
     if(fire&&st.pedalHand==='fist'&&(deg===null)!==pedalSrc.hand){audio.init();setPedal('hand',deg===null);}
-    if(fire){ stopDemo(); handOwnsChord=true; if(deg===null){ if(st.sounding)play(null) } else if(deg!==st.degree||!st.sounding) play(deg); }
+    if(fire){ handOwnsChord=true; if(deg===null){ if(st.sounding)play(null) } else if(deg!==st.degree||!st.sounding) play(deg); }
   } else {
     $('hudL').textContent='Left hand · chord';
     if(goneOnce(sL,now)){
@@ -410,7 +410,7 @@ function handleHands(L,R){
       if(sL.zone!==undefined){sL.zone=undefined;sL.zoneCand=undefined;setInvSource('hand',null)}
       sL.cand=sL.degC=undefined;
       // Only silence a chord the left hand started, never one played from the keys, pads or the loop
-      if(st.sounding&&!demoTimer&&!looper.playing&&handOwnsChord)play(null);
+      if(st.sounding&&!looper.playing&&handOwnsChord)play(null);
     }
   }
   // Right: voicing, volume, tone

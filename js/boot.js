@@ -1,10 +1,11 @@
 /* ---------- Boot ---------- */
 buildPads();buildVoicings();buildSelects();buildSlots();buildRoutes();preview();
 /* Tempo controls */
-function syncTempoUI(){ $('bpm').value=st.bpm; $('bpmSlider').value=st.bpm; $('optSync').checked=st.sync; $('optClick').checked=st.click; $('vibDiv').value=st.vibDiv; $('vibDiv').disabled=!st.sync; }
+function syncTempoUI(){ $('bpm').value=st.bpm; $('loopBpm').value=st.bpm; $('bpmSlider').value=st.bpm; $('optSync').checked=st.sync; $('optClick').checked=st.click; $('vibDiv').value=st.vibDiv; $('vibDiv').disabled=!st.sync; }
 function setBpm(b){ b=Math.round(Math.max(40,Math.min(240,b))); if(!b||b===st.bpm){syncTempoUI();return} st.bpm=b; syncTempoUI(); tempoChanged();
   if(audio.clickTimer){audio.stopClick();audio.startClick()} }
 $('bpm').addEventListener('change',e=>setBpm(+e.target.value));
+$('loopBpm').addEventListener('change',e=>setBpm(+e.target.value));
 $('bpmSlider').addEventListener('input',e=>setBpm(+e.target.value));
 $('optSync').addEventListener('change',e=>{st.sync=e.target.checked;syncTempoUI();tempoChanged()});
 $('vibDiv').addEventListener('change',e=>{st.vibDiv=e.target.value;tempoChanged()});
@@ -335,9 +336,12 @@ addEventListener('orientationchange',camSide); addEventListener('resize',camSide
 
 /* Saved loops: a loop keeps its own bars, meter, snap, tempo and key, so it plays back the way it was recorded */
 let loopActive=null;
-const renderLoops=makeBank({key:'vh-loops',builtins:{},list:'loopList',form:'loopForm',name:'loopName',noun:'loop',
+// A built-in loop to try straight away: ii – V – I – vi, a bar each, in whatever key and tempo you're in
+const ev0=deg=>({deg,flip:false,alt7:false,s7:null,sevForce:null,shift:0,inv:0});
+const BUILTIN_LOOPS={'ii–V–I–vi':{bars:4,snap:.5,meter:'4/4',events:[{beat:0,...ev0(1)},{beat:4,...ev0(4)},{beat:8,...ev0(0)},{beat:12,...ev0(5)}]}};
+const renderLoops=makeBank({key:'vh-loops',builtins:BUILTIN_LOOPS,list:'loopList',form:'loopForm',name:'loopName',noun:'loop',
   msg:t=>{$('loopBankMsg').textContent=t},
-  summary:c=>{const n=c.events.filter(e=>e.deg!==null).length;return `${c.bars} bar${c.bars>1?'s':''} · ${c.meter} · ${c.bpm} BPM · ${n} chord${n===1?'':'s'}`},
+  summary:c=>{const n=c.events.filter(e=>e.deg!==null).length;return `${c.bars} bar${c.bars>1?'s':''} · ${c.meter}${c.bpm?` · ${c.bpm} BPM`:''} · ${n} chord${n===1?'':'s'}`},
   capture:()=>({bars:looper.bars,snap:looper.snap,meter:st.meter,bpm:st.bpm,key:st.key,mode:st.mode,events:JSON.parse(JSON.stringify(looper.events)),saved:Date.now()}),
   apply:c=>{ if(!c||!Array.isArray(c.events))return; looper.stop(); if(looper.events.length)loopPush();
     if(METERS[c.meter]&&c.meter!==st.meter){const s=$('loopMeter');s.value=c.meter;s.dispatchEvent(new Event('change'))}
@@ -346,6 +350,8 @@ const renderLoops=makeBank({key:'vh-loops',builtins:{},list:'loopList',form:'loo
     if(c.bpm>=40&&c.bpm<=240)setBpm(c.bpm);
     if(MODES[c.mode]&&c.mode!==st.mode){const s=$('modeSel');s.value=c.mode;s.dispatchEvent(new Event('change'))}
     if(Number.isInteger(c.key)&&c.key>=0&&c.key<12&&c.key!==st.key){const s=$('keySel');s.value=String(c.key);s.dispatchEvent(new Event('change'))}
-    looper.events=c.events.filter(e=>e&&typeof e.beat==='number'&&e.beat>=0&&e.beat<looper.len()).map(e=>({...e}));
+    // Built-in loops follow your 7ths setting, and take their chord names from the pads in the current key
+    looper.events=c.events.filter(e=>e&&typeof e.beat==='number'&&e.beat>=0&&e.beat<looper.len()).map(e=>{ const x={...e};
+      if(x.s7===null)x.s7=st.s7; if(x.deg!==null&&!x.name){x.roman=romanOf(x.deg);x.name=padsEl.querySelector(`.pad[data-d="${x.deg}"] .c`).textContent} return x; });
     saveLoop(); loopUI(); },
   active:()=>loopActive, setActive:n=>{loopActive=n}});

@@ -4,10 +4,62 @@
 // A Ko-fi, GitHub Sponsors, PayPal.me or similar page.
 const SUPPORT_URL='https://paypal.me/JonathanEngelhard/5';   // /5 fills in a suggested amount of 5; donors can change it
 
-/* Simple view: hides everything marked adv-only. New visitors start in it; returning players keep the full panel */
-{ let simple=firstVisit; try{const v=localStorage.getItem('vh-simple');if(v!==null)simple=v==='1'}catch(e){}
-  const set=on=>{document.body.classList.toggle('simple',on);$('optSimple').checked=on;try{localStorage.setItem('vh-simple',on?'1':'0')}catch(e){}};
-  set(simple); $('optSimple').addEventListener('change',e=>set(e.target.checked)); }
+/* Panels: every part of the page past the camera and pads can be shown or hidden, from the Panels menu or a
+   panel's own ✕. New visitors start with just the essentials. "Extra options" is the finer detail inside panels
+   (everything marked adv-only); with it off the page is in Simple view. */
+const PANELS=[
+  ['piano','Keyboard','The notes that are sounding, with the chord path'],
+  ['loop','Chord loop','Record chords to the beat, then play over them'],
+  ['chord','Chord options','7ths, major/minor flips, inversions, ♭ and ♯'],
+  ['presets','Presets','Save and load sounds and hand setups'],
+  ['sound','Sound design','Envelope, modulation, filter and effects knobs'],
+  ['rhythm','Arp, tempo & delay','BPM, click, arpeggio, delay and pump'],
+  ['midi','MIDI out','Play other synths or a DAW, or record a .mid file'],
+  ['keys','Keyboard shortcuts','Change which keys hold flips, inversions and the pedal'],
+  ['details','Extra options','Finer settings inside the panels, like finger slots'],
+];
+const PANELS_ESSENTIAL=['piano','loop'];
+let panels={};
+{ let saved=null; try{saved=JSON.parse(localStorage.getItem('vh-panels')||'null')}catch(e){}
+  let simple=firstVisit; try{const v=localStorage.getItem('vh-simple');if(v!==null)simple=v==='1'}catch(e){}   // carried over from Simple view
+  PANELS.forEach(([k])=>panels[k]=saved&&typeof saved[k]==='boolean'?saved[k]:simple?PANELS_ESSENTIAL.includes(k):true); }
+function panelsApply(){
+  document.querySelectorAll('[data-panel]').forEach(el=>el.classList.toggle('panel-off',!panels[el.dataset.panel]));
+  document.body.classList.toggle('simple',!panels.details);
+  const banks=[...document.querySelectorAll('#synth>.bank')].filter(b=>panels[b.dataset.panel]).length, syn=$('synth');
+  syn.classList.toggle('panel-off',!banks); syn.classList.toggle('one',banks===1); syn.classList.toggle('two',banks===2);
+  const on=PANELS.filter(([k])=>panels[k]).length; $('panelsCount').textContent=`${on}/${PANELS.length}`;
+  $('panelList').querySelectorAll('input').forEach(i=>i.checked=!!panels[i.value]);
+  try{localStorage.setItem('vh-panels',JSON.stringify(panels))}catch(e){}
+  dispatchEvent(new Event('resize'));
+}
+function setPanel(k,on){ panels[k]=on; panelsApply(); }
+function setAllPanels(list){ PANELS.forEach(([k])=>panels[k]=list===true||list.includes(k)); panelsApply(); }
+PANELS.forEach(([k,name,desc])=>{
+  const l=document.createElement('label'); l.className='pmitem';
+  l.innerHTML=`<input type="checkbox" value="${k}"><b>${name}</b><small>${desc}</small>`;
+  l.querySelector('input').addEventListener('change',e=>setPanel(k,e.target.checked)); $('panelList').appendChild(l);
+});
+// A ✕ in each panel's corner; on a collapsible section it sits in the title bar so it shows when closed too
+document.querySelectorAll('[data-panel]').forEach(el=>{
+  const k=el.dataset.panel, name=(PANELS.find(p=>p[0]===k)||[])[1]; if(!name||el.classList.contains('panelhint'))return;
+  const b=document.createElement('button'); b.type='button'; b.className='phide'; b.textContent='✕';
+  b.title=`Hide ${name}. Bring it back from Panels at the top`; b.setAttribute('aria-label',`Hide ${name}`);
+  b.addEventListener('click',e=>{ e.preventDefault(); e.stopPropagation(); setPanel(k,false); });
+  const sum=el.tagName==='DETAILS'&&el.querySelector(':scope>summary'); (sum||el).appendChild(b);
+});
+{ const btn=$('panelsBtn'), menu=$('panelMenu');
+  // Opens under the button, kept inside the screen
+  const place=()=>{ const r=btn.getBoundingClientRect(), w=menu.offsetWidth;
+    menu.style.top=Math.round(r.bottom+8)+'px'; menu.style.left=Math.round(Math.max(16,Math.min(r.left,innerWidth-w-16)))+'px'; };
+  const show=on=>{ menu.hidden=!on; btn.setAttribute('aria-expanded',on); if(on)place(); };
+  addEventListener('resize',()=>{ if(!menu.hidden)place(); }); addEventListener('scroll',()=>{ if(!menu.hidden)show(false); },{passive:true});
+  btn.addEventListener('click',e=>{ e.stopPropagation(); show(menu.hidden); });
+  document.addEventListener('pointerdown',e=>{ if(!menu.hidden&&!menu.contains(e.target)&&e.target!==btn&&!btn.contains(e.target))show(false); });
+  document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&!menu.hidden){show(false);btn.focus()} });
+  $('panelsEssentials').addEventListener('click',()=>setAllPanels(PANELS_ESSENTIAL));
+  $('panelsAll').addEventListener('click',()=>setAllPanels(true)); }
+panelsApply();
 
 /* Walkthrough. Each step finishes itself when you actually do the thing; Skip is always there.
    done(b) is checked a few times a second; b is the step's own scratch state, made fresh when the step starts. */
@@ -33,8 +85,8 @@ const LESSONS=[
    init:()=>({last:st.s7,flips:0}), done:b=>{ if(rightSeen()&&st.s7!==b.last){b.last=st.s7;b.flips++} return b.flips>=2; }},
   {t:'Move to shape the sound', d:'Slide your right hand slowly from one side to the other: by default it opens and closes the filter (watch the track along the bottom of the picture). Up and down sets the volume.',
    init:()=>({lo:1,hi:0}), done:b=>{ if(rightSeen()){b.lo=Math.min(b.lo,st.inVals.x);b.hi=Math.max(b.hi,st.inVals.x)} return b.hi-b.lo>.55; }},
-  {t:'Make it yours', d:'That’s the core. Next: press C to record a 4-bar chord loop and play voicings over it, try other Sound choices, or turn off Simple view to reach every knob, MIDI out and presets. The Hand guide below has every gesture.',
-   act:{label:'Show all controls',run:()=>{const c=$('optSimple');if(c.checked){c.checked=false;c.dispatchEvent(new Event('change'))}}}, final:true},
+  {t:'Make it yours', d:'That’s the core. Next: press C to record a 4-bar chord loop and play voicings over it, try other Sound choices, or open Panels at the top to add the sound knobs, MIDI out and presets. The Hand guide below has every gesture.',
+   act:{label:'Show every panel',run:()=>setAllPanels(true)}, final:true},
 ];
 const lesson={i:0,b:{},okAt:0,timer:null};
 function lessonSave(fin){ try{localStorage.setItem('vh-lesson',JSON.stringify({i:lesson.i,finished:!!fin}))}catch(e){} }
