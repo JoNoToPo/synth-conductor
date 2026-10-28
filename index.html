@@ -153,8 +153,6 @@
             <option value="9/8">9/8</option>
             <option value="12/8">12/8</option>
           </select></label>
-        <label for="loopBpm" title="Tempo in beats per minute: the same BPM as the Arp &amp; tempo panel">BPM
-          <input type="number" id="loopBpm" min="40" max="240" step="1" inputmode="numeric"></label>
         <label for="loopSnap" title="Pull chord changes onto the nearest step, so a change that lands a little late is still on the beat">Snap
           <select id="loopSnap">
             <option value="0">Off</option>
@@ -258,12 +256,15 @@
   </div>
 
   <section class="synth" id="synth" aria-label="Sound panel">
-    <div class="bank g-amp" data-panel="sound">
-    <div class="module m-amp">
-      <h3>Amp &amp; envelope</h3>
+    <div class="module m-main g-amp">
+      <h3>Main</h3>
+      <div class="knobs" id="m-main"></div>
+    </div>
+    <div class="module m-amp g-amp" data-panel="amp">
+      <h3>Amp &amp; tone</h3>
       <div class="ampbody"><div class="knobs" id="m-amp"></div><div class="faders" id="m-env"></div></div>
     </div>
-    <div class="module m-mod">
+    <div class="module m-mod g-amp" data-panel="mod">
       <h3>Modulation</h3>
       <div class="knobs" id="m-mod"></div>
       <div class="lcds"><label for="midiBendRange" class="wide" title="How far the Bend knob goes at either end. Also sent to a MIDI instrument, for synths that accept it">Bend range
@@ -290,10 +291,13 @@
           <option value="1/16T">1/16 triplet</option>
         </select></label></div>
     </div>
+    <div class="module m-filter g-filter" data-panel="filter">
+      <h3>Filter</h3>
+      <div class="knobs" id="m-filter"></div>
     </div>
-    <div class="bank g-filter" data-panel="sound">
-    <div class="module m-filter"><h3>Filter</h3><div class="knobs" id="m-filter"></div></div>
-    <div class="module m-fx"><h3>Effects</h3><div class="knobs" id="m-fx"></div>
+    <div class="module m-fx g-filter" data-panel="fx">
+      <h3>Effects</h3>
+      <div class="knobs" id="m-fx"></div>
       <div class="lcds"><label for="verbType" class="wide">Reverb type
         <select id="verbType">
           <option value="room">Room</option>
@@ -303,44 +307,40 @@
           <option value="cathedral">Cathedral</option>
         </select></label></div>
     </div>
+    <div class="module m-tempo g-arp" data-panel="tempo">
+      <h3>Tempo &amp; pump</h3>
+      <div class="tempo">
+            <label for="bpm" class="bpmlab">BPM<input type="number" id="bpm" min="40" max="240" step="1" inputmode="numeric"></label>
+            <input type="range" id="bpmSlider" min="40" max="240" step="1" aria-label="BPM">
+            <button class="btn" id="tapBtn" type="button">Tap</button>
+          </div>
+      <div class="leds">
+            <label class="led" title="Lock the arpeggio and vibrato to the BPM"><input type="checkbox" id="optSync"><span>Sync</span></label>
+            <label class="led" title="Metronome click, accent every 4 beats"><input type="checkbox" id="optClick"><span>Click</span></label>
+          </div>
+      <div class="knobs" id="m-pump"></div>
     </div>
-    <div class="bank g-arp" data-panel="rhythm">
-    <div class="module m-arp">
-      <h3>Arp &amp; tempo</h3>
-      <div class="arpbody">
-        <div>
-          <div class="knobs" id="m-arp"></div>
-          <div class="lcds">
-            <label for="arpPat" class="wide">Pattern
+    <div class="module m-arp g-arp" data-panel="arp">
+      <h3>Arp &amp; strum</h3>
+      <div class="knobs" id="m-arp"></div>
+      <div class="lcds">
+        <label for="arpPat" class="wide">Pattern
               <select id="arpPat">
                 <option value="up">Up</option>
                 <option value="down">Down</option>
                 <option value="updown">Up &amp; down</option>
                 <option value="random">Random</option>
               </select></label>
-            <label for="strumDir" class="wide" title="Which way the Strum knob sweeps through a chord. With Arp on too, each new chord is strummed first, then arpeggiated">Strum
+        <label for="strumDir" class="wide" title="Which way the Strum knob sweeps through a chord. With Arp on too, each new chord is strummed first, then arpeggiated">Strum
               <select id="strumDir">
                 <option value="up">Up (low to high)</option>
                 <option value="down">Down (high to low)</option>
                 <option value="alt">Down-up (alternates)</option>
               </select></label>
-          </div>
-        </div>
-        <div>
-          <div class="tempo">
-            <label for="bpm" class="bpmlab">BPM<input type="number" id="bpm" min="40" max="240" step="1" inputmode="numeric"></label>
-            <input type="range" id="bpmSlider" min="40" max="240" step="1" aria-label="BPM">
-            <button class="btn" id="tapBtn" type="button">Tap</button>
-          </div>
-          <div class="leds">
-            <label class="led" title="Lock the arpeggio and vibrato to the BPM"><input type="checkbox" id="optSync"><span>Sync</span></label>
-            <label class="led" title="Metronome click, accent every 4 beats"><input type="checkbox" id="optClick"><span>Click</span></label>
-          </div>
-        </div>
       </div>
     </div>
-    <div class="module m-delay">
-      <h3>Delay &amp; pump</h3>
+    <div class="module m-delay g-arp" data-panel="delay">
+      <h3>Delay</h3>
       <div class="knobs" id="m-delay"></div>
       <div class="lcds"><label for="delayDiv" class="wide">Delay time
         <select id="delayDiv">
@@ -351,14 +351,12 @@
           <option value="1/16">1/16 note</option>
         </select></label></div>
     </div>
-    </div>
-    <p class="panelhint" data-panel="sound">Drag a knob up or down, scroll on it, or use the arrow keys. Double-click resets it. The menu under each control lets a right-hand movement play it, and it turns green while your hand drives it. <b>Pedal ring:</b> giving it a hand holds the sustain pedal down the whole time, and the hand sets how long notes ring. <b>Bend:</b> try Tilt, where an upright hand is in tune and tilting either way bends; it springs back when your hand leaves the frame.</p>
+    <p class="panelhint">Drag a knob up or down, scroll on it, or use the arrow keys. Double-click resets it. The menu under each control lets a right-hand movement play it, and it turns green while your hand drives it. <b>Pedal ring:</b> giving it a hand holds the sustain pedal down the whole time, and the hand sets how long notes ring. <b>Bend:</b> try Tilt, where an upright hand is in tune and tilting either way bends; it springs back when your hand leaves the frame.</p>
   </section>
 
-  <div class="adv">
-    <details class="sect" id="s-midi" data-panel="midi" open>
-      <summary>MIDI out</summary>
-      <div class="sbody">
+  <section class="synth midirow" aria-label="MIDI out">
+    <div class="module m-midi g-midi" id="s-midi" data-panel="midi">
+      <h3>MIDI out</h3>
         <p class="hint">Send what you play to another synth, a DAW or a hardware instrument: notes, the sustain pedal, knob moves as controllers and the tempo clock. Or record it straight to a .mid file.</p>
         <div class="row">
           <button class="btn primary" id="midiOutBtn" type="button">Turn on MIDI out</button>
@@ -389,8 +387,10 @@
         </div>
         <p class="hint" id="midiCCMap"></p>
         <p class="hint">On Windows, to play into a DAW on this computer, make a virtual port with loopMIDI and pick it under Send to.</p>
-      </div>
-    </details>
+    </div>
+  </section>
+
+  <div class="adv">
 
     <details class="sect" id="s-keys" data-panel="keys">
       <summary>Keyboard shortcuts</summary>

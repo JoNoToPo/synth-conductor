@@ -1,11 +1,10 @@
 /* ---------- Boot ---------- */
 buildPads();buildVoicings();buildSelects();buildSlots();buildRoutes();preview();
 /* Tempo controls */
-function syncTempoUI(){ $('bpm').value=st.bpm; $('loopBpm').value=st.bpm; $('bpmSlider').value=st.bpm; $('optSync').checked=st.sync; $('optClick').checked=st.click; $('vibDiv').value=st.vibDiv; $('vibDiv').disabled=!st.sync; }
+function syncTempoUI(){ $('bpm').value=st.bpm; $('bpmSlider').value=st.bpm; $('optSync').checked=st.sync; $('optClick').checked=st.click; $('vibDiv').value=st.vibDiv; $('vibDiv').disabled=!st.sync; }
 function setBpm(b){ b=Math.round(Math.max(40,Math.min(240,b))); if(!b||b===st.bpm){syncTempoUI();return} st.bpm=b; syncTempoUI(); tempoChanged();
   if(audio.clickTimer){audio.stopClick();audio.startClick()} }
 $('bpm').addEventListener('change',e=>setBpm(+e.target.value));
-$('loopBpm').addEventListener('change',e=>setBpm(+e.target.value));
 $('bpmSlider').addEventListener('input',e=>setBpm(+e.target.value));
 $('optSync').addEventListener('change',e=>{st.sync=e.target.checked;syncTempoUI();tempoChanged()});
 $('vibDiv').addEventListener('change',e=>{st.vibDiv=e.target.value;tempoChanged()});

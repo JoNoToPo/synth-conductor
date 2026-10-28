@@ -317,24 +317,29 @@ select{background:var(--surface);border:1px solid var(--line);border-radius:10px
 .sq-voicing .cardhead h3{color:var(--brass)}
 .handopts{margin-top:2px}
 @media (max-width:460px){.sq-top{grid-template-columns:minmax(0,1fr)}}
-/* Sound panel: three stacks, each with its own tint and accent */
-.synth{grid-template-columns:minmax(0,1.25fr) minmax(0,1fr) minmax(0,.85fr)}
-.synth>.bank{display:flex;flex-direction:column;gap:10px;padding:10px;border-radius:12px;background:var(--tint);border:1px solid var(--tline);min-width:0}
-.synth .module{grid-column:auto;background:rgba(15,11,9,.35);border-color:var(--tline)}
+/* Sound panel: modules flow in rows and fill the width; colour shows the family (tone, filter & effects, timing) */
+.synth{display:flex;flex-wrap:wrap;align-items:stretch}
+.synth>.module{flex:1 1 250px;background:var(--tint);border-color:var(--tline)}
+.synth>.m-amp{flex-basis:380px}
+.synth>.m-mod{flex-basis:330px}
+.synth>.m-main{flex-basis:330px}
+.synth>.m-midi{flex-basis:100%}
+.synth>.panelhint{flex:1 1 100%}
 .synth .module h3{color:var(--g);border-bottom-color:var(--tline)}
-.synth .module.m-filter,.synth .module.m-fx,.synth .module.m-amp,.synth .module.m-mod,.synth .module.m-arp{flex:1}
 .g-amp{--g:#d6ab52;--tint:rgba(214,171,82,.07);--tline:rgba(214,171,82,.22)}
 .g-filter{--g:#8fb3d9;--tint:rgba(143,179,217,.07);--tline:rgba(143,179,217,.24)}
 .g-arp{--g:#d79aa9;--tint:rgba(215,154,169,.07);--tline:rgba(215,154,169,.24)}
-.bank .kdial .arc{stroke:var(--g)}
-.bank .fader input[type=range]{accent-color:var(--g)}
-.bank .led:has(input:checked)::before{background:var(--g);box-shadow:0 0 6px 1px var(--tline)}
-.bank .tempo input[type=range]{accent-color:var(--g)}
-.bank .knob.driven .kdial .arc,.bank .knob.driven .ptr{stroke:var(--patina)}
-.bank .fader.driven input[type=range]{accent-color:var(--patina)}
-.g-arp .arpbody{grid-template-columns:minmax(0,1fr)}
-@media (max-width:1100px){.synth{grid-template-columns:repeat(2,minmax(0,1fr))}.synth>.g-amp{grid-column:1/-1}}
-@media (max-width:620px){.synth{grid-template-columns:minmax(0,1fr)}}
+.g-midi{--g:#a9c49a;--tint:rgba(169,196,154,.06);--tline:rgba(169,196,154,.22)}
+.synth .kdial .arc{stroke:var(--g)}
+.synth .fader input[type=range]{accent-color:var(--g)}
+.synth .led:has(input:checked)::before{background:var(--g);box-shadow:0 0 6px 1px var(--tline)}
+.synth .tempo input[type=range]{accent-color:var(--g)}
+.synth .knob.driven .kdial .arc,.synth .knob.driven .ptr{stroke:var(--patina)}
+.synth .fader.driven input[type=range]{accent-color:var(--patina)}
+/* MIDI out gets a row of its own, laid out across the width on bigger screens */
+.midirow{margin-top:12px}
+.midirow:not(:has(.module:not(.panel-off))){display:none}
+@media (min-width:900px){.m-midi>.lcds{grid-template-columns:repeat(4,minmax(0,1fr))}.m-midi>.leds{grid-template-columns:repeat(3,minmax(0,1fr))}}
 .adv{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;align-items:start}
 @media (max-width:720px){.adv{grid-template-columns:minmax(0,1fr)}}
 /* MIDI out */
@@ -439,7 +444,8 @@ body.full:not(.rh-only) .pads,body.full:not(.rh-only) .stage>.row>.fs-rh{display
 }
 
 /* Panels: each part of the page can be shown or hidden; the choice is kept in this browser */
-[data-panel].panel-off,.synth.panel-off{display:none!important}
+[data-panel].panel-off{display:none!important}
+.phide[hidden]{display:none}
 .hdrtools{position:relative}
 .pcount{font-family:var(--font-mono);font-size:.72rem;color:var(--muted);margin-left:4px}
 .panelmenu{position:fixed;z-index:30;max-height:calc(100vh - 24px);max-height:calc(100dvh - 24px);overflow:auto;width:min(360px,calc(100vw - 32px));display:flex;flex-direction:column;gap:10px;
@@ -458,10 +464,7 @@ body.full:not(.rh-only) .pads,body.full:not(.rh-only) .stage>.row>.fs-rh{display
   background:none;color:var(--muted);font-size:.85rem;line-height:1;cursor:pointer;opacity:.65}
 .phide:hover,.phide:focus-visible{opacity:1;background:var(--surface-2);color:var(--ivory)}
 details.sect>.phide{top:10px;right:40px}
-/* With only one of the sound banks showing, it gets the whole width */
-.synth.one{grid-template-columns:minmax(0,1fr)!important}
-.synth.one>.g-amp{grid-column:auto}
-@media (min-width:1101px){.synth.two{grid-template-columns:minmax(0,1.25fr) minmax(0,1fr)}}
+.module>.phide{top:5px;right:5px}
 /* Chord loop sits right under the pads, so it can be played while watching the camera */
 #loopCard{margin-top:2px;background:var(--tint);border-color:var(--tline)}
 #loopCard>h3{margin:0;font-family:var(--font-mono);font-weight:500;font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--g)}

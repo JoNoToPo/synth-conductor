@@ -6,6 +6,7 @@ const ENV={a:[.002,3],d:[.02,4],r:[.02,5]};
 const expMap=(v,[lo,hi])=>lo*Math.pow(hi/lo,v);
 const expInv=(sec,[lo,hi])=>clamp01(Math.log(Math.max(lo,sec)/lo)/Math.log(hi/lo));
 const PEDAL_RING=[.3,12];   // how long notes ring under the sustain pedal, in seconds
+const fmtDb=db=>Math.abs(db)<.3?'Flat':(db>0?'+':'−')+Math.abs(db).toFixed(1)+' dB';
 const fmtSec=s=>s<1?Math.round(s*1000)+' ms':s.toFixed(1)+' s';
 function env(){ const c=st.ctrl; return {a:expMap(c.attack.v,ENV.a),d:expMap(c.decay.v,ENV.d),s:c.sustain.v,r:expMap(c.release.v,ENV.r)}; }
 const TARGETS={
@@ -15,6 +16,8 @@ const TARGETS={
   decay:    {label:'Decay',   base:()=>expInv(SOUNDS[st.sound].d,ENV.d), apply:()=>{}, noCtx:true, fmt:v=>fmtSec(expMap(v,ENV.d)), perSound:true},
   sustain:  {label:'Sustain', base:()=>SOUNDS[st.sound].s,               apply:()=>{}, noCtx:true, perSound:true},
   release:  {label:'Release', base:()=>expInv(SOUNDS[st.sound].r,ENV.r), apply:()=>{}, noCtx:true, fmt:v=>fmtSec(expMap(v,ENV.r)), perSound:true},
+  bass:     {label:'Bass (centre = flat)',   base:.5, apply:v=>audio.ramp(audio.bassEq.gain,(v-.5)*24), fmt:v=>fmtDb((v-.5)*24)},
+  treble:   {label:'Treble (centre = flat)', base:.5, apply:v=>audio.ramp(audio.trebleEq.gain,(v-.5)*24), fmt:v=>fmtDb((v-.5)*24)},
   cutoff:   {label:'Filter cutoff',  perSound:true, base:()=>clamp01(Math.log2(SOUNDS[st.sound].cut/250)/5.3), apply:v=>audio.ramp(audio.filter.frequency,250*Math.pow(2,v*5.3))},
   resonance:{label:'Resonance (wah)',base:0, apply:v=>audio.ramp(audio.filter.Q,.5+v*17)},
   vowel:    {label:'Vowel filter',   base:0, apply:v=>audio.setVowel(v<.02?0:(v-.02)/.98,v>=.02), fmt:v=>v<.02?'Off':['ah','eh','ee','oh','oo'][Math.min(4,Math.floor((v-.02)/.98*5))]},
@@ -129,9 +132,10 @@ let saveTimer=null;
 function saveRoutes(){clearTimeout(saveTimer);saveTimer=setTimeout(()=>{try{
   localStorage.setItem('vh-ctrl',JSON.stringify(st.ctrl));localStorage.setItem('vh-leancolor',st.leanColor?'1':'0')}catch(e){}},300)}
 // Which module each control lives in, and its short panel name
-const MODULE_OF={amp:['volume','pedal'],env:['attack','decay','sustain','release'],filter:['cutoff','resonance','highpass','vowel'],
-  fx:['reverb','chorus','drive','phaser','flanger'],mod:['bend','detune','vibrato','tremolo','autopan','rotary'],delay:['delay','feedback','pump'],arp:['arp','strum'],chordpos:['position']};
-const KSHORT={pedal:'Pedal ring',volume:'Volume',cutoff:'Cutoff',resonance:'Reso',highpass:'Hi-pass',vowel:'Vowel',reverb:'Reverb',chorus:'Chorus',
+const MODULE_OF={main:['volume','pedal','cutoff','reverb','chorus'],amp:['bass','treble'],env:['attack','decay','sustain','release'],
+  filter:['resonance','highpass','vowel'],fx:['drive','phaser','flanger'],mod:['bend','detune','vibrato','tremolo','autopan','rotary'],
+  pump:['pump'],delay:['delay','feedback'],arp:['arp','strum'],chordpos:['position']};
+const KSHORT={bass:'Bass',treble:'Treble',pedal:'Pedal ring',volume:'Volume',cutoff:'Cutoff',resonance:'Reso',highpass:'Hi-pass',vowel:'Vowel',reverb:'Reverb',chorus:'Chorus',
   drive:'Drive',detune:'Detune',vibrato:'Vibrato',strum:'Strum',arp:'Arp rate',phaser:'Phaser',flanger:'Flanger',tremolo:'Tremolo',autopan:'Auto-pan',rotary:'Rotary',delay:'Delay',feedback:'Feedback',pump:'Pump',position:'Position',bend:'Bend',attack:'A',decay:'D',sustain:'S',release:'R'};
 // Hand menu: source + direction in one choice
 const SRC_OPTS=[['none','✋ off'],['x','✋ →'],['x:i','✋ ←'],['y','✋ ↑'],['y:i','✋ ↓'],['lean','Lean'],['lean:i','Lean inv'],['tilt','Tilt'],['tilt:i','Tilt inv'],['dist','Push'],['dist:i','Pull'],['roll','Palm'],['roll:i','Back']];

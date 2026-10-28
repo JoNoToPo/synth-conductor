@@ -28,7 +28,7 @@ const audio={
     if(ctx.state!=='running')ctx.resume().catch(()=>{});
     ctx.onstatechange=()=>status();
     const G=v=>{const g=ctx.createGain();g.gain.value=v;return g};
-    // Chain: voices → bus → drive → high-pass → low-pass → vowel formants → chorus → post → (dry + reverb) → comp → master
+    // Chain: voices → bus → drive → high-pass → low-pass → vowel formants → chorus → post → (dry + reverb) → bass → treble → comp → master
     this.bus=G(1);
     this.drive=ctx.createWaveShaper(); this.driveGain=G(1);
     this.hp=ctx.createBiquadFilter(); this.hp.type='highpass'; this.hp.frequency.value=20; this.hp.Q.value=.7;
@@ -80,7 +80,10 @@ const audio={
     dL.connect(pL); pL.connect(dOut); dL.connect(dampL); dampL.connect(this.fbL); this.fbL.connect(dR);
     dR.connect(pR); pR.connect(dOut); dR.connect(dampR); dampR.connect(this.fbR); this.fbR.connect(dL);
     dOut.connect(this.pumpGain);
-    this.pumpGain.connect(comp); comp.connect(this.master);
+    // Tone: bass and treble shelves, flat at the centre of their knobs
+    this.bassEq=ctx.createBiquadFilter(); this.bassEq.type='lowshelf'; this.bassEq.frequency.value=220; this.bassEq.gain.value=0;
+    this.trebleEq=ctx.createBiquadFilter(); this.trebleEq.type='highshelf'; this.trebleEq.frequency.value=3200; this.trebleEq.gain.value=0;
+    this.pumpGain.connect(this.bassEq); this.bassEq.connect(this.trebleEq); this.trebleEq.connect(comp); comp.connect(this.master);
     // Output stage: about 8 dB of extra level, then a limiter so loud chords and arpeggios can't clip
     const boost=G(2.5), lim=ctx.createDynamicsCompressor();
     lim.threshold.value=-4; lim.knee.value=0; lim.ratio.value=20; lim.attack.value=.002; lim.release.value=.12;

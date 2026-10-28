@@ -12,24 +12,38 @@ const PANELS=[
   ['loop','Chord loop','Record chords to the beat, then play over them'],
   ['chord','Chord options','7ths, major/minor flips, inversions, ♭ and ♯'],
   ['presets','Presets','Save and load sounds and hand setups'],
-  ['sound','Sound design','Envelope, modulation, filter and effects knobs'],
-  ['rhythm','Arp, tempo & delay','BPM, click, arpeggio, delay and pump'],
+  ['amp','Amp & tone','Bass, treble and the envelope'],
+  ['mod','Modulation','Bend, detune, vibrato, tremolo, auto-pan and rotary'],
+  ['filter','Filter','Resonance, high-pass and the vowel filter'],
+  ['fx','Effects','Drive, phaser, flanger and the reverb type'],
+  ['tempo','Tempo & pump','BPM, tap, sync, click and pump'],
+  ['arp','Arp & strum','Play chords as arpeggios, or strum them'],
+  ['delay','Delay','Echoes in time with the tempo'],
   ['midi','MIDI out','Play other synths or a DAW, or record a .mid file'],
   ['keys','Keyboard shortcuts','Change which keys hold flips, inversions and the pedal'],
   ['details','Extra options','Finer settings inside the panels, like finger slots'],
 ];
 const PANELS_ESSENTIAL=['piano','loop'];
+// Panels that keep time: while any of them shows, Tempo shows too
+const NEEDS_TEMPO={loop:'Chord loop',arp:'Arp & strum',delay:'Delay',mod:'Modulation'};
+// Older saves had one switch for all the sound panels and one for arp, tempo and delay
+const PANELS_WAS={amp:'sound',mod:'sound',filter:'sound',fx:'sound',tempo:'rhythm',arp:'rhythm',delay:'rhythm'};
 let panels={};
 { let saved=null; try{saved=JSON.parse(localStorage.getItem('vh-panels')||'null')}catch(e){}
   let simple=firstVisit; try{const v=localStorage.getItem('vh-simple');if(v!==null)simple=v==='1'}catch(e){}   // carried over from Simple view
-  PANELS.forEach(([k])=>panels[k]=saved&&typeof saved[k]==='boolean'?saved[k]:simple?PANELS_ESSENTIAL.includes(k):true); }
+    const was=k=>saved&&(typeof saved[k]==='boolean'?saved[k]:typeof saved[PANELS_WAS[k]]==='boolean'?saved[PANELS_WAS[k]]:undefined);
+  PANELS.forEach(([k])=>{const w=was(k); panels[k]=w!==undefined?w:simple?PANELS_ESSENTIAL.includes(k):true}); }
+const tempoNeededBy=()=>Object.keys(NEEDS_TEMPO).filter(k=>panels[k]);
+const panelShown=k=>panels[k]||(k==='tempo'&&tempoNeededBy().length>0);
 function panelsApply(){
-  document.querySelectorAll('[data-panel]').forEach(el=>el.classList.toggle('panel-off',!panels[el.dataset.panel]));
+  document.querySelectorAll('[data-panel]').forEach(el=>el.classList.toggle('panel-off',!panelShown(el.dataset.panel)));
   document.body.classList.toggle('simple',!panels.details);
-  const banks=[...document.querySelectorAll('#synth>.bank')].filter(b=>panels[b.dataset.panel]).length, syn=$('synth');
-  syn.classList.toggle('panel-off',!banks); syn.classList.toggle('one',banks===1); syn.classList.toggle('two',banks===2);
-  const on=PANELS.filter(([k])=>panels[k]).length; $('panelsCount').textContent=`${on}/${PANELS.length}`;
-  $('panelList').querySelectorAll('input').forEach(i=>i.checked=!!panels[i.value]);
+  // Tempo can't be hidden while something uses it: its box is ticked and greyed, and its ✕ is gone
+  const need=tempoNeededBy(), tb=$('panelList').querySelector('input[value=tempo]');
+  tb.disabled=need.length>0; tb.closest('.pmitem').querySelector('small').textContent=need.length?`Shown while ${need.map(k=>NEEDS_TEMPO[k]).join(', ')} ${need.length>1?'are':'is'} on`:PANELS.find(p=>p[0]==='tempo')[2];
+  document.querySelector('.m-tempo>.phide').hidden=need.length>0;
+  const on=PANELS.filter(([k])=>panelShown(k)).length; $('panelsCount').textContent=`${on}/${PANELS.length}`;
+  $('panelList').querySelectorAll('input').forEach(i=>i.checked=panelShown(i.value));
   try{localStorage.setItem('vh-panels',JSON.stringify(panels))}catch(e){}
   dispatchEvent(new Event('resize'));
 }
