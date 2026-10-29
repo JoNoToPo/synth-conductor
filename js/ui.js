@@ -135,7 +135,7 @@ function render(){
     b.classList.toggle('spare',!slots.length&&!on);}); // no finger plays it: tucked away unless Voicing is open
   showVinfo();
   $('keySel').value=st.key;
-  const v=VOICINGS.find(x=>x.id===st.voicing);
+  const v=VOICINGS.find(x=>x.id===voicingNow());
   if(st.degree===null){
     $('roman').textContent=modeLabel();
     $('chordName').textContent='Tap a chord or raise your left hand';$('chordName').className='chordname idle';

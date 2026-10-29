@@ -581,3 +581,13 @@ body.full #loopCard{display:none}
 @container (min-width:640px){.m-midi>.lcds{grid-template-columns:repeat(4,minmax(0,1fr))}.m-midi>.leds{grid-template-columns:repeat(3,minmax(0,1fr))}}
 .m-matrix .psave{margin:0}
 .orow .oratio-in{min-width:0;background:#110d0b;border:1px solid var(--g);border-radius:6px;color:var(--patina);font:500 .8rem var(--font-mono);padding:5px 6px;-webkit-user-select:text;user-select:text}
+/* Chord loop: editing one chord */
+.loopchord{display:flex;flex-direction:column;gap:8px;padding:10px;border:1px solid var(--brass);border-radius:10px;background:rgba(214,171,82,.06)}
+.loopchord[hidden]{display:none}
+.lchead{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px}
+.lchead b{font-family:var(--font-mono);font-weight:500;font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--brass)}
+.lchead span{font-weight:600;color:var(--ivory)}
+.loopchord .hint{margin:0;font-size:.74rem}
+.loopchord .lcds select:disabled{opacity:.45}
+.lseg.editing{box-shadow:inset 0 0 0 2px var(--brass);background:rgba(214,171,82,.34)}
+#loopDeselect{padding:6px 10px}

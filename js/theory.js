@@ -73,11 +73,12 @@ const majMode=()=>st.sevMode==='maj'&&st.leanColor!==false;
 const addNine=()=>st.alt7&&!st.s7;
 // Roman numeral from the chord's real quality, with ♭/♯ relative to the major scale (Phrygian ♭II, etc.)
 const NUMS=['I','II','III','IV','V','VI','VII'];
+const voicingNow=()=>st.loopOv?.voicing||st.voicing;   // a loop chord can carry its own voicing
 function romanOf(d){
   const c=tonesOf(d), off=SCALE[d]-MAJOR_STEPS[d]+shiftAmt();
   const acc=off<0?'♭'.repeat(-off):off>0?'♯'.repeat(off):'';
   const n=NUMS[d];
-  if(st.voicing==='dim') return acc+n.toLowerCase()+'°';
+  if(voicingNow()==='dim') return acc+n.toLowerCase()+'°';
   if(c.t===4) return acc+n+(c.f===8?'+':'');
   return acc+n.toLowerCase()+(c.f===6?'°':'');
 }

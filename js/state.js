@@ -13,7 +13,7 @@ try{let saved=JSON.parse(localStorage.getItem('vh-rhmap')||'null');
   }}catch(e){}
 
 function realize(d){
-  const c=tonesOf(d), v=VOICINGS.find(x=>x.id===st.voicing);
+  const c=tonesOf(d), v=VOICINGS.find(x=>x.id===voicingNow());
   let shapes=v.shapes(c,has7(),d);
   if(addNine()) shapes=shapes.map(sh=>{
     if(sh.some(i=>((i-c.n)%12+12)%12===0))return sh;      // already has a 9th/2nd
@@ -86,7 +86,7 @@ function setPosition(v){
 function effInv(){ return st.loopOv?st.loopOv.inv:(st.invKey??st.invHand??st.invBase); }
 function bassInterval(d,c=tonesOf(d)){
   const inv=effInv();
-  if(inv===1) return st.voicing==='sus4'?5:st.voicing==='sus2'?c.n%12:c.t%12;
+  if(inv===1) return voicingNow()==='sus4'?5:voicingNow()==='sus2'?c.n%12:c.t%12;
   if(inv===2) return c.f%12;
   if(inv===3) return has7()?c.s%12:0;
   return 0;
@@ -128,24 +128,24 @@ function baseName(){
   const rootPc=rootPcOf(st.degree);
   const rel=new Set([...st.upper,...(st.bassNote!==null?[st.bassNote]:[])].map(m=>((m-rootPc)%12+12)%12));
   {const c=tonesOf(st.degree),root=pcName(rootPc),minor=c.t===3,s=c.s%12;
-    if(st.voicing==='power')return root+'5';
-    if(st.voicing==='flat5'){const h7=rel.has(s);
+    if(voicingNow()==='power')return root+'5';
+    if(voicingNow()==='flat5'){const h7=rel.has(s);
       if(minor)return root+(h7?(s===10?'m7♭5':s===9?'°7':'m(maj7)♭5'):'°');
       return root+(h7?(s===11?'maj7♭5':'7♭5'):'(♭5)');}
-    if(st.voicing==='ninesus')return root+(s===11?'maj9sus4':'9sus4');
-    if(st.voicing==='sowhat')return root+(minor?'m11':rel.has(11)?'maj13':rel.has(10)?'13':'6/9');
-    if(st.voicing==='upper')return root+(minor?'m11':rel.has(s)?(s===11?'maj13♯11':'13♯11'):'6/9♯11');}
-  if(st.voicing==='six'||st.voicing==='flat6'){
-    const iv=st.voicing==='six'?9:8, c=tonesOf(st.degree), rest=new Set(rel); rest.delete(iv);
+    if(voicingNow()==='ninesus')return root+(s===11?'maj9sus4':'9sus4');
+    if(voicingNow()==='sowhat')return root+(minor?'m11':rel.has(11)?'maj13':rel.has(10)?'13':'6/9');
+    if(voicingNow()==='upper')return root+(minor?'m11':rel.has(s)?(s===11?'maj13♯11':'13♯11'):'6/9♯11');}
+  if(voicingNow()==='six'||voicingNow()==='flat6'){
+    const iv=voicingNow()==='six'?9:8, c=tonesOf(st.degree), rest=new Set(rel); rest.delete(iv);
     if(rest.has(c.s%12)) return chordName(st.degree,rest)+(iv===9?'(13)':'(♭13)');
     const base=c.t===3?(c.f===6?'m♭5':'m'):'';
     const nine=rest.has(c.n%12);
     return pcName(rootPc)+base+(iv===9?(nine?'6/9':'6'):(nine?'(♭6,add9)':'(♭6)'));
   }
-  if(st.voicing==='sus4'||st.voicing==='sus2'){
+  if(voicingNow()==='sus4'||voicingNow()==='sus2'){
     const c=tonesOf(st.degree), s=c.s%12, sev=rel.has(s)?(s===11?'maj7':'7'):'';
-    const extra=st.voicing==='sus4'&&rel.has(c.n%12)?'(add9)':'';
-    return pcName(rootPc)+sev+(st.voicing==='sus4'?'sus4':(c.n%12===1?'sus♭2':'sus2'))+extra;
+    const extra=voicingNow()==='sus4'&&rel.has(c.n%12)?'(add9)':'';
+    return pcName(rootPc)+sev+(voicingNow()==='sus4'?'sus4':(c.n%12===1?'sus♭2':'sus2'))+extra;
   }
   return chordName(st.degree,rel);
 }

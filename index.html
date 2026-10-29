@@ -142,6 +142,38 @@
         <button class="btn" id="loopEarlier" type="button" title="Move the selected chord one snap step earlier">‹ Earlier</button>
         <button class="btn" id="loopLater" type="button" title="Move the selected chord one snap step later">Later ›</button>
         <button class="btn" id="loopDel" type="button" title="Remove this change: the chord before it rings on instead">Delete</button>
+        <button class="btn" id="loopEditChord" type="button" title="Change this chord: which chord, major/minor, 7th, flat/sharp, inversion and voicing">Edit chord</button>
+        <button class="btn" id="loopDeselect" type="button" title="Deselect (Esc)">✕</button>
+      </div>
+      <div class="loopchord" id="loopChord" hidden>
+        <div class="lchead"><b>Editing</b><span id="lcWhat"></span></div>
+        <div class="lcds">
+          <label for="lcDeg">Chord<select id="lcDeg"></select></label>
+          <label for="lcSeven">7th<select id="lcSeven">
+            <option value="tri">Triad</option>
+            <option value="add9">Triad + 9th</option>
+            <option value="7">7th</option>
+            <option value="7c">Other 7th (color)</option>
+          </select></label>
+          <label for="lcShift">Flat / sharp<select id="lcShift">
+            <option value="-1">♭ Flat</option>
+            <option value="0">Natural</option>
+            <option value="1">♯ Sharp</option>
+          </select></label>
+          <label for="lcInv">Inversion<select id="lcInv">
+            <option value="0">Root</option>
+            <option value="1">1st</option>
+            <option value="2">2nd</option>
+            <option value="3">3rd</option>
+          </select></label>
+          <label for="lcVoicing" class="wide">Voicing<select id="lcVoicing"></select></label>
+        </div>
+        <div class="leds"><label class="led" title="Swap this chord between major and minor"><input type="checkbox" id="lcFlip"><span>Flip maj/min</span></label></div>
+        <div class="row">
+          <button class="btn" id="lcHear" type="button">▶ Hear it</button>
+          <button class="btn primary" id="lcDone" type="button">Done</button>
+        </div>
+        <p class="hint">Changes apply to this chord only, and Undo takes them back. Done, Esc, or tapping the chord again closes this.</p>
       </div>
       <div class="row">
         <button class="btn" id="loopRec" type="button">● Record</button>
