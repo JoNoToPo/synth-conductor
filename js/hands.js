@@ -251,6 +251,11 @@ function lean(lm){
 }
 // Which way the left palm faces, from the raw (unmirrored) camera image.
 // > 0: palm toward the camera; < 0: back of the hand toward the camera; near 0: edge-on.
+// How near the hand is: the size of the palm's wrist–index knuckle–pinky knuckle triangle, measured with the
+// tracker's depth guess too. That triangle doesn't bend, so tipping the knuckles toward the camera at the wrist
+// (or rolling the hand) barely changes it; only bringing the whole hand closer does. Scaled to read like the old wrist-to-knuckle length
+function palmNear(lm,ar){ const p=i=>[lm[i].x*ar,lm[i].y,(lm[i].z||0)*ar], d=(a,b)=>Math.hypot(a[0]-b[0],a[1]-b[1],a[2]-b[2]);
+  const w=p(0),i=p(5),k=p(17); return (d(w,i)+d(w,k)+d(i,k))/3/.82; }
 function palmFacing(lm){
   const ar=(video.videoWidth||16)/(video.videoHeight||9);
   const ix=(lm[5].x-lm[0].x)*ar, iy=lm[5].y-lm[0].y, px=(lm[17].x-lm[0].x)*ar, py=lm[17].y-lm[0].y;
@@ -426,7 +431,7 @@ function handleHands(L,R){
       y: clamp01((.9-R[9].y)/.7),
       lean: clamp01(a/45),
       tilt: clamp01(.5+a/90),            // upright = ½, 45° either way = the ends
-      dist: clamp01((Math.hypot((R[0].x-R[9].x)*ar,R[0].y-R[9].y)-.09)/.22),
+      dist: clamp01((palmNear(R,ar)-.09)/.22),   // push the whole hand toward the camera
       roll: clamp01(.5+palmFacing(R)),   // palm to the camera = 1, side-on = ½, back of the hand = 0
     };
     for(const k in raw)st.inVals[k]=euro(k,raw[k],now);
