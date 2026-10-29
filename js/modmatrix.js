@@ -121,32 +121,33 @@ matrixRun();   // rows saved last time start moving straight away
    ("… (edited)") the moment you change it, so the originals stay as they are; your own ones save as you go */
 const OSC_FADES=[[0,'Holds'],[.1,'0.1 s'],[.3,'0.3 s'],[.6,'0.6 s'],[1.2,'1.2 s'],[2.5,'2.5 s']];
 const OSC_RATIOS=[.25,.5,1,1.5,2,3,4,5,6,8,10,12,16];
-// A pitch multiple as a ratio where it is one (1.25 → 5:4), so just-intonation intervals read the way they're written
-function ratioFrac(r){ for(let q=2;q<=16;q++){ const p=Math.round(r*q); if(p>0&&Math.abs(p/q-r)<1e-6){ let a=p,b=q; while(b){[a,b]=[b,a%b]} return p/a+':'+q/a; } } return null; }
+// Ratios are string lengths, as on a monochord: a shorter string plays higher, so 4:5 (the string 4/5 as long)
+// is a major third up, × 1.25. This gives a pitch multiple as that string-length ratio, where it is one
+function ratioFrac(r){ for(let q=2;q<=16;q++){ const p=Math.round(r*q); if(p>0&&Math.abs(p/q-r)<1e-6){ let a=p,b=q; while(b){[a,b]=[b,a%b]} return q/a+':'+p/a; } } return null; }
 const ratioLabel=r=>{ const f=Number.isInteger(r)?null:ratioFrac(r), d=+r.toFixed(4); return OSC_RATIOS.includes(r)||!f?`× ${d}`:`× ${d} (${f})`; };
-// Typed pitch: "5:4", "5/4", "1.25" or "3"
-function ratioParse(t){ const m=/^\s*(\d*\.?\d+)\s*(?:[:\/]\s*(\d*\.?\d+))?\s*$/.exec(String(t)); if(!m)return null;
-  const v=m[2]!==undefined?+m[1]/+m[2]:+m[1]; return isFinite(v)&&v>0?v:null; }
+// Typed pitch: a string-length ratio "4:5", or a multiple "1.25", "5/4" or "3"
+function ratioParse(t){ const m=/^\s*(\d*\.?\d+)\s*(?:([:\/])\s*(\d*\.?\d+))?\s*$/.exec(String(t)); if(!m)return null;
+  const v=m[2]===':'?+m[3]/+m[1]:m[2]==='/'?+m[1]/+m[3]:+m[1]; return isFinite(v)&&v>0?v:null; }
 const instMine=()=>!!SOUNDS[st.sound].mine;
 function instSaveMine(){ if(!instMine())return; const all=loadInstruments(), {mine,...def}=SOUNDS[st.sound]; all[st.sound]=def;
   try{localStorage.setItem('vh-instruments',JSON.stringify(all))}catch(e){} }
 // The instrument to change: yours as it is, or a copy of a built-in
 function instEditable(){
   const cur=SOUNDS[st.sound]; if(cur.mine||cur.draft)return cur;
-  const copy=JSON.parse(JSON.stringify(cur)); copy.label=cur.label+' (edited)'; copy.draft=true;
+  const copy=JSON.parse(JSON.stringify(cur)); copy.label=cur.label+' (edited)'; copy.draft=true; copy.from=st.sound;
   SOUNDS._draft=copy; st.sound='_draft'; fillSoundSel(); return copy; }
 // Rebuild what's sounding so a change is heard now
 function instRefresh(){ audio.allOff(); if(st.sounding&&st.degree!==null){const all=st.bassNote!==null?[st.bassNote,...st.upper]:st.upper;audio.setNotes(all)} }
 function instChanged(rebuild){ instSaveMine(); if(rebuild)instRefresh(); instHeader(); }
 function instHeader(){ const s0=SOUNDS[st.sound];
   $('instName').textContent=s0.label; $('instState').textContent=s0.mine?'yours · changes save as you go':s0.draft?'edited copy · save it to keep it':'built-in · changing it makes a copy';
-  $('instStrike').checked=!!s0.strike; $('instDel').hidden=!s0.mine; $('oscAdd').disabled=s0.osc.length>=INSTR_MAX_OSC; }
+  $('instStrike').checked=!!s0.strike; $('oscAdd').disabled=s0.osc.length>=INSTR_MAX_OSC; instList(); }
 function instBuild(){
   if(!SOUNDS[st.sound])st.sound='pad';   // e.g. one deleted in another tab
   const box=$('oscRows'), s0=SOUNDS[st.sound]; box.innerHTML='';
   s0.osc.forEach((o,i)=>{ const row=document.createElement('div'); row.className='mrow orow';
     row.innerHTML=`<select class="owave" aria-label="Oscillator ${i+1} wave">${INSTR_WAVES.map(w=>`<option value="${w}">${w[0].toUpperCase()+w.slice(1)}</option>`).join('')}</select>
-      <select class="oratio" aria-label="Oscillator ${i+1} pitch" title="Pitch as a multiple of the note: 1 is the note, 2 an octave up, 0.5 an octave down. Custom takes your own, like 5:4 for a major third">${[...new Set([...OSC_RATIOS,o[2]])].sort((a,b)=>a-b).map(r=>`<option value="${r}">${ratioLabel(r)}</option>`).join('')}<option value="custom">Custom…</option></select>
+      <select class="oratio" aria-label="Oscillator ${i+1} pitch" title="Pitch as a multiple of the note: 1 is the note, 2 an octave up, 0.5 an octave down. Custom takes your own: a string-length ratio like 4:5 (a major third up) or a multiple like 1.25">${[...new Set([...OSC_RATIOS,o[2]])].sort((a,b)=>a-b).map(r=>`<option value="${r}">${ratioLabel(r)}</option>`).join('')}<option value="custom">Custom…</option></select>
       <span class="ocell"><input type="range" class="odet" min="-50" max="50" step="1" aria-label="Oscillator ${i+1} detune in cents"><output></output></span>
       <span class="ocell"><input type="range" class="olvl" min="0" max="100" step="1" aria-label="Oscillator ${i+1} level"><output></output></span>
       <select class="ofade" aria-label="Oscillator ${i+1} fade" title="Holds: stays as long as the note. A time: this oscillator dies away on its own, so bright parts can fade first">${OSC_FADES.map(([v,l])=>`<option value="${v}">${l}</option>`).join('')}</select>
@@ -161,10 +162,10 @@ function instBuild(){
     // Custom: the menu turns into a box for your own multiple; Enter or leaving the box sets it, Esc cancels
     q('.oratio').addEventListener('change',e=>{ if(e.target.value!=='custom'){ edit(x=>{x[2]=+e.target.value},true); return; }
       const sel=e.target, inp=document.createElement('input'); inp.type='text'; inp.className='oratio oratio-in'; inp.inputMode='decimal'; inp.autocomplete='off';
-      inp.placeholder='e.g. 5:4'; inp.value=Number.isInteger(o[2])?String(o[2]):ratioFrac(o[2])||String(+o[2].toFixed(4)); inp.setAttribute('aria-label',`Oscillator ${i+1} pitch: a multiple like 1.5 or a ratio like 3:2`);
+      inp.placeholder='e.g. 4:5'; inp.value=Number.isInteger(o[2])?String(o[2]):ratioFrac(o[2])||String(+o[2].toFixed(4)); inp.setAttribute('aria-label',`Oscillator ${i+1} pitch: a string-length ratio like 2:3 or a multiple like 1.5`);
       sel.replaceWith(inp); inp.focus(); inp.select(); let done=false;
       const finish=ok=>{ if(done)return; done=true; const v=ok?ratioParse(inp.value):null, msg=$('instMsg');
-        if(ok&&v===null){ msg.textContent=`“${inp.value}” isn’t a pitch multiple. Try a number like 1.5 or a ratio like 5:4.`; }
+        if(ok&&v===null){ msg.textContent=`“${inp.value}” isn’t a pitch. Try a string-length ratio like 4:5 or a multiple like 1.25.`; }
         else if(v!==null&&(v<INSTR_RATIO[0]||v>INSTR_RATIO[1])){ msg.textContent=`Pitch multiples go from 1:16 to 32, so ${inp.value} was kept inside that.`; }
         if(v!==null){ const c=Math.max(INSTR_RATIO[0],Math.min(INSTR_RATIO[1],v)); edit(x=>{x[2]=c},true); }
         instBuild(); };
@@ -185,17 +186,27 @@ $('instStrike').addEventListener('change',e=>{ const s1=instEditable(); s1.strik
 $('instForm').addEventListener('submit',e=>{ e.preventDefault(); const name=$('instNameIn').value.trim().slice(0,30), msg=$('instMsg');
   if(!name){msg.textContent='Type a name for this instrument first.';$('instNameIn').focus();return}
   const c=st.ctrl, cur=SOUNDS[st.sound], all=loadInstruments();
-  const def=instrClean({label:name,osc:cur.osc,strike:cur.strike,a:expMap(c.attack.v,ENV.a),d:expMap(c.decay.v,ENV.d),s:c.sustain.v,r:expMap(c.release.v,ENV.r),
-    cut:250*Math.pow(2,c.cutoff.v*5.3)});
+  const own=(k,knob,fallback)=>c[k].src==='none'?knob:fallback;   // a hand-driven knob is wherever your hand is: keep the instrument's own value
+  const def=instrClean({label:name,osc:cur.osc,strike:cur.strike,a:own('attack',expMap(c.attack.v,ENV.a),cur.a),d:own('decay',expMap(c.decay.v,ENV.d),cur.d),
+    s:own('sustain',c.sustain.v,cur.s),r:own('release',expMap(c.release.v,ENV.r),cur.r),cut:own('cutoff',250*Math.pow(2,c.cutoff.v*5.3),cur.cut)});
   const same=Object.keys(all).find(id=>all[id]&&all[id].label===name), id=same||'u_'+Date.now().toString(36);
   all[id]=def; try{localStorage.setItem('vh-instruments',JSON.stringify(all))}catch(err){msg.textContent='Couldn’t save here: this browser is blocking storage for the page.';return}
-  SOUNDS[id]={...def,mine:true}; delete SOUNDS._draft; st.sound=id; fillSoundSel(); instBuild();
+  SOUNDS[id]={...def,mine:true}; delete SOUNDS._draft; st.sound=id; rememberSound(); fillSoundSel(); instBuild();
   msg.textContent=same?`Updated "${name}".`:`Saved "${name}". It’s in the Instrument menu under Yours.`; });
-{ let armed=null; $('instDel').addEventListener('click',()=>{ const b=$('instDel');
-  if(!armed){b.textContent='Confirm';armed=setTimeout(()=>{armed=null;b.textContent='Delete'},3000);return}
-  clearTimeout(armed); armed=null; b.textContent='Delete';
-  const all=loadInstruments(), name=SOUNDS[st.sound].label; delete all[st.sound]; try{localStorage.setItem('vh-instruments',JSON.stringify(all))}catch(e){}
-  delete SOUNDS[st.sound]; st.sound='pad'; fillSoundSel(); $('soundSel').dispatchEvent(new Event('change')); $('instMsg').textContent=`Deleted "${name}".`; }); }
-// After the menu's own handler has switched instruments (it's added later, so wait for it)
-$('soundSel').addEventListener('change',()=>queueMicrotask(()=>{ if(st.sound!=='_draft'&&SOUNDS._draft){delete SOUNDS._draft;fillSoundSel()} instBuild(); }));
+// Your instruments: tap one to play it, Delete (then Confirm) to remove it
+function instDelete(id){ const all=loadInstruments(), name=SOUNDS[id]?.label||all[id]?.label||'that instrument'; delete all[id];
+  try{localStorage.setItem('vh-instruments',JSON.stringify(all))}catch(e){}
+  delete SOUNDS[id]; if(st.sound===id){ st.sound='pad'; fillSoundSel(); $('soundSel').dispatchEvent(new Event('change')); } else { fillSoundSel(); instList(); }
+  $('instMsg').textContent=`Deleted "${name}".`; }
+function instList(){ const box=$('instList'); box.innerHTML='';
+  Object.entries(SOUNDS).filter(([,s])=>s.mine).sort((a,b)=>a[1].label.localeCompare(b[1].label)).forEach(([id,s])=>{
+    const row=document.createElement('div'); row.className='prow'+(id===st.sound?' active':'');
+    const load=document.createElement('button'); load.type='button'; load.className='pload'; load.textContent=s.label; load.title=`Play "${s.label}"`;
+    load.addEventListener('click',()=>{ audio.init(); const ss=$('soundSel'); ss.value=id; ss.dispatchEvent(new Event('change')); });
+    const del=document.createElement('button'); del.type='button'; del.className='pdel'; del.textContent='Delete'; del.setAttribute('aria-label','Delete '+s.label);
+    let armed=null; del.addEventListener('click',()=>{ if(!armed){del.textContent='Confirm';del.classList.add('confirm');armed=setTimeout(()=>{armed=null;del.textContent='Delete';del.classList.remove('confirm')},3000);return}
+      clearTimeout(armed); instDelete(id); });
+    row.append(load,del); box.appendChild(row); }); }
+// The Instrument menu calls this once it has switched: an unsaved edited copy is dropped, and the editor shows the new one
+function instPicked(){ if(st.sound!=='_draft'&&SOUNDS._draft){delete SOUNDS._draft;fillSoundSel()} instBuild(); }
 instBuild();

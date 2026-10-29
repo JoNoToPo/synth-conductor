@@ -52,7 +52,7 @@ function applySound(c){
   if(ok(c.key,v=>v>=0&&v<12))st.key=c.key;
   if(ok(c.mode,v=>MODES[v]))st.mode=c.mode;
   const sound=c.instrument?instrInstall(c.instrument):c.sound;
-  if(ok(sound,v=>SOUNDS[v])&&sound!==st.sound){audio.allOff();st.sound=sound}
+  if(ok(sound,v=>SOUNDS[v])&&sound!==st.sound){audio.allOff();st.sound=sound;rememberSound()}
   if(ok(c.voicing,v=>VOICINGS.some(x=>x.id===v)))st.voicing=c.voicing;
   for(const k of SOUND_BOOLS)if(typeof c[k]==='boolean')st[k]=c[k];
   if(c.shiftQual==='common'||c.shiftQual==='keep')st.shiftQual=c.shiftQual;

@@ -56,11 +56,12 @@ function buildSelects(){
   ms.addEventListener('change',()=>{st.mode=ms.value;SCALE=MODES[st.mode].steps;try{localStorage.setItem('vh-mode',st.mode)}catch(e){}refreshAfterChange();render()});
   ks.addEventListener('change',()=>{st.key=+ks.value;st.upper=[];refreshAfterChange()});
   const ss=$('soundSel'); fillSoundSel();
-  ss.addEventListener('change',()=>{audio.allOff();st.sound=ss.value;
+  ss.addEventListener('change',()=>{audio.allOff();st.sound=ss.value;rememberSound();
     // Each sound has its own natural brightness and envelope: reset those sliders unless a hand is driving them
     for(const k in TARGETS)if(TARGETS[k].perSound&&st.ctrl[k].src==='none')st.ctrl[k].v=baseOf(k);
     showRouteVals();saveRoutes();
-    applyAllRoutes();if(st.sounding&&st.degree!==null){const all=st.bassNote!==null?[st.bassNote,...st.upper]:st.upper;audio.setNotes(all)}});
+    applyAllRoutes();if(st.sounding&&st.degree!==null){const all=st.bassNote!==null?[st.bassNote,...st.upper]:st.upper;audio.setNotes(all)}
+    instPicked();});
 }
 function buildSlots(){
   const wrap=$('rhSlots');wrap.innerHTML='';

@@ -26,6 +26,8 @@ function instrClean(c){ if(!c||typeof c!=='object'||!Array.isArray(c.osc))return
     r:n(c.r,.02,5,.4),cut:n(c.cut,250,12000,3000),strike:!!c.strike}; }
 const loadInstruments=()=>{try{return JSON.parse(localStorage.getItem('vh-instruments')||'{}')||{}}catch(e){return {}}};
 for(const [id,c] of Object.entries(loadInstruments())){ const x=instrClean(c); if(x&&/^u_[\w-]+$/.test(id))SOUNDS[id]={...x,mine:true}; }
+function rememberSound(){ try{localStorage.setItem('vh-sound',SOUNDS[st.sound]?.draft?SOUNDS[st.sound].from||'pad':st.sound)}catch(e){} }
+try{ const v=localStorage.getItem('vh-sound'); if(v&&SOUNDS[v])st.sound=v; }catch(e){}
 // An instrument that came with a preset or a link: reuse yours if it's the same one, otherwise add it to Yours
 function instrInstall(c){ const def=instrClean(c); if(!def)return null; const all=loadInstruments(), same=JSON.stringify(def);
   let id=Object.keys(all).find(k=>JSON.stringify(instrClean(all[k]))===same);

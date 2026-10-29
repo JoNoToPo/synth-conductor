@@ -407,11 +407,11 @@
         <label class="led" title="Struck: notes die away on their own, like a piano or bell. Held: they last while the chord does"><input type="checkbox" id="instStrike"><span>Struck</span></label>
       </div>
       <div class="minsenv"><span class="lsub">Envelope</span><div class="faders" id="m-env"></div></div>
+      <div class="plist lchips" id="instList" data-label="Yours" aria-label="Your instruments"></div>
       <form class="psave" id="instForm">
         <label class="sr" for="instNameIn">Instrument name</label>
         <input type="text" id="instNameIn" placeholder="Name this instrument" maxlength="30" autocomplete="off">
         <button class="btn primary" type="submit">Save instrument</button>
-        <button class="btn" id="instDel" type="button" hidden>Delete</button>
       </form>
       <p class="hint" id="instMsg">Changes play straight away. Saving also keeps the envelope and the Cutoff knob as the instrument’s own.</p>
     </div>
