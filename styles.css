@@ -545,11 +545,10 @@ body.full #loopCard{display:none}
 .m-matrix .row .btn{padding:6px 12px;font-size:.82rem}
 .m-matrix .row .led{margin-left:auto}
 @container (max-width:640px){
-  .mhead{display:none}
-  .mrow{grid-template-columns:minmax(0,1fr) auto minmax(0,1fr) 28px;grid-template-areas:"s a d x" "m m m m" "r r r v"}
-  .mrow .msrc{grid-area:s}.mrow .marrow{grid-area:a}.mrow .mdst{grid-area:d}.mrow .mdel{grid-area:x}
+  .m-matrix .mhead{display:none}
+  .m-matrix .mrow{grid-template-columns:minmax(0,1fr) auto minmax(0,1fr) 28px;grid-template-areas:"s a d x" "m m m m" "r r r v"}
+  .mrow .msrc{grid-area:s}.mrow .marrow{grid-area:a}.mrow .mdst{grid-area:d}.m-matrix .mrow .mdel{grid-area:x}
   .mrow .mmeter{grid-area:m}.mrow .mamt{grid-area:r}.mrow .mval{grid-area:v;grid-column:4}
-  .mrow{grid-template-areas:"s a d x" "m m m m" "r r r v"}
 }
 /* Instrument editor in the mod matrix */
 .minst{display:flex;flex-direction:column;gap:8px;padding:10px;border:1px solid var(--tline);border-radius:10px;background:rgba(15,11,9,.3)}

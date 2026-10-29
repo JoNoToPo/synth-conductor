@@ -17,6 +17,7 @@ const TARGETS={
   sustain:  {label:'Sustain', base:()=>SOUNDS[st.sound].s,               apply:()=>{}, noCtx:true, perSound:true},
   release:  {label:'Release', base:()=>expInv(SOUNDS[st.sound].r,ENV.r), apply:()=>{}, noCtx:true, fmt:v=>fmtSec(expMap(v,ENV.r)), perSound:true},
   bass:     {label:'Bass (centre = flat)',   base:.5, apply:v=>audio.ramp(audio.bassEq.gain,(v-.5)*24), fmt:v=>fmtDb((v-.5)*24)},
+  mid:      {label:'Mid (centre = flat)',    base:.5, apply:v=>audio.ramp(audio.midEq.gain,(v-.5)*24), fmt:v=>fmtDb((v-.5)*24)},
   treble:   {label:'Treble (centre = flat)', base:.5, apply:v=>audio.ramp(audio.trebleEq.gain,(v-.5)*24), fmt:v=>fmtDb((v-.5)*24)},
   cutoff:   {label:'Filter cutoff',  perSound:true, base:()=>clamp01(Math.log2(SOUNDS[st.sound].cut/250)/5.3), apply:v=>audio.ramp(audio.filter.frequency,250*Math.pow(2,v*5.3))},
   resonance:{label:'Resonance (wah)',base:0, apply:v=>audio.ramp(audio.filter.Q,.5+v*17)},
@@ -135,12 +136,12 @@ let saveTimer=null;
 function saveRoutes(){clearTimeout(saveTimer);saveTimer=setTimeout(()=>{try{
   localStorage.setItem('vh-ctrl',JSON.stringify(st.ctrl));localStorage.setItem('vh-leancolor',st.leanColor?'1':'0')}catch(e){}},300)}
 // Which module each control lives in, and its short panel name
-const MODULE_OF={amp:['volume','pedal','bass','treble'],env:['attack','decay','sustain','release'],
-  filter:['cutoff','resonance','highpass','vowel'],fx:['reverb','chorus','drive','phaser','flanger'],mod:['bend','detune','vibrato','tremolo','autopan','rotary'],
+const MODULE_OF={amp:['volume','bass','mid','treble'],env:['attack','decay','sustain','release'],
+  filter:['cutoff','resonance','highpass','vowel'],fx:['reverb','chorus','pedal','drive','phaser','flanger'],mod:['bend','detune','vibrato','tremolo','autopan','rotary'],
   pump:['pump'],delay:['delay','feedback'],arp:['arp','strum'],chordpos:['position']};
 // The finer knobs: hidden when their panel is switched to just the basics
-const CTRL_ADV=new Set(['bass','treble','resonance','highpass','vowel','drive','phaser','flanger']);
-const KSHORT={bass:'Bass',treble:'Treble',pedal:'Pedal ring',volume:'Volume',cutoff:'Cutoff',resonance:'Reso',highpass:'Hi-pass',vowel:'Vowel',reverb:'Reverb',chorus:'Chorus',
+const CTRL_ADV=new Set(['bass','mid','treble','resonance','highpass','vowel','drive','phaser','flanger']);
+const KSHORT={bass:'Bass',mid:'Mid',treble:'Treble',pedal:'Pedal ring',volume:'Volume',cutoff:'Cutoff',resonance:'Reso',highpass:'Hi-pass',vowel:'Vowel',reverb:'Reverb',chorus:'Chorus',
   drive:'Drive',detune:'Detune',vibrato:'Vibrato',strum:'Strum',arp:'Arp rate',phaser:'Phaser',flanger:'Flanger',tremolo:'Tremolo',autopan:'Auto-pan',rotary:'Rotary',delay:'Delay',feedback:'Feedback',pump:'Pump',position:'Position',bend:'Bend',attack:'A',decay:'D',sustain:'S',release:'R'};
 // Hand menu: source + direction in one choice
 const SRC_OPTS=[['none','✋ off'],['x','✋ →'],['x:i','✋ ←'],['y','✋ ↑'],['y:i','✋ ↓'],['lean','Lean'],['lean:i','Lean inv'],['tilt','Tilt'],['tilt:i','Tilt inv'],['dist','Push'],['dist:i','Pull'],['roll','Palm'],['roll:i','Back']];
