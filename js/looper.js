@@ -54,11 +54,31 @@ const looper={
   keep(){ this.mine={flip:st.flip,alt7:st.alt7,s7:st.s7,sevForce:st.sevForce}; },
   restore(){ const m=this.mine; if(!m)return; this.mine=null; Object.assign(st,m); $('optFlip').checked=m.flip; $('optAlt7').checked=m.alt7; $('opt7').checked=m.s7; },
 };
-const LOOP_BARS=[1,2,4,6,8];
+/* Export as a .mid file: each chord as it would sound right now (current key, voicing and settings), held until
+   the next change, played through `times` times. Uses MIDI out's channels and fixed velocity. */
+function loopMidi(times=1){
+  const ev=looper.events, L=looper.len(), tpq=midiOut.TPQ; if(!ev.some(e=>e.deg!==null))return null;
+  const keep={flip:st.flip,alt7:st.alt7,s7:st.s7,sevForce:st.sevForce,loopOv:st.loopOv,upper:st.upper.slice(),bassNote:st.bassNote,degree:st.degree};
+  const ch=midiOut.ch, bch=midiOut.bassCh??ch, vel=midiOut.vel, out=[];
+  try{
+    for(let r=0;r<times;r++) ev.forEach((e,i)=>{ if(e.deg===null)return;
+      // rings until the next change; the last one carries into the next time round, as it does when playing
+      const end=i+1<ev.length?ev[i+1].beat+r*L:r<times-1?(r+1)*L+ev[0].beat:times*L;
+      st.loopOv={shift:e.shift,inv:e.inv}; st.flip=e.flip; st.alt7=e.alt7; st.s7=e.s7; st.sevForce=e.sevForce;
+      const n=realize(e.deg); st.upper=n.upper; st.bassNote=n.bass; st.degree=e.deg;   // so voice leading follows on
+      const notes=[...(n.bass!==null?[[bch,n.bass]]:[]),...n.upper.map(m=>[ch,m])];
+      const t0=Math.round((e.beat+r*L)*tpq), t1=Math.round(end*tpq);
+      for(const [c,m] of notes){ out.push([t0,[0x90|c,m,vel]]); out.push([t1,[0x80|c,m,0]]); }
+    });
+  } finally { Object.assign(st,keep); }
+  out.sort((a,b)=>a[0]-b[0]||((a[1][0]&0xf0)===0x80?-1:1)-((b[1][0]&0xf0)===0x80?-1:1));   // a note ends before the next one starts
+  return midiOut.smf(out,st.bpm).blob;
+}
+const LOOP_MAX_BARS=32, loopBarsOk=n=>Number.isInteger(n)&&n>=1&&n<=LOOP_MAX_BARS;
 function saveLoop(){ try{localStorage.setItem('vh-loop',JSON.stringify({bars:looper.bars,snap:looper.snap,events:looper.events}))}catch(e){} }
 
 try{ const s=JSON.parse(localStorage.getItem('vh-loop')||'null');
-  if(s){ if(LOOP_BARS.includes(s.bars))looper.bars=s.bars; if([0,.25,.5,1].includes(s.snap))looper.snap=s.snap;
+  if(s){ if(loopBarsOk(s.bars))looper.bars=s.bars; if([0,.25,.5,1].includes(s.snap))looper.snap=s.snap;
     if(Array.isArray(s.events))looper.events=s.events.filter(e=>e&&typeof e.beat==='number'&&e.beat>=0&&e.beat<looper.len()&&(e.deg===null||(e.deg>=0&&e.deg<7))); } }catch(e){}
 
 /* Loop panel: a timeline of the recorded chords with a playhead */
@@ -97,10 +117,17 @@ $('loopBars').value=String(looper.bars); $('loopSnap').value=String(looper.snap)
 $('loopMeter').addEventListener('change',e=>{ if(looper.events.length)loopPush(); st.meter=e.target.value; saveTempo();
   looper.events=looper.events.filter(x=>x.beat<looper.len()); if(looper.pos>=looper.len())looper.pos%=looper.len();
   if(audio.clickTimer){audio.stopClick();audio.startClick()} if(midiOut.clockTimer){midiOut.stopClock();midiOut.startClock()} saveLoop(); loopUI(); });
-$('loopBars').addEventListener('change',e=>{ const b=+e.target.value; loopPush(); looper.bars=b; looper.events=looper.events.filter(x=>x.beat<looper.len()); saveLoop(); loopUI(); });
+$('loopBars').addEventListener('change',e=>{ const v=Math.round(+e.target.value), b=Number.isFinite(v)&&e.target.value!==''?Math.max(1,Math.min(LOOP_MAX_BARS,v)):looper.bars; e.target.value=b;
+  if(b===looper.bars)return; loopPush(); looper.bars=b; looper.events=looper.events.filter(x=>x.beat<looper.len()); saveLoop(); loopUI(); });
 $('loopSnap').addEventListener('change',e=>{ looper.snap=+e.target.value; saveLoop(); });
 $('loopRec').addEventListener('click',()=>{ audio.init(); if(looper.state==='rec')looper.finish(); else if(looper.recording&&looper.state==='count')looper.stop(); else looper.arm(); });
 $('loopPlay').addEventListener('click',()=>{ audio.init(); if(looper.state==='idle')looper.playLoop(); else looper.stop(); });
+$('loopExport').addEventListener('click',()=>{ const times=+$('loopTimes').value, blob=loopMidi(times), msg=$('loopBankMsg');
+  if(!blob){ msg.textContent='Record a loop with at least one chord first.'; return; }
+  const name=(typeof loopActive==='string'&&loopActive?loopActive:'chord loop').replace(/–/g,'-').replace(/[^\w\- ]+/g,'').trim().replace(/\s+/g,'-')||'chord-loop';
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`synth-conductor-${name}.mid`; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+  msg.textContent=`Saved ${a.download}: ${times>1?times+' times round, ':''}${st.bpm} BPM, in your current voicing.`; });
 $('loopClear').addEventListener('click',()=>{ loopPush(); looper.events=[]; saveLoop(); loopUI(); });
 
 /* Editing after the fact: drag a chord (or rest) along the timeline, nudge it, delete it, undo.

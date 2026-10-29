@@ -132,16 +132,10 @@
       <p class="hint" id="loopMsg" aria-live="polite"></p>
       <div class="plist lchips" id="loopList" aria-label="Saved loops"></div>
       <details class="lmore" id="loopMore">
-        <summary>Length, time, snap · save this loop</summary>
+        <summary>Length, time, snap · save, share or export this loop</summary>
       <div class="lcds">
-        <label for="loopBars">Length
-          <select id="loopBars">
-            <option value="1">1 bar</option>
-            <option value="2">2 bars</option>
-            <option value="4">4 bars</option>
-            <option value="6">6 bars</option>
-            <option value="8">8 bars</option>
-          </select></label>
+        <label for="loopBars" title="How many bars the loop lasts, 1 to 32">Bars
+          <input type="number" id="loopBars" min="1" max="32" step="1" inputmode="numeric"></label>
         <label for="loopMeter" title="Beats per bar. Also sets the click's accents and where MIDI clock starts. BPM always counts quarter notes">Time
           <select id="loopMeter">
             <option value="2/4">2/4</option>
@@ -168,6 +162,17 @@
         <input type="text" id="loopName" placeholder="Name this loop" maxlength="40" autocomplete="off">
         <button class="btn primary" type="submit">Save</button>
       </form>
+      <div class="row lexport">
+        <button class="btn" id="loopShare" type="button" title="Get a link to this loop. Opening it adds the loop to that person's Loops">Share link</button>
+        <button class="btn" id="loopExport" type="button" title="Download the loop as a MIDI file for a DAW, in the voicing and settings you have now">Export .mid</button>
+        <label for="loopTimes" class="sr">Times round</label>
+        <select id="loopTimes" title="How many times the loop repeats in the file">
+          <option value="1">Once</option>
+          <option value="2">2 times</option>
+          <option value="4">4 times</option>
+          <option value="8">8 times</option>
+        </select>
+      </div>
       <p class="hint" id="loopBankMsg" aria-live="polite"></p>
       </details>
       </section>

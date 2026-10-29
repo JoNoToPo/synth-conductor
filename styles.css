@@ -491,6 +491,9 @@ details.sect>.phide{top:10px;right:40px}
 #loopCard .row .btn{padding:6px 12px;font-size:.82rem}
 .lmore>summary{cursor:pointer;font-size:.8rem;color:var(--muted);padding:2px 0}
 .lmore[open]>*:not(summary){margin-top:10px}
+.lexport{align-items:center;gap:8px}
+.lshare{width:100%;margin-top:6px;background:#110d0b;border:1px solid #3a2e26;border-radius:6px;color:var(--patina);font:500 .74rem var(--font-mono);padding:6px 8px;-webkit-user-select:text;user-select:text}
+.lexport select{background:#110d0b;border:1px solid #3a2e26;border-radius:6px;color:var(--patina);font:500 .82rem var(--font-mono);padding:6px 8px}
 .lchips{display:flex;flex-direction:row;flex-wrap:wrap;gap:6px;border:0;border-radius:0;overflow:visible}
 .lchips .prow{display:inline-flex;align-items:stretch;border:1px solid var(--tline);border-radius:8px;background:rgba(15,11,9,.35);overflow:hidden}
 .lchips .prow:first-child{border-top:1px solid var(--tline)}

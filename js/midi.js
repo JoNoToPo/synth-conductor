@@ -76,13 +76,17 @@ const midiOut={
   stopRec(){ const r=this.rec; if(!r)return null; this.rec=null; const end=performance.now();
     for(const [m,ch] of this.held)r.ev.push([end,[0x80|ch,m,0]]);
     for(const p of audio.pendingShots)if(p.midi&&p.midi.on)r.ev.push([end,[0x80|p.midi.ch,p.midi.m,0]]);
-    const ev=r.ev.sort((a,b)=>a[0]-b[0]), tpq=480, msTick=60000/r.bpm/tpq, us=Math.round(6e7/r.bpm);
+    const msTick=60000/r.bpm/this.TPQ, ev=r.ev.sort((a,b)=>a[0]-b[0]).map(([w,b])=>[Math.round((w-r.t0)/msTick),b]);
+    const f=this.smf(ev,r.bpm); return {blob:f.blob,notes:f.notes,sec:(end-r.t0)/1000}; },
+  /* A type 0 Standard MIDI File from [tick, bytes] events in time order, with the tempo and time signature first */
+  TPQ:480,
+  smf(ev,bpm){ const tpq=this.TPQ, us=Math.round(6e7/bpm);
     const vlq=n=>{const o=[n&0x7f];while(n>>=7)o.unshift((n&0x7f)|0x80);return o};
     const m=meterOf(), trk=[0,0xff,0x51,3,us>>16&255,us>>8&255,us&255, 0,0xff,0x58,4,m.n,Math.log2(m.d),24*m.step,8];   // tempo, then time signature
     let last=0,notes=0;
-    for(const [w,b] of ev){ const tick=Math.max(last,Math.round((w-r.t0)/msTick)); trk.push(...vlq(tick-last),...b); last=tick; if((b[0]&0xf0)===0x90)notes++; }
+    for(const [t,b] of ev){ const tick=Math.max(last,t); trk.push(...vlq(tick-last),...b); last=tick; if((b[0]&0xf0)===0x90)notes++; }
     trk.push(0,0xff,0x2f,0); const n=trk.length;
     const file=new Uint8Array([0x4d,0x54,0x68,0x64,0,0,0,6,0,0,0,1,tpq>>8,tpq&255, 0x4d,0x54,0x72,0x6b,n>>>24,n>>16&255,n>>8&255,n&255,...trk]);
-    return {blob:new Blob([file],{type:'audio/midi'}),notes,sec:(end-r.t0)/1000}; },
+    return {blob:new Blob([file],{type:'audio/midi'}),notes}; },
   setMute(on){ this.mute=on; if(audio.ctx)audio.ramp(audio.out.gain,on?0:1,.03); },
 };
