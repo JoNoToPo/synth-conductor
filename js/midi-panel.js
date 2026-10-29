@@ -19,18 +19,21 @@ $('midiBtn').addEventListener('click',async()=>{
   let saved={}; try{saved=JSON.parse(localStorage.getItem('vh-midi')||'{}')||{}}catch(e){}
   const chOk=c=>Number.isInteger(c)&&c>=0&&c<16;
   M.ch=chOk(saved.ch)?saved.ch:0; M.bassCh=chOk(saved.bassCh)?saved.bassCh:null;
-  M.vel=Math.min(127,Math.max(1,Math.round(+saved.vel)||100)); M.cc=saved.cc!==false; M.clock=!!saved.clock; M.mute=!!saved.mute;
+  // The old Fixed velocity number becomes the Velocity knob, once
+  { let c=null; try{c=JSON.parse(localStorage.getItem('vh-ctrl')||'null')}catch(e){}
+    if(saved.vel&&!(c&&c.velocity)){ st.ctrl.velocity.v=clamp01((Math.round(+saved.vel)-1)/126); applyCtrl('velocity'); showRouteVals(); saveRoutes(); } }
+  M.cc=saved.cc!==false; M.clock=!!saved.clock; M.mute=!!saved.mute;
   M.velMode=['fixed','speed','volume'].includes(saved.velMode)?saved.velMode:saved.velVol?'volume':'fixed';
   M.sens=typeof saved.sens==='number'?clamp01(saved.sens):.5; M.bendRange=[1,2,7,12].includes(saved.bendRange)?saved.bendRange:2;
   let wantPort=saved.port||'';   // remembered by name, so it reconnects when the device is plugged back in
-  const save=()=>{try{localStorage.setItem('vh-midi',JSON.stringify({port:wantPort,ch:M.ch,bassCh:M.bassCh,vel:M.vel,velMode:M.velMode,sens:M.sens,bendRange:M.bendRange,cc:M.cc,clock:M.clock,mute:M.mute}))}catch(e){}};
-  const VEL_NOTE={fixed:'Every note at the same velocity.',volume:'The Volume knob, or the hand driving it, sets velocity.',
-    speed:'Strike harder by moving the chord hand faster as the chord changes. Also changes the built-in sound’s loudness.'};
-  const syncVelUI=()=>{ $('midiVelMode').value=M.velMode; $('midiSensRow').hidden=M.velMode!=='speed'; $('midiVelNote').textContent=VEL_NOTE[M.velMode]; };
+  const save=()=>{try{localStorage.setItem('vh-midi',JSON.stringify({port:wantPort,ch:M.ch,bassCh:M.bassCh,velMode:M.velMode,sens:M.sens,bendRange:M.bendRange,cc:M.cc,clock:M.clock,mute:M.mute}))}catch(e){}};
+  const VEL_NOTE={fixed:'The Velocity knob in Amp & tone sets it. Give the knob a hand movement or a mod matrix row to vary it.',volume:'The Volume knob, or the hand driving it, sets velocity.',
+    speed:'Strike harder by moving the chord hand faster as the chord changes, up to the Velocity knob.'};
+  const syncVelUI=()=>{ $('midiVelMode').value=M.velMode;  $('midiVelNote').textContent=VEL_NOTE[M.velMode]; };
   const chOpts=()=>Array.from({length:16},(_,i)=>new Option(String(i+1),String(i)));
   $('midiCh').replaceChildren(...chOpts()); $('midiBassCh').replaceChildren(new Option('Same',''),...chOpts());
   $('midiCh').value=String(M.ch); $('midiBassCh').value=M.bassCh===null?'':String(M.bassCh);
-  $('midiVel').value=M.vel; $('midiSens').value=M.sens; $('midiBendRange').value=String(M.bendRange); syncVelUI(); $('midiCC').checked=M.cc; $('midiClock').checked=M.clock; $('midiMute').checked=M.mute;
+  $('midiSens').value=M.sens; $('midiBendRange').value=String(M.bendRange); syncVelUI(); $('midiCC').checked=M.cc; $('midiClock').checked=M.clock; $('midiMute').checked=M.mute;
   $('midiCCMap').textContent='Controllers: '+Object.entries(MIDI_CC).sort((a,b)=>a[1]-b[1])
     .map(([k,n])=>`${KSHORT[k].length<3?TARGETS[k].label:KSHORT[k]} ${n}${k==='vibrato'?' (mod wheel)':''}`).join(' · ')
     +'. Sustain pedal 64. The Bend knob goes out as pitch bend, even with Knobs as CC off.';
@@ -54,7 +57,6 @@ $('midiBtn').addEventListener('click',async()=>{
   sel.addEventListener('change',()=>{ audio.init(); const o=M.acc&&M.acc.outputs.get(sel.value); wantPort=o?o.name:''; setPort(o); save(); });
   $('midiCh').addEventListener('change',e=>{ M.panic(); M.ch=+e.target.value; M.sync(); showMsg(); save(); });
   $('midiBassCh').addEventListener('change',e=>{ M.panic(); M.bassCh=e.target.value===''?null:+e.target.value; M.sync(); showMsg(); save(); });
-  $('midiVel').addEventListener('change',e=>{ M.vel=Math.min(127,Math.max(1,Math.round(+e.target.value)||100)); e.target.value=M.vel; save(); });
   $('midiVelMode').addEventListener('change',e=>{ M.velMode=e.target.value; syncVelUI(); M.sync(); save(); });
   $('midiSens').addEventListener('input',e=>{ M.sens=+e.target.value; save(); });
   $('midiBendRange').addEventListener('change',e=>{ M.bendRange=+e.target.value; M.sendBendRange(); applyCtrl('bend'); showRouteVals(); save(); });

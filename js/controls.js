@@ -1,5 +1,5 @@
 /* ---------- Sound controls: one slider per effect, each optionally driven by a hand movement ---------- */
-const INPUTS={x:'Left ↔ right',y:'Height',lean:'Lean right',tilt:'Tilt',dist:'Distance',roll:'Palm roll',lx:'Left hand ↔'};
+const INPUTS={x:'Left ↔ right',y:'Height',lean:'Lean right',tilt:'Tilt',dist:'Distance',roll:'Palm roll',lx:'Left hand ↔',speed:'Hand speed'};
 const clamp01=v=>Math.max(0,Math.min(1,v));
 // Envelope times use an exponential scale so short times get most of the slider
 const ENV={a:[.002,3],d:[.02,4],r:[.02,5]};
@@ -10,6 +10,7 @@ const fmtDb=db=>Math.abs(db)<.3?'Flat':(db>0?'+':'−')+Math.abs(db).toFixed(1)+
 const fmtSec=s=>s<1?Math.round(s*1000)+' ms':s.toFixed(1)+' s';
 function env(){ return {a:expMap(effV('attack'),ENV.a),d:expMap(effV('decay'),ENV.d),s:effV('sustain'),r:expMap(effV('release'),ENV.r)}; }
 const TARGETS={
+  velocity: {label:'Velocity: how hard chords are struck (read as each chord starts)', base:(100-1)/126, apply:()=>{}, noCtx:true, fmt:v=>String(Math.round(1+v*126))},
   volume:   {label:'Volume',         base:.75, apply:v=>audio.ramp(audio.master.gain,.04+v*.76)},
   pedal:    {label:'Pedal ring length (with a hand assigned, the pedal stays down)', base:()=>expInv(4,PEDAL_RING), apply:v=>audio.setRing(expMap(v,PEDAL_RING)), noCtx:true, fmt:v=>fmtSec(expMap(v,PEDAL_RING))},
   attack:   {label:'Attack',  base:()=>expInv(SOUNDS[st.sound].a,ENV.a), apply:()=>{}, noCtx:true, fmt:v=>fmtSec(expMap(v,ENV.a)), perSound:true},
@@ -57,7 +58,7 @@ try{
   const lc=localStorage.getItem('vh-leancolor');if(lc!==null)st.leanColor=lc==='1';
 }catch(e){}
 st.ctrl.arp.v=0; // arpeggio always starts off
-st.inVals={x:.6,y:.75,lean:0,tilt:.5,dist:.4,roll:1,lx:.5};
+st.inVals={x:.6,y:.75,lean:0,tilt:.5,dist:.4,roll:1,lx:.5,speed:0};
 st.arp=0; st.arpLabel='Off';
 // Time signatures. The BPM always counts quarter notes; x/8 meters click on every eighth, grouped as listed
 // (the first eighth of each group gets a stronger click, the bar's first one the strongest)
@@ -136,16 +137,16 @@ let saveTimer=null;
 function saveRoutes(){clearTimeout(saveTimer);saveTimer=setTimeout(()=>{try{
   localStorage.setItem('vh-ctrl',JSON.stringify(st.ctrl));localStorage.setItem('vh-leancolor',st.leanColor?'1':'0')}catch(e){}},300)}
 // Which module each control lives in, and its short panel name
-const MODULE_OF={amp:['volume','bass','mid','treble'],env:['attack','decay','sustain','release'],
+const MODULE_OF={amp:['volume','velocity','bass','mid','treble'],env:['attack','decay','sustain','release'],
   filter:['cutoff','resonance','highpass','vowel'],fx:['reverb','chorus','pedal','drive','phaser','flanger'],mod:['bend','detune','vibrato','tremolo','autopan','rotary'],
   pump:['pump'],delay:['delay','feedback'],arp:['arp','strum'],chordpos:['position']};
 // The finer knobs: hidden when their panel is switched to just the basics
 const CTRL_ADV=new Set(['bass','mid','treble','resonance','highpass','vowel','drive','phaser','flanger']);
-const KSHORT={bass:'Bass',mid:'Mid',treble:'Treble',pedal:'Pedal ring',volume:'Volume',cutoff:'Cutoff',resonance:'Reso',highpass:'Hi-pass',vowel:'Vowel',reverb:'Reverb',chorus:'Chorus',
+const KSHORT={velocity:'Velocity',bass:'Bass',mid:'Mid',treble:'Treble',pedal:'Pedal ring',volume:'Volume',cutoff:'Cutoff',resonance:'Reso',highpass:'Hi-pass',vowel:'Vowel',reverb:'Reverb',chorus:'Chorus',
   drive:'Drive',detune:'Detune',vibrato:'Vibrato',strum:'Strum',arp:'Arp rate',phaser:'Phaser',flanger:'Flanger',tremolo:'Tremolo',autopan:'Auto-pan',rotary:'Rotary',delay:'Delay',feedback:'Feedback',pump:'Pump',position:'Position',bend:'Bend',attack:'A',decay:'D',sustain:'S',release:'R'};
 // Hand menu: source + direction in one choice
-const SRC_OPTS=[['none','✋ off'],['x','✋ →'],['x:i','✋ ←'],['y','✋ ↑'],['y:i','✋ ↓'],['lean','Lean'],['lean:i','Lean inv'],['tilt','Tilt'],['tilt:i','Tilt inv'],['dist','Push'],['dist:i','Pull'],['roll','Palm'],['roll:i','Back']];
-const SRC_TITLE='Let your right hand play this: → move right, ← move left, ↑ raise, ↓ lower, Lean tilt right, Tilt: upright is the middle, tilt left or right to go either way, Push toward the camera, Pull back, Palm: roll your palm toward the camera to raise it, Back: roll the back of your hand toward the camera to raise it';
+const SRC_OPTS=[['none','✋ off'],['x','✋ →'],['x:i','✋ ←'],['y','✋ ↑'],['y:i','✋ ↓'],['lean','Lean'],['lean:i','Lean inv'],['tilt','Tilt'],['tilt:i','Tilt inv'],['dist','Push'],['dist:i','Pull'],['roll','Palm'],['roll:i','Back'],['speed','Speed'],['speed:i','Speed inv']];
+const SRC_TITLE='Let your right hand play this: → move right, ← move left, ↑ raise, ↓ lower, Lean tilt right, Tilt: upright is the middle, tilt left or right to go either way, Push toward the camera, Pull back, Palm: roll your palm toward the camera to raise it, Back: roll the back of your hand toward the camera to raise it, Speed: move your hand faster to raise it';
 const srcVal=c=>c.src==='none'?'none':c.src+(c.inv?':i':'');
 const fmtVal=k=>TARGETS[k].fmt?TARGETS[k].fmt(st.ctrl[k].v):Math.round(st.ctrl[k].v*100)+'%';
 // Knob arc: 270° sweep from bottom-left to bottom-right

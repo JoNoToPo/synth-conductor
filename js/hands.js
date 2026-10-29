@@ -346,6 +346,8 @@ function trackSpeed(side,lm){
 // Peak speed just before now, or null when that hand hasn't been seen recently
 function handPeak(side){ const m=motion[side]; if(!cam.on||performance.now()-m.t>300)return null;
   return m.hist.reduce((a,h)=>Math.max(a,h[1]),0); }
+// Hand speed as 0 (still) to 1 (fast); Speed sensitivity in MIDI out sets how fast counts as full
+function handSpeed01(side){ const s=handPeak(side); return s===null?null:Math.pow(clamp01((s-.1)/(3*Math.pow(.2,midiOut.sens))),.75); }
 function showVel(v){ const el=document.getElementById('midiVelNote'); if(el&&midiOut.velMode==='speed')el.textContent=`Last chord struck at velocity ${v}`; }
 // A hand counts as gone after it's been out of view this long (ms); the "gone" actions run once
 const GONE_MS=200;
@@ -433,6 +435,7 @@ function handleHands(L,R){
       tilt: clamp01(.5+a/90),            // upright = ½, 45° either way = the ends
       dist: clamp01((palmNear(R,ar)-.09)/.22),   // push the whole hand toward the camera
       roll: clamp01(.5+palmFacing(R)),   // palm to the camera = 1, side-on = ½, back of the hand = 0
+      speed: handSpeed01('R')??0,
     };
     for(const k in raw)st.inVals[k]=euro(k,raw[k],now);
     driveCtrls(); showRouteVals();
@@ -445,6 +448,7 @@ function handleHands(L,R){
     label+=` · lean ${Math.round(a)}°${st.sevForce?` (${twistTag()})`:st.alt7?(st.s7?' (♭7)':' (add9)'):''}`;
     $('hudR').textContent=`Right · ${n} up${label} · thumb ${thumb?(majMode()?'out (maj7)':'out (key 7th)'):'in'}`;
   } else { $('hudR').textContent='Right hand · voicing';
+    if(st.inVals.speed){ st.inVals.speed=0; driveCtrls(['speed']); }   // no hand, no speed
     // A hand-driven pitch bend springs back to in tune once the hand is gone, like letting go of a bend wheel
     if(goneOnce(sR,now,100)){ sR.cand=sR.vC=sR.s7C=undefined;
       if(st.ctrl.bend.src!=='none'&&st.ctrl.bend.v!==.5){ st.inVals.tilt=.5; lastDriven.bend=undefined; setCtrl('bend',.5); } }

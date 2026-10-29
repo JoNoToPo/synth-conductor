@@ -69,7 +69,7 @@ function drawGuides({cw,ch,vw,vh,sc,ox,oy,dpr}){
       chip([...tl,...ln].map(ctrlTxt).join(' · '),wx+Math.cos(a1)*rr+fs*.6,wy+Math.sin(a1)*rr,GCOL.R,'left');
     }
     // Push/pull and palm roll have no direction on screen: list them under the hand
-    const rest=[...drivenBy('dist').map(k=>'Push '+ctrlTxt(k)),...drivenBy('roll').map(k=>'Palm '+ctrlTxt(k))];
+    const rest=[...drivenBy('dist').map(k=>'Push '+ctrlTxt(k)),...drivenBy('roll').map(k=>'Palm '+ctrlTxt(k)),...drivenBy('speed').map(k=>'Speed '+ctrlTxt(k))];
     rest.forEach((t,i)=>chip(t,cx,cy+r+fs*(1.4+i*1.9),GCOL.R));
   }
   g.restore();

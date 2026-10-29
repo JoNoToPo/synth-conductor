@@ -4,14 +4,14 @@
    the LFOs and Random swing both ways around the knob. Runs about 40 times a second while any row is on. */
 const MOD_SRC=[
   ['lfo1','LFO 1'],['lfo2','LFO 2'],['env','Chord envelope'],['rand','Random, each beat'],
-  ['x','Right hand ← →'],['y','Right hand height'],['lean','Right hand lean'],['tilt','Right hand tilt'],['dist','Right hand push'],['roll','Palm roll'],['lx','Left hand ← →'],
+  ['x','Right hand ← →'],['y','Right hand height'],['lean','Right hand lean'],['tilt','Right hand tilt'],['dist','Right hand push'],['roll','Palm roll'],['speed','Right hand speed'],['lx','Left hand ← →'],['lspeed','Left hand speed'],
 ];
 const MOD_BIPOLAR=new Set(['lfo1','lfo2','rand']);
 const MOD_RATES=[['4bar','4 bars',{bars:4}],['2bar','2 bars',{bars:2}],['1bar','1 bar',{bars:1}],['1/2','1/2 note',{beats:2}],['1/4','1/4 note',{beats:1}],
   ['1/8','1/8 note',{beats:.5}],['1/16','1/16 note',{beats:.25}],['0.1','0.1 Hz',{hz:.1}],['0.3','0.3 Hz',{hz:.3}],['1','1 Hz',{hz:1}],['3','3 Hz',{hz:3}],['7','7 Hz',{hz:7}]];
 const MOD_SHAPES=[['sine','Sine'],['tri','Triangle'],['square','Square'],['saw','Saw up'],['ramp','Saw down'],['sh','Random steps']];
 // Knobs it can move, grouped the way the panels are. Position and Arp rate re-voice the chord, so they stay out
-const MOD_GROUPS=[['Amp & tone',['volume','bass','mid','treble','attack','decay','sustain','release']],['Filter',['cutoff','resonance','highpass','vowel']],
+const MOD_GROUPS=[['Amp & tone',['volume','velocity','bass','mid','treble','attack','decay','sustain','release']],['Filter',['cutoff','resonance','highpass','vowel']],
   ['Effects',['reverb','chorus','pedal','drive','phaser','flanger']],['Modulation',['bend','detune','vibrato','tremolo','autopan','rotary']],['Timing',['pump','delay','feedback','strum']]];
 const MOD_DST=MOD_GROUPS.flatMap(g=>g[1]);
 const MOD_MAX_ROWS=8;
@@ -47,6 +47,7 @@ function envVal(t){ if(st.chordSeq!==modEnv.seq){modEnv.seq=st.chordSeq;modEnv.t
 function modSrcVal(src,t){
   if(src==='lfo1')return lfoVal(0,t); if(src==='lfo2')return lfoVal(1,t);
   if(src==='env')return envVal(t); if(src==='rand')return hash01(Math.floor(t/beatSec())+4242)*2-1;
+  if(src==='lspeed')return handSpeed01('L')??0;
   return st.inVals[src]??0; }
 
 /* Engine */

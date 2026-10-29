@@ -20,11 +20,13 @@ const midiOut={
   // and arpeggio notes keep the chord's velocity (a still hand mid-arpeggio shouldn't fade it out)
   velocity(){ const now=performance.now();
     if(this.velMode==='speed'){ if(now-this.velAt>40){ const s=handPeak(st.rightOnly?'R':'L');
-        this.lastVel=s===null?this.vel:Math.round(25+102*Math.pow(clamp01((s-.1)/(3*Math.pow(.2,this.sens))),.75)); showVel(this.lastVel); }
+        const k=this.knobVel(); this.lastVel=s===null?k:k<=25?k:Math.round(25+(k-25)*handSpeed01(st.rightOnly?'R':'L')); showVel(this.lastVel); }
       this.velAt=now; return this.lastVel; }
-    return this.lastVel=this.velMode==='volume'?Math.max(1,Math.round(20+st.ctrl.volume.v*107)):this.vel; },
-  // Built-in synth loudness for a velocity: only Hand speed changes it (Volume already sets the level)
-  level(vel){ return this.velMode==='speed'?(.3+.7*vel/127)/.85:1; },
+    return this.lastVel=this.velMode==='volume'?Math.max(1,Math.round(20+st.ctrl.volume.v*107)):this.knobVel(); },
+  // The Velocity knob as 1–127 (with anything the mod matrix adds)
+  knobVel(){ return Math.max(1,Math.min(127,Math.round(1+effV('velocity')*126))); },
+  // Built-in synth loudness for a velocity; 100 is the usual level. With Volume knob, Volume already sets the level
+  level(vel){ return this.velMode==='volume'?1:(.3+.7*vel/127)/.85; },
   chans(){ return this.bassCh!==null&&this.bassCh!==this.ch?[this.ch,this.bassCh]:[this.ch]; },
   // Held chord notes. A note's off is always stamped after its on, even when a strum delays the on
   on(m,t,vel=this.velocity()){ if(!this.live())return; const ch=this.bassCh!==null&&m===st.bassNote?this.bassCh:this.ch;
@@ -34,7 +36,7 @@ const midiOut={
   // Arpeggio notes are booked ahead and can be cancelled, so they go out on timers shortly before they're due
   shot(m,t,dur){ if(!this.live())return null; const h={m,ch:this.ch,on:false,w:0};
     const at=(sec,fn)=>setTimeout(fn,Math.max(0,(sec-audio.ctx.currentTime)*1000-20));
-    h.t1=at(t,()=>{ h.on=true; h.w=this.stamp(t); this.emit([0x90|h.ch,m,this.velMode==='fixed'?this.vel:this.lastVel],h.w);
+    h.t1=at(t,()=>{ h.on=true; h.w=this.stamp(t); this.emit([0x90|h.ch,m,this.velMode==='fixed'?this.knobVel():this.lastVel],h.w);
       h.t2=at(t+dur,()=>{ h.on=false; this.emit([0x80|h.ch,m,0],Math.max(this.stamp(t+dur),h.w+1)); }); });
     return h; },
   drop(h){ if(!h)return; clearTimeout(h.t1); clearTimeout(h.t2);

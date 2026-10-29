@@ -55,11 +55,11 @@ const looper={
   restore(){ const m=this.mine; if(!m)return; this.mine=null; Object.assign(st,m); $('optFlip').checked=m.flip; $('optAlt7').checked=m.alt7; $('opt7').checked=m.s7; },
 };
 /* Export as a .mid file: each chord as it would sound right now (current key, voicing and settings), held until
-   the next change, played through `times` times. Uses MIDI out's channels and fixed velocity. */
+   the next change, played through `times` times. Uses MIDI out's channels and the Velocity knob. */
 function loopMidi(times=1){
   const ev=looper.events, L=looper.len(), tpq=midiOut.TPQ; if(!ev.some(e=>e.deg!==null))return null;
   const keep={flip:st.flip,alt7:st.alt7,s7:st.s7,sevForce:st.sevForce,loopOv:st.loopOv,upper:st.upper.slice(),bassNote:st.bassNote,degree:st.degree};
-  const ch=midiOut.ch, bch=midiOut.bassCh??ch, vel=midiOut.vel, out=[];
+  const ch=midiOut.ch, bch=midiOut.bassCh??ch, vel=midiOut.knobVel(), out=[];
   try{
     for(let r=0;r<times;r++) ev.forEach((e,i)=>{ if(e.deg===null)return;
       // rings until the next change; the last one carries into the next time round, as it does when playing
