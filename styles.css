@@ -454,7 +454,7 @@ body.full:not(.rh-only) .pads,body.full:not(.rh-only) .stage>.row>.fs-rh{display
 [data-panel].panel-off{display:none!important}
 .phide[hidden]{display:none}
 /* The + left where a hidden panel was */
-.padd{display:flex;align-items:center;justify-content:center;gap:6px;min-height:40px;padding:8px 12px;border:1px dashed var(--tline,var(--line));border-radius:10px;
+.padd{display:flex;align-items:center;justify-content:center;gap:6px;min-height:40px;height:stretch;padding:8px 12px;border:1px dashed var(--tline,var(--line));border-radius:10px;
   background:none;color:var(--muted);font:500 .74rem var(--font-mono);letter-spacing:.1em;text-transform:uppercase;cursor:pointer}
 .padd span{font-size:1.05rem;line-height:1;color:var(--g,var(--brass))}
 .padd:hover,.padd:focus-visible{color:var(--ivory);border-style:solid;background:rgba(255,255,255,.03)}
