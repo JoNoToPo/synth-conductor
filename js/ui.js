@@ -126,7 +126,8 @@ function render(){
   });
   [...vEl.children].forEach(b=>{const on=b.dataset.id===st.voicing;b.classList.toggle('on',on);b.setAttribute('aria-checked',on);
     const slots=st.rhMap.map((id,i)=>id===b.dataset.id?String(i):null).filter(x=>x!==null);
-    b.querySelector('.vh').textContent=slots.length?'✋ '+slots.join(' · '):'';});
+    b.querySelector('.vh').textContent=slots.length?'✋ '+slots.join(' · '):'';
+    b.classList.toggle('spare',!slots.length&&!on);}); // no finger plays it: tucked away unless Voicing is open
   showVinfo();
   $('keySel').value=st.key;
   const v=VOICINGS.find(x=>x.id===st.voicing);

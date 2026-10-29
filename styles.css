@@ -378,6 +378,7 @@ select{background:var(--surface);border:1px solid var(--line);border-radius:10px
 .hdrtools{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 /* Simple view: only the essentials */
 body.simple .adv-only{display:none!important}
+body.simple .vchip.spare{display:none}
 body.simple .sq-top{grid-template-columns:minmax(0,1fr)}
 /* Lesson card under the camera */
 .lesson{display:flex;flex-direction:column;gap:8px;padding:12px 14px;border:1px solid var(--patina);border-radius:14px;background:linear-gradient(180deg,rgba(131,185,169,.10),rgba(131,185,169,.03)),var(--surface)}
@@ -480,6 +481,8 @@ body.full:not(.rh-only) .pads,body.full:not(.rh-only) .stage>.row>.fs-rh{display
 details.sect>.phide{top:10px;right:40px}
 .module>.phide{top:5px;right:5px}
 .phide.pmore{width:auto;padding:0 8px;font-family:var(--font-mono);font-size:.64rem;letter-spacing:.08em;text-transform:uppercase;opacity:.8}
+.phide.psign{width:26px;padding:0;font-size:1.15rem;letter-spacing:0}
+.sq-voicing>.cardhead:first-child{padding-right:30px}
 /* Chord loop sits right under the pads, so it can be played while watching the camera */
 #loopCard{margin-top:2px;background:var(--tint);border-color:var(--tline)}
 #loopCard>h3{margin:0;font-family:var(--font-mono);font-weight:500;font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--g)}

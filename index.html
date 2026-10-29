@@ -182,26 +182,6 @@
         <label for="keySel">Tonic<select id="keySel"></select></label>
         <label for="modeSel">Mode<select id="modeSel"></select></label>
         <label for="soundSel" class="wide">Sound<select id="soundSel"></select></label>
-        <label for="invSel" class="wide adv-only">Bass note
-          <select id="invSel">
-            <option value="0">Root</option>
-            <option value="1">3rd · 1st inversion</option>
-            <option value="2">5th · 2nd inversion</option>
-            <option value="3">7th · 3rd inversion</option>
-          </select></label>
-        <label for="sevSel" class="wide adv-only">7th type
-          <select id="sevSel">
-            <option value="maj">Major 7th (lean for ♭7)</option>
-            <option value="diatonic">From the key</option>
-            <option value="twist">Twist: left maj7 · right 7</option>
-            <option value="twistE">Twist, Eric style: minor right = °7</option>
-          </select></label>
-        <p class="hint wide adv-only" id="sevNote" hidden>Major 7th follows the key while Lean color is off.</p>
-        <label for="shiftQualSel" class="adv-only" title="What a ♭ or ♯ chord becomes">Shifted chords
-          <select id="shiftQualSel">
-            <option value="common">Common usage</option>
-            <option value="keep">Keep quality</option>
-          </select></label>
       </div>
     </div>
     <div class="module m-chord" data-panel="chord">
@@ -218,10 +198,32 @@
         <label class="led" title="A hand movement slides the chord up and down the keyboard. Off = the old automatic placement"><input type="checkbox" id="optPos" checked><span>Hand position</span></label>
         <label class="led wide" title="On: every degree plays a plain major chord and Flip makes it minor (no diminished chords). Off: chords follow the key"><input type="checkbox" id="optPure"><span>Pure maj/min</span></label>
       </div>
+      <div class="lcds">
+        <label for="invSel" class="wide">Bass note
+          <select id="invSel">
+            <option value="0">Root</option>
+            <option value="1">3rd · 1st inversion</option>
+            <option value="2">5th · 2nd inversion</option>
+            <option value="3">7th · 3rd inversion</option>
+          </select></label>
+        <label for="sevSel" class="wide">7th type
+          <select id="sevSel">
+            <option value="maj">Major 7th (lean for ♭7)</option>
+            <option value="diatonic">From the key</option>
+            <option value="twist">Twist: left maj7 · right 7</option>
+            <option value="twistE">Twist, Eric style: minor right = °7</option>
+          </select></label>
+        <p class="hint wide" id="sevNote" hidden>Major 7th follows the key while Lean color is off.</p>
+        <label for="shiftQualSel" class="wide" title="What a ♭ or ♯ chord becomes">Shifted chords
+          <select id="shiftQualSel">
+            <option value="common">Common usage</option>
+            <option value="keep">Keep quality</option>
+          </select></label>
+      </div>
       <div class="knobs posknob" id="m-chordpos"></div>
     </div>
         </div>
-        <div class="sq-voicing">
+        <div class="sq-voicing" data-panel="details" data-panel-min data-panel-sign>
         <div class="cardhead"><h3>Voicing</h3><span class="hint">Hover a voicing for details</span></div>
         <div class="vgrid" id="voicings" role="radiogroup" aria-label="Voicing"></div>
         <p class="vinfo" id="vinfo" aria-live="polite"></p>
@@ -434,7 +436,7 @@
       </div>
     </details>
 
-    <details class="sect adv-only" id="s-diag" hidden>
+    <details class="sect" id="s-diag" hidden>
       <summary>Diagnostics</summary>
       <div class="sbody">
         <div class="lcds"><label for="trackSel" class="wide">Hand tracking runs on
@@ -488,7 +490,7 @@
         <p class="hint">The <b>Eric Wei</b> hand setup is an homage to Eric Wei's Gesture Synth: lean your left hand right for major or left for minor, twist your right hand left for maj7 (m7 on minor chords) or right for 7 (°7 on minor chords), and use horns 🤘 / ILY 🤟 for 6 and 7.</p>
       </div>
     </details>
-    <label class="devtoggle adv-only"><input type="checkbox" id="diagToggle"> Show diagnostics (speed readout and freeze log, for troubleshooting)</label>
+    <label class="devtoggle"><input type="checkbox" id="diagToggle"> Show diagnostics (speed readout and freeze log, for troubleshooting)</label>
   </div>
 </div>
 

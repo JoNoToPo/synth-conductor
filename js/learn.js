@@ -5,13 +5,14 @@
 const SUPPORT_URL='https://paypal.me/JonathanEngelhard/5';   // /5 fills in a suggested amount of 5; donors can change it
 
 /* Panels: every part of the page past the camera and pads can be shown or hidden, from the Panels menu or a
-   panel's own ✕. New visitors start with just the essentials. "Extra options" is the finer detail inside panels
-   (everything marked adv-only); with it off the page is in Simple view. */
-const PANELS=[
+   panel's own ✕. New visitors start with just the essentials. "Voicing" (key details) also holds the finer settings
+   (everything marked adv-only) and the voicings no finger plays; with it off the page is in Simple view. */
+const PANELS=[   // in the order they appear on the page
+  ['presets','Presets','Save and load sounds and hand setups'],
   ['piano','Keyboard','The notes that are sounding, with the chord path'],
   ['loop','Chord loop','Record chords to the beat, then play over them'],
   ['chord','Chord options','7ths, major/minor flips, inversions, ♭ and ♯'],
-  ['presets','Presets','Save and load sounds and hand setups'],
+  ['details','Voicing','Every voicing, not just the ones your fingers play, plus finger slots and finer chord settings'],
   ['amp','Amp & tone','Bass, treble and the envelope. Volume and pedal ring always show'],
   ['mod','Modulation','Bend, detune, vibrato, tremolo, auto-pan and rotary'],
   ['filter','Filter','Resonance, high-pass and the vowel filter. Cutoff always shows'],
@@ -20,7 +21,6 @@ const PANELS=[
   ['arp','Arp & strum','Play chords as arpeggios, or strum them'],
   ['delay','Delay','Echoes in time with the tempo'],
   ['midi','MIDI out','Play other synths or a DAW, or record a .mid file'],
-  ['details','Extra options','Finer settings inside the panels, like finger slots'],
 ];
 const PANELS_ESSENTIAL=['piano','loop'];
 // Panels that keep time: while any of them shows, Tempo shows too
@@ -37,7 +37,9 @@ const panelShown=k=>panels[k]||(k==='tempo'&&tempoNeededBy().length>0);
 function panelsApply(){
   document.querySelectorAll('[data-panel]').forEach(el=>{ const on=panelShown(el.dataset.panel);
     if(el.hasAttribute('data-panel-min')){ el.classList.toggle('panel-min',!on); const b=el.querySelector(':scope>.phide');
-      b.textContent=on?'Less':'More'; b.title=on?'Show just the main knobs':'Show every knob'; b.setAttribute('aria-expanded',on); }
+      const sign=el.hasAttribute('data-panel-sign'); b.textContent=sign?(on?'−':'+'):on?'Less':'More';
+      b.title=sign?(on?'Show just the voicings your fingers play':'Show every voicing and the finger slots'):on?'Show just the main knobs':'Show every knob';
+      b.setAttribute('aria-label',b.title); b.setAttribute('aria-expanded',on); b.classList.toggle('psign',sign); }
     else el.classList.toggle('panel-off',!on); });
   document.querySelectorAll('.padd').forEach(b=>b.hidden=panelShown(b.dataset.for));
   document.body.classList.toggle('simple',!panels.details);
