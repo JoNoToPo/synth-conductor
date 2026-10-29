@@ -16,11 +16,11 @@ const SOUNDS={
   harp:{label:'Harp',osc:[['triangle',0,1,.75,1.2],['sawtooth',0,1,.18,.25],['sine',0,2,.16,.6]],a:.002,d:1.8,s:0,r:.5,cut:4500,strike:true},
 };
 // Instruments you build in the Mod matrix panel: the same shape as above, kept in this browser under ids starting u_
-const INSTR_WAVES=['sine','triangle','sawtooth','square'], INSTR_MAX_OSC=6;
+const INSTR_WAVES=['sine','triangle','sawtooth','square'], INSTR_MAX_OSC=6, INSTR_RATIO=[1/16,32];   // pitch multiples allowed
 function instrClean(c){ if(!c||typeof c!=='object'||!Array.isArray(c.osc))return null;
   const n=(v,lo,hi,f)=>typeof v==='number'&&isFinite(v)?Math.max(lo,Math.min(hi,v)):f;
   const osc=c.osc.filter(o=>Array.isArray(o)&&INSTR_WAVES.includes(o[0])).slice(0,INSTR_MAX_OSC)
-    .map(o=>{const x=[o[0],n(o[1],-100,100,0),n(o[2],.25,16,1),n(o[3],0,1,.5)]; const f=n(o[4],0,5,0); if(f>=.02)x.push(f); return x});
+    .map(o=>{const x=[o[0],n(o[1],-100,100,0),n(o[2],INSTR_RATIO[0],INSTR_RATIO[1],1),n(o[3],0,1,.5)]; const f=n(o[4],0,5,0); if(f>=.02)x.push(f); return x});
   if(!osc.length)return null;
   return {label:String(c.label||'My instrument').slice(0,30).trim()||'My instrument',osc,a:n(c.a,.001,3,.02),d:n(c.d,.02,4,.5),s:n(c.s,0,1,.7),
     r:n(c.r,.02,5,.4),cut:n(c.cut,250,12000,3000),strike:!!c.strike}; }

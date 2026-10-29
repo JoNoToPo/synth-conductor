@@ -121,6 +121,12 @@ matrixRun();   // rows saved last time start moving straight away
    ("… (edited)") the moment you change it, so the originals stay as they are; your own ones save as you go */
 const OSC_FADES=[[0,'Holds'],[.1,'0.1 s'],[.3,'0.3 s'],[.6,'0.6 s'],[1.2,'1.2 s'],[2.5,'2.5 s']];
 const OSC_RATIOS=[.25,.5,1,1.5,2,3,4,5,6,8,10,12,16];
+// A pitch multiple as a ratio where it is one (1.25 → 5:4), so just-intonation intervals read the way they're written
+function ratioFrac(r){ for(let q=2;q<=16;q++){ const p=Math.round(r*q); if(p>0&&Math.abs(p/q-r)<1e-6){ let a=p,b=q; while(b){[a,b]=[b,a%b]} return p/a+':'+q/a; } } return null; }
+const ratioLabel=r=>{ const f=Number.isInteger(r)?null:ratioFrac(r), d=+r.toFixed(4); return OSC_RATIOS.includes(r)||!f?`× ${d}`:`× ${d} (${f})`; };
+// Typed pitch: "5:4", "5/4", "1.25" or "3"
+function ratioParse(t){ const m=/^\s*(\d*\.?\d+)\s*(?:[:\/]\s*(\d*\.?\d+))?\s*$/.exec(String(t)); if(!m)return null;
+  const v=m[2]!==undefined?+m[1]/+m[2]:+m[1]; return isFinite(v)&&v>0?v:null; }
 const instMine=()=>!!SOUNDS[st.sound].mine;
 function instSaveMine(){ if(!instMine())return; const all=loadInstruments(), {mine,...def}=SOUNDS[st.sound]; all[st.sound]=def;
   try{localStorage.setItem('vh-instruments',JSON.stringify(all))}catch(e){} }
@@ -140,7 +146,7 @@ function instBuild(){
   const box=$('oscRows'), s0=SOUNDS[st.sound]; box.innerHTML='';
   s0.osc.forEach((o,i)=>{ const row=document.createElement('div'); row.className='mrow orow';
     row.innerHTML=`<select class="owave" aria-label="Oscillator ${i+1} wave">${INSTR_WAVES.map(w=>`<option value="${w}">${w[0].toUpperCase()+w.slice(1)}</option>`).join('')}</select>
-      <select class="oratio" aria-label="Oscillator ${i+1} pitch" title="Pitch as a multiple of the note: 1 is the note, 2 an octave up, 0.5 an octave down">${[...new Set([...OSC_RATIOS,o[2]])].sort((a,b)=>a-b).map(r=>`<option value="${r}">× ${r}</option>`).join('')}</select>
+      <select class="oratio" aria-label="Oscillator ${i+1} pitch" title="Pitch as a multiple of the note: 1 is the note, 2 an octave up, 0.5 an octave down. Custom takes your own, like 5:4 for a major third">${[...new Set([...OSC_RATIOS,o[2]])].sort((a,b)=>a-b).map(r=>`<option value="${r}">${ratioLabel(r)}</option>`).join('')}<option value="custom">Custom…</option></select>
       <span class="ocell"><input type="range" class="odet" min="-50" max="50" step="1" aria-label="Oscillator ${i+1} detune in cents"><output></output></span>
       <span class="ocell"><input type="range" class="olvl" min="0" max="100" step="1" aria-label="Oscillator ${i+1} level"><output></output></span>
       <select class="ofade" aria-label="Oscillator ${i+1} fade" title="Holds: stays as long as the note. A time: this oscillator dies away on its own, so bright parts can fade first">${OSC_FADES.map(([v,l])=>`<option value="${v}">${l}</option>`).join('')}</select>
@@ -152,7 +158,18 @@ function instBuild(){
     // Each edit lands on oscillator i of the editable copy (the rows are redrawn if a copy was just made)
     const edit=(f,rebuild)=>{ const made=!SOUNDS[st.sound].mine&&!SOUNDS[st.sound].draft, s1=instEditable(); f(s1.osc[i]); instChanged(rebuild); if(made)instBuild(); };
     q('.owave').addEventListener('change',e=>edit(x=>{x[0]=e.target.value},true));
-    q('.oratio').addEventListener('change',e=>edit(x=>{x[2]=+e.target.value},true));
+    // Custom: the menu turns into a box for your own multiple; Enter or leaving the box sets it, Esc cancels
+    q('.oratio').addEventListener('change',e=>{ if(e.target.value!=='custom'){ edit(x=>{x[2]=+e.target.value},true); return; }
+      const sel=e.target, inp=document.createElement('input'); inp.type='text'; inp.className='oratio oratio-in'; inp.inputMode='decimal'; inp.autocomplete='off';
+      inp.placeholder='e.g. 5:4'; inp.value=Number.isInteger(o[2])?String(o[2]):ratioFrac(o[2])||String(+o[2].toFixed(4)); inp.setAttribute('aria-label',`Oscillator ${i+1} pitch: a multiple like 1.5 or a ratio like 3:2`);
+      sel.replaceWith(inp); inp.focus(); inp.select(); let done=false;
+      const finish=ok=>{ if(done)return; done=true; const v=ok?ratioParse(inp.value):null, msg=$('instMsg');
+        if(ok&&v===null){ msg.textContent=`“${inp.value}” isn’t a pitch multiple. Try a number like 1.5 or a ratio like 5:4.`; }
+        else if(v!==null&&(v<INSTR_RATIO[0]||v>INSTR_RATIO[1])){ msg.textContent=`Pitch multiples go from 1:16 to 32, so ${inp.value} was kept inside that.`; }
+        if(v!==null){ const c=Math.max(INSTR_RATIO[0],Math.min(INSTR_RATIO[1],v)); edit(x=>{x[2]=c},true); }
+        instBuild(); };
+      inp.addEventListener('keydown',k=>{ k.stopPropagation(); if(k.key==='Enter'){k.preventDefault();finish(true)} else if(k.key==='Escape'){k.preventDefault();finish(false)} });
+      inp.addEventListener('blur',()=>finish(true)); });
     q('.ofade').addEventListener('change',e=>edit(x=>{const v=+e.target.value; if(v)x[4]=v; else x.length=4},true));
     det.addEventListener('input',()=>{show();edit(x=>{x[1]=+det.value},false)}); det.addEventListener('change',()=>instRefresh());
     lvl.addEventListener('input',()=>{show();edit(x=>{x[3]=+lvl.value/100},false)}); lvl.addEventListener('change',()=>instRefresh());

@@ -580,3 +580,4 @@ body.full #loopCard{display:none}
 .m-inst .minsthead{margin-top:-2px}
 @container (min-width:640px){.m-midi>.lcds{grid-template-columns:repeat(4,minmax(0,1fr))}.m-midi>.leds{grid-template-columns:repeat(3,minmax(0,1fr))}}
 .m-matrix .psave{margin:0}
+.orow .oratio-in{min-width:0;background:#110d0b;border:1px solid var(--g);border-radius:6px;color:var(--patina);font:500 .8rem var(--font-mono);padding:5px 6px;-webkit-user-select:text;user-select:text}
