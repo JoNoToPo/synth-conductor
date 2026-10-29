@@ -231,11 +231,13 @@
         </div>
         <div class="sq-voicing sq-hands" data-panel="hands">
         <div class="cardhead"><h3>What your hands do</h3><span class="hint">left hand</span></div>
-        <div class="leds">
-          <label class="led" title="Left-hand height picks root, 1st or 2nd inversion"><input type="checkbox" id="optHandInv" checked><span>Height inversions</span></label>
-          <label class="led" title="A hand movement slides the chord up and down the keyboard. Off = the old automatic placement"><input type="checkbox" id="optPos" checked><span>Hand position</span></label>
+        <div class="ledknob">
+          <div class="leds">
+            <label class="led" title="Left-hand height picks root, 1st or 2nd inversion"><input type="checkbox" id="optHandInv" checked><span>Height inversions</span></label>
+            <label class="led" title="A hand movement slides the chord up and down the keyboard. Off = the old automatic placement"><input type="checkbox" id="optPos" checked><span>Hand position</span></label>
+          </div>
+          <div class="knobs posknob" id="m-chordpos"></div>
         </div>
-        <div class="knobs posknob" id="m-chordpos"></div>
         <div class="lcds handopts">
           <label for="left67Sel" title="Which left-hand shapes play chords 6 and 7">Left hand 6 / 7
             <select id="left67Sel">
@@ -326,7 +328,7 @@
             <input type="range" id="bpmSlider" min="40" max="240" step="1" aria-label="BPM">
             <button class="btn" id="tapBtn" type="button">Tap</button>
           </div>
-      <div class="temporow">
+      <div class="ledknob">
         <div class="leds">
           <label class="led" title="Lock the arpeggio and vibrato to the BPM"><input type="checkbox" id="optSync"><span>Sync</span></label>
           <label class="led" title="Metronome click, accent every 4 beats"><input type="checkbox" id="optClick"><span>Click</span></label>
