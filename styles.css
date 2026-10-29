@@ -337,6 +337,9 @@ select{background:var(--surface);border:1px solid var(--line);border-radius:10px
 @media (max-width:620px){.synth{grid-template-columns:minmax(0,1fr)}}
 /* A panel switched to its basics keeps the main knobs and hides the finer ones */
 .panel-min .pa{display:none!important}
+/* Tempo: Sync and Click stacked, Pump beside them */
+.temporow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center}
+.temporow .leds{grid-template-columns:minmax(0,1fr)}
 /* MIDI out gets a row of its own, laid out across the width on bigger screens */
 .synth.midirow{display:block;margin-top:12px}
 .midirow .module{background:var(--tint);border-color:var(--tline)}
