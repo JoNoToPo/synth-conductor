@@ -14,13 +14,15 @@ const PANELS=[   // in the order they appear on the page
   ['chord','Chord options','7ths, color, major/minor, voice leading, bass note and inversion'],
   ['details','Voicing','Every voicing, not just the ones your fingers play, plus the right-hand finger slots'],
   ['hands','What your hands do','Left-hand shapes for 6 and 7, twist, fist, palm roll, height inversions and position'],
-  ['amp','Amp & tone','Bass, treble and the envelope. Volume and pedal ring always show'],
+  ['amp','Amp & tone','Bass and treble. Volume and pedal ring always show'],
   ['mod','Modulation','Bend, detune, vibrato, tremolo, auto-pan and rotary'],
   ['filter','Filter','Resonance, high-pass and the vowel filter. Cutoff always shows'],
   ['fx','Effects','Drive, phaser, flanger and the reverb type. Reverb and chorus always show'],
   ['tempo','Tempo & pump','BPM, tap, sync, click and pump'],
   ['arp','Arp & strum','Play chords as arpeggios, or strum them'],
   ['delay','Delay','Echoes in time with the tempo'],
+  ['instrument','Instrument','Build your own: oscillators, envelope, struck or held'],
+  ['matrix','Mod matrix','Let LFOs, a chord envelope or your hands move any knob'],
   ['midi','MIDI out','Play other synths or a DAW, or record a .mid file'],
 ];
 const PANELS_ESSENTIAL=['piano','loop'];

@@ -115,7 +115,7 @@ function playChord(d,fromVoicingChange,retrigger){
   st.degree=d; st.upper=r.upper; st.bassNote=r.bass; if(!fromVoicingChange)st.moved=moved(prev,r.upper);
   const all=r.bass!==null?[r.bass,...r.upper]:r.upper.slice();
   if(st.sounding||!fromVoicingChange){ st.sounding=true; audio.setNotes(all,{retrigger}); }
-  if(!fromVoicingChange){ st.history.push(currentName()); if(st.history.length>6)st.history.shift(); }
+  if(!fromVoicingChange){ st.history.push(currentName()); if(st.history.length>6)st.history.shift(); st.chordSeq=(st.chordSeq||0)+1; }   // chordSeq restarts the mod matrix's chord envelope
   render();
 }
 function currentName(){

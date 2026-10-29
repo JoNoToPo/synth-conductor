@@ -8,7 +8,7 @@ const expInv=(sec,[lo,hi])=>clamp01(Math.log(Math.max(lo,sec)/lo)/Math.log(hi/lo
 const PEDAL_RING=[.3,12];   // how long notes ring under the sustain pedal, in seconds
 const fmtDb=db=>Math.abs(db)<.3?'Flat':(db>0?'+':'−')+Math.abs(db).toFixed(1)+' dB';
 const fmtSec=s=>s<1?Math.round(s*1000)+' ms':s.toFixed(1)+' s';
-function env(){ const c=st.ctrl; return {a:expMap(c.attack.v,ENV.a),d:expMap(c.decay.v,ENV.d),s:c.sustain.v,r:expMap(c.release.v,ENV.r)}; }
+function env(){ return {a:expMap(effV('attack'),ENV.a),d:expMap(effV('decay'),ENV.d),s:effV('sustain'),r:expMap(effV('release'),ENV.r)}; }
 const TARGETS={
   volume:   {label:'Volume',         base:.75, apply:v=>audio.ramp(audio.master.gain,.04+v*.76)},
   pedal:    {label:'Pedal ring length (with a hand assigned, the pedal stays down)', base:()=>expInv(4,PEDAL_RING), apply:v=>audio.setRing(expMap(v,PEDAL_RING)), noCtx:true, fmt:v=>fmtSec(expMap(v,PEDAL_RING))},
@@ -100,7 +100,10 @@ function setVibRate(){
 function saveTempo(){try{localStorage.setItem('vh-tempo',JSON.stringify({bpm:st.bpm,sync:st.sync,vibDiv:st.vibDiv,meter:st.meter}))}catch(e){}}
 function tempoChanged(){ setArp(st.ctrl.arp.v); setVibRate(); setTimeFx(); saveTempo(); showRouteVals(); }
 
-function applyCtrl(k){ const t=TARGETS[k]; midiOut.ctrl(k,st.ctrl[k].v); if(!audio.ctx&&!t.noCtx)return; t.apply(st.ctrl[k].v); }
+// The mod matrix adds an offset on top of each knob; what you hear (and MIDI out sends) is the two together
+const modOff={};
+const effV=k=>clamp01(st.ctrl[k].v+(modOff[k]||0));
+function applyCtrl(k){ const t=TARGETS[k], v=effV(k); midiOut.ctrl(k,v); if(!audio.ctx&&!t.noCtx)return; t.apply(v); }
 function applyAllRoutes(){ for(const k in TARGETS)applyCtrl(k); }
 // Called every camera frame with the right hand's smoothed inputs
 // How far a hand must twist to count as a turn (degrees). Turning back under ~10° releases it.
@@ -163,7 +166,7 @@ function makeKnob(k,big){
   w.innerHTML=`<div class="kdial" role="slider" tabindex="0" aria-label="${t.label}" aria-valuemin="0" aria-valuemax="100">
       <svg viewBox="0 0 60 60" aria-hidden="true"><path class="trk" d="${arcPath(A0,A1,25)}" fill="none" stroke-width="4" stroke-linecap="round"/>
       <path class="arc" fill="none" stroke-width="4" stroke-linecap="round"/><circle class="cap" cx="30" cy="30" r="18" stroke-width="1.5"/>
-      <line class="ptr" x1="30" y1="30" stroke-width="2.5" stroke-linecap="round"/></svg></div>
+      <line class="ptr" x1="30" y1="30" stroke-width="2.5" stroke-linecap="round"/><circle class="mdot" r="3" cx="30" cy="5"/></svg></div>
     <div class="kname">${KSHORT[k]}</div><div class="kval" id="cval-${k}"></div>`;
   w.appendChild(srcSelect(k));
   const dial=w.querySelector('.kdial');let drag=null;

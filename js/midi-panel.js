@@ -31,7 +31,9 @@ $('midiBtn').addEventListener('click',async()=>{
   $('midiCh').replaceChildren(...chOpts()); $('midiBassCh').replaceChildren(new Option('Same',''),...chOpts());
   $('midiCh').value=String(M.ch); $('midiBassCh').value=M.bassCh===null?'':String(M.bassCh);
   $('midiVel').value=M.vel; $('midiSens').value=M.sens; $('midiBendRange').value=String(M.bendRange); syncVelUI(); $('midiCC').checked=M.cc; $('midiClock').checked=M.clock; $('midiMute').checked=M.mute;
-  $('midiCCMap').textContent='Controllers: '+Object.entries(MIDI_CC).map(([k,n])=>`${KSHORT[k]} ${n}`).join(' · ')+' (as the mod wheel). Pedal 64. The Bend knob goes out as pitch bend, even with Knobs as CC off.';
+  $('midiCCMap').textContent='Controllers: '+Object.entries(MIDI_CC).sort((a,b)=>a[1]-b[1])
+    .map(([k,n])=>`${KSHORT[k].length<3?TARGETS[k].label:KSHORT[k]} ${n}${k==='vibrato'?' (mod wheel)':''}`).join(' · ')
+    +'. Sustain pedal 64. The Bend knob goes out as pitch bend, even with Knobs as CC off.';
   const showMsg=()=>{ msg.textContent=!M.acc?'Off':M.port?`Sending to ${M.port.name} · channel ${M.ch+1}${M.bassCh!==null&&M.bassCh!==M.ch?`, bass on ${M.bassCh+1}`:''}`:
     M.acc.outputs.size?'Pick where to send':'No MIDI outputs found. Plug one in; it’s picked up automatically.'; };
   const setPort=o=>{ if(M.port===o)return; M.stopClock(); M.panic(); M.port=o||null;

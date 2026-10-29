@@ -206,7 +206,7 @@
       <div class="lcds">
         <label for="keySel">Tonic<select id="keySel"></select></label>
         <label for="modeSel">Mode<select id="modeSel"></select></label>
-        <label for="soundSel" class="wide">Sound<select id="soundSel"></select></label>
+        <label for="soundSel" class="wide" title="The instrument that plays your chords. Build your own in the Instrument panel">Instrument<select id="soundSel"></select></label>
       </div>
     </div>
     <div class="module m-chord" data-panel="chord">
@@ -297,7 +297,7 @@
     <div class="bank g-amp">
     <div class="module m-amp" data-panel="amp" data-panel-min>
       <h3>Amp &amp; tone</h3>
-      <div class="ampbody"><div class="knobs" id="m-amp"></div><div class="faders pa" id="m-env"></div></div>
+      <div class="knobs" id="m-amp"></div>
     </div>
     <div class="module m-mod" data-panel="mod">
       <h3>Modulation</h3>
@@ -396,7 +396,54 @@
     <p class="panelhint">Drag a knob up or down, scroll on it, or use the arrow keys. Double-click resets it. The menu under each control lets a right-hand movement play it, and it turns green while your hand drives it. <b>Pedal ring:</b> giving it a hand holds the sustain pedal down the whole time, and the hand sets how long notes ring. <b>Bend:</b> try Tilt, where an upright hand is in tune and tilting either way bends; it springs back when your hand leaves the frame.</p>
   </section>
 
-  <section class="synth midirow" aria-label="MIDI out">
+  <section class="synth midirow trio" aria-label="Instrument, mod matrix and MIDI out">
+    <div class="module m-inst g-amp" id="s-inst" data-panel="instrument">
+      <h3>Instrument</h3>
+      <div class="minsthead"><span class="minstname" id="instName"></span><span class="hint" id="instState"></span></div>
+      <div class="mhead ohead" aria-hidden="true"><span>Wave</span><span>Pitch</span><span>Detune</span><span>Level</span><span>Fade</span><span></span></div>
+      <div class="mrows" id="oscRows"></div>
+      <div class="row">
+        <button class="btn" id="oscAdd" type="button">+ Oscillator</button>
+        <label class="led" title="Struck: notes die away on their own, like a piano or bell. Held: they last while the chord does"><input type="checkbox" id="instStrike"><span>Struck</span></label>
+      </div>
+      <div class="minsenv"><span class="lsub">Envelope</span><div class="faders" id="m-env"></div></div>
+      <form class="psave" id="instForm">
+        <label class="sr" for="instNameIn">Instrument name</label>
+        <input type="text" id="instNameIn" placeholder="Name this instrument" maxlength="30" autocomplete="off">
+        <button class="btn primary" type="submit">Save instrument</button>
+        <button class="btn" id="instDel" type="button" hidden>Delete</button>
+      </form>
+      <p class="hint" id="instMsg">Changes play straight away. Saving also keeps the envelope and the Cutoff knob as the instrument’s own.</p>
+    </div>
+    <div class="module m-matrix g-matrix" id="s-matrix" data-panel="matrix">
+      <h3>Mod matrix</h3>
+      <p class="hint">Let a source move any knob. Each row pushes the knob up or down from where you set it; a dot on the knob shows where it really is. Hand movements need the camera on.</p>
+      <div class="msources">
+        <div class="msrcset">
+          <b>LFO 1</b>
+          <label class="sr" for="lfoRate0">LFO 1 rate</label><select id="lfoRate0" title="How fast LFO 1 swings. Note lengths follow the tempo"></select>
+          <label class="sr" for="lfoShape0">LFO 1 shape</label><select id="lfoShape0" title="LFO 1 wave shape"></select>
+        </div>
+        <div class="msrcset">
+          <b>LFO 2</b>
+          <label class="sr" for="lfoRate1">LFO 2 rate</label><select id="lfoRate1" title="How fast LFO 2 swings. Note lengths follow the tempo"></select>
+          <label class="sr" for="lfoShape1">LFO 2 shape</label><select id="lfoShape1" title="LFO 2 wave shape"></select>
+        </div>
+        <div class="msrcset menv">
+          <b>Chord envelope</b>
+          <label for="envA">Rise <input type="range" id="envA" min="0" max="2" step="0.01"><output id="envAVal"></output></label>
+          <label for="envD">Fall <input type="range" id="envD" min="0.05" max="4" step="0.01"><output id="envDVal"></output></label>
+        </div>
+      </div>
+      <div class="mhead" aria-hidden="true"><span>Source</span><span></span><span>Knob</span><span>Now</span><span>Amount</span></div>
+      <div class="mrows" id="modRows"></div>
+      <p class="hint" id="modEmpty">No rows yet. Add one to start: LFO 1 slowly moving the filter cutoff is a good first try.</p>
+      <div class="row">
+        <button class="btn primary" id="modAdd" type="button">+ Add row</button>
+        <button class="btn" id="modClear" type="button">Clear rows</button>
+        <label class="led" title="Turn every row off at once without losing them"><input type="checkbox" id="modOn" checked><span>Matrix on</span></label>
+      </div>
+    </div>
     <div class="module m-midi g-midi" id="s-midi" data-panel="midi">
       <h3>MIDI out</h3>
         <p class="hint">Send what you play to another synth, a DAW or a hardware instrument: notes, the sustain pedal, knob moves as controllers and the tempo clock. Or record it straight to a .mid file.</p>
@@ -536,6 +583,7 @@
 <script src="js/controls.js"></script>
 <script src="js/ui.js"></script>
 <script src="js/looper.js"></script>
+<script src="js/modmatrix.js"></script>
 <script src="js/hands.js"></script>
 <script src="js/guides.js"></script>
 <script src="js/boot.js"></script>

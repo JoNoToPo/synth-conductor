@@ -40,6 +40,8 @@ function cleanSound(d){ if(!d||typeof d!=='object')return {};
   const o=pickTyped(d,['key','mode','sound','voicing','sevMode','invBase','shiftQual','arpPattern','strumDir','bendRange','bpm','meter','vibDiv'],v=>typeof v==='number'||typeof v==='string');
   Object.assign(o,pickTyped(d,[...SOUND_BOOLS,'sync'],v=>typeof v==='boolean'));
   if(d.ctrl&&typeof d.ctrl==='object'){o.ctrl={};for(const k in TARGETS)if(d.ctrl[k]&&typeof d.ctrl[k].v==='number')o.ctrl[k]={v:d.ctrl[k].v}}
+  if(d.matrix)o.matrix=matrixClean(d.matrix);
+  if(d.instrument){const x=instrClean(d.instrument);if(x)o.instrument=x}
   if(d.fx&&typeof d.fx==='object')o.fx=pickTyped(d.fx,Object.keys(st.fx),(v,k)=>typeof v===typeof st.fx[k]);
   return o; }
 function cleanHands(d){ if(!d||typeof d!=='object')return {};

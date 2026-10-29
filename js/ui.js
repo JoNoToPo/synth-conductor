@@ -42,16 +42,20 @@ function buildVoicings(){
     vEl.appendChild(b);
   });
 }
+// Instrument menu: held and struck built-ins, then the ones you made
+function fillSoundSel(){ const ss=$('soundSel'); ss.innerHTML='';
+  for(const [name,test] of [['Held',s=>!s.mine&&!s.draft&&!s.strike],['Struck',s=>!s.mine&&!s.draft&&s.strike],['Yours',s=>s.mine||s.draft]]){
+    const list=Object.entries(SOUNDS).filter(([k,s])=>test(s)); if(!list.length)continue;
+    const grp=document.createElement('optgroup');grp.label=name;
+    list.forEach(([k,s])=>{const o=document.createElement('option');o.value=k;o.textContent=s.label;grp.appendChild(o)}); ss.appendChild(grp);}
+  ss.value=st.sound; }
 function buildSelects(){
   const ks=$('keySel');KEYS.forEach(([pc,n],i)=>{const o=document.createElement('option');o.value=i;o.textContent=n;ks.appendChild(o)});
   const ms=$('modeSel');Object.entries(MODES).forEach(([k,m])=>{const o=document.createElement('option');o.value=k;o.textContent=m.name;ms.appendChild(o)});
   ms.value=st.mode;
   ms.addEventListener('change',()=>{st.mode=ms.value;SCALE=MODES[st.mode].steps;try{localStorage.setItem('vh-mode',st.mode)}catch(e){}refreshAfterChange();render()});
   ks.addEventListener('change',()=>{st.key=+ks.value;st.upper=[];refreshAfterChange()});
-  const ss=$('soundSel');
-  for(const [name,struck] of [['Held',false],['Struck',true]]){const grp=document.createElement('optgroup');grp.label=name;
-    Object.entries(SOUNDS).filter(([k,s])=>!!s.strike===struck).forEach(([k,s])=>{const o=document.createElement('option');o.value=k;o.textContent=s.label;grp.appendChild(o)});
-    ss.appendChild(grp);}
+  const ss=$('soundSel'); fillSoundSel();
   ss.addEventListener('change',()=>{audio.allOff();st.sound=ss.value;
     // Each sound has its own natural brightness and envelope: reset those sliders unless a hand is driving them
     for(const k in TARGETS)if(TARGETS[k].perSound&&st.ctrl[k].src==='none')st.ctrl[k].v=baseOf(k);

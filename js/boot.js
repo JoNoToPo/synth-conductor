@@ -43,13 +43,16 @@ function captureSound(){
   const vals={}; for(const k in TARGETS)if(k!=='position'&&k!=='bend')vals[k]={v:st.ctrl[k].v};
   return {key:st.key,mode:st.mode,sound:st.sound,voicing:st.voicing,s7:st.s7,bass:st.bass,vl:st.vl,pure:st.pure,
     sevMode:st.sevMode,invBase:st.invBase,shiftQual:st.shiftQual,ctrl:vals,
-    arpPattern:audio.arpPattern,strumDir:audio.strumDir,bendRange:midiOut.bendRange,bpm:st.bpm,meter:st.meter,sync:st.sync,vibDiv:st.vibDiv,fx:{...st.fx},saved:Date.now()};
+    arpPattern:audio.arpPattern,strumDir:audio.strumDir,bendRange:midiOut.bendRange,bpm:st.bpm,meter:st.meter,sync:st.sync,vibDiv:st.vibDiv,fx:{...st.fx},matrix:matrixCapture(),
+    instrument:SOUNDS[st.sound].mine||SOUNDS[st.sound].draft?instrClean(SOUNDS[st.sound]):undefined,   // your own instrument travels with the preset
+    saved:Date.now()};
 }
 function applySound(c){
   const ok=(v,test)=>v!==undefined&&test(v);
   if(ok(c.key,v=>v>=0&&v<12))st.key=c.key;
   if(ok(c.mode,v=>MODES[v]))st.mode=c.mode;
-  if(ok(c.sound,v=>SOUNDS[v])&&c.sound!==st.sound){audio.allOff();st.sound=c.sound}
+  const sound=c.instrument?instrInstall(c.instrument):c.sound;
+  if(ok(sound,v=>SOUNDS[v])&&sound!==st.sound){audio.allOff();st.sound=sound}
   if(ok(c.voicing,v=>VOICINGS.some(x=>x.id===v)))st.voicing=c.voicing;
   for(const k of SOUND_BOOLS)if(typeof c[k]==='boolean')st[k]=c[k];
   if(c.shiftQual==='common'||c.shiftQual==='keep')st.shiftQual=c.shiftQual;
@@ -65,6 +68,7 @@ function applySound(c){
   if(typeof c.sync==='boolean')st.sync=c.sync;
   if(ok(c.vibDiv,v=>v==='free'||DIVS.some(d=>d[0]===v)))st.vibDiv=c.vibDiv;
   if(c.fx&&typeof c.fx==='object'){Object.assign(st.fx,c.fx);saveFx();syncFxUI();audio.setReverbType(st.fx.reverbType);setTimeFx()}
+  if(c.matrix)matrixApply(c.matrix);   // presets saved before the mod matrix leave yours as it is
   SCALE=MODES[st.mode].steps;
   $('keySel').value=st.key;$('modeSel').value=st.mode;$('soundSel').value=st.sound;
   $('optVL').checked=st.vl;$('opt7').checked=st.s7;$('optBass').checked=st.bass;$('optPure').checked=st.pure;
@@ -74,9 +78,10 @@ function applySound(c){
     localStorage.setItem('vh-pure',st.pure?'1':'0');localStorage.setItem('vh-shiftqual',st.shiftQual);saveRoutes();saveTempo();}catch(e){}
   st.upper=[];
   applyAllRoutes();setVibRate();showRouteVals();
-  refreshAfterChange();render();
+  refreshAfterChange();render();if(typeof instBuild==='function')instBuild();
 }
-const soundSummary=c=>[pcName(KEYS[c.key]?.[0]??0)+' '+(MODES[c.mode]?.name||''),SOUNDS[c.sound]?.label,VOICINGS.find(v=>v.id===c.voicing)?.name,c.bpm+' BPM'].filter(Boolean).join(' · ');
+const soundSummary=c=>[pcName(KEYS[c.key]?.[0]??0)+' '+(MODES[c.mode]?.name||''),(c.instrument?.label||SOUNDS[c.sound]?.label),VOICINGS.find(v=>v.id===c.voicing)?.name,c.bpm+' BPM',
+  c.matrix?.rows?.length?c.matrix.rows.length+' mod row'+(c.matrix.rows.length>1?'s':''):''].filter(Boolean).join(' · ');
 
 /* ----- Hand setups ----- */
 function captureHands(){

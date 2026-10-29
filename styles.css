@@ -346,7 +346,6 @@ select{background:var(--surface);border:1px solid var(--line);border-radius:10px
 .synth.midirow{display:block;margin-top:12px}
 .midirow .module{background:var(--tint);border-color:var(--tline)}
 .midirow .module h3{color:var(--g);border-bottom-color:var(--tline)}
-@media (min-width:900px){.m-midi>.lcds{grid-template-columns:repeat(4,minmax(0,1fr))}.m-midi>.leds{grid-template-columns:repeat(3,minmax(0,1fr))}}
 .adv{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;align-items:start}
 @media (max-width:720px){.adv{grid-template-columns:minmax(0,1fr)}}
 /* MIDI out */
@@ -462,7 +461,7 @@ body.full:not(.rh-only) .pads,body.full:not(.rh-only) .stage>.row>.fs-rh{display
 .padd[hidden],body.full .padd{display:none}
 /* A bigger box holding only a + stays light */
 .padd{width:100%}
-.midirow:has(>.padd:not([hidden])){padding:0;border:0;background:none;box-shadow:none}
+.midirow:not(:has(>.module:not(.panel-off))){padding:0;border:0;background:none;box-shadow:none}
 .hdrtools{position:relative}
 .pcount{font-family:var(--font-mono);font-size:.72rem;color:var(--muted);margin-left:4px}
 .panelmenu{position:fixed;z-index:30;max-height:calc(80vh - 24px);max-height:calc(80dvh - 24px);overflow:auto;width:min(360px,calc(100vw - 32px));display:flex;flex-direction:column;gap:10px;
@@ -516,3 +515,64 @@ body.full #loopCard{display:none}
 .sharecard .hint{margin:0}
 .prow .pshare{color:var(--brass)}
 .prow .pshare:hover{color:var(--ivory)}
+/* Mod matrix */
+.g-matrix{--g:#b59ad7;--tint:rgba(181,154,215,.06);--tline:rgba(181,154,215,.24)}
+.knob .mdot{fill:#b59ad7;stroke:#16110e;stroke-width:1;display:none}
+.knob.modded .mdot{display:block}
+.m-matrix .hint{margin:0}
+.msources{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
+.msrcset{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;padding:8px 10px;border:1px solid var(--tline);border-radius:8px;background:rgba(15,11,9,.3);min-width:0}
+.msrcset b{flex:1 0 100%;font-family:var(--font-mono);font-weight:500;font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--g)}
+.msrcset select,.mrow select{background:#110d0b;border:1px solid #3a2e26;border-radius:6px;color:var(--patina);font:500 .8rem var(--font-mono);padding:5px 6px;min-width:0}
+.msrcset select{flex:1 1 110px}
+.menv label{flex:1 1 100%;display:grid;grid-template-columns:3em minmax(0,1fr) 4.2em;align-items:center;gap:6px;font-family:var(--font-mono);font-size:.68rem;color:var(--muted)}
+.menv input[type=range],.mrow input[type=range]{width:100%;margin:0;accent-color:var(--g)}
+.menv output,.mrow output{font-family:var(--font-mono);font-size:.72rem;color:var(--patina);text-align:right}
+.mhead,.mrow{display:grid;grid-template-columns:minmax(0,1.1fr) auto minmax(0,1fr) 64px minmax(80px,1.2fr) 3.4em 28px;gap:8px;align-items:center}
+.mhead{font-family:var(--font-mono);font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.mhead span:nth-child(5){grid-column:5/7}
+.mrows{display:flex;flex-direction:column;gap:6px}
+.mrow{padding:6px 8px;border:1px solid var(--tline);border-radius:8px;background:rgba(15,11,9,.3)}
+.marrow{color:var(--g)}
+.mmeter{position:relative;height:6px;border-radius:3px;background:rgba(242,233,218,.08);overflow:hidden}
+.mmeter i{position:absolute;top:0;bottom:0;left:0;width:0;background:var(--g);border-radius:3px}
+.mdel{width:28px;height:28px;padding:0;border:0;border-radius:6px;background:none;color:var(--muted);cursor:pointer}
+.mdel:hover,.mdel:focus-visible{color:var(--ivory);background:var(--surface-2)}
+.m-matrix .row .btn{padding:6px 12px;font-size:.82rem}
+.m-matrix .row .led{margin-left:auto}
+@container (max-width:640px){
+  .mhead{display:none}
+  .mrow{grid-template-columns:minmax(0,1fr) auto minmax(0,1fr) 28px;grid-template-areas:"s a d x" "m m m m" "r r r v"}
+  .mrow .msrc{grid-area:s}.mrow .marrow{grid-area:a}.mrow .mdst{grid-area:d}.mrow .mdel{grid-area:x}
+  .mrow .mmeter{grid-area:m}.mrow .mamt{grid-area:r}.mrow .mval{grid-area:v;grid-column:4}
+  .mrow{grid-template-areas:"s a d x" "m m m m" "r r r v"}
+}
+/* Instrument editor in the mod matrix */
+.minst{display:flex;flex-direction:column;gap:8px;padding:10px;border:1px solid var(--tline);border-radius:10px;background:rgba(15,11,9,.3)}
+.minsthead{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px}
+.minsthead b{font-family:var(--font-mono);font-weight:500;font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--g)}
+.minstname{font-weight:600;color:var(--ivory)}
+.minsthead .hint{margin:0;font-size:.74rem}
+.ohead,.orow{grid-template-columns:minmax(0,1fr) minmax(0,.8fr) minmax(0,1.2fr) minmax(0,1.2fr) minmax(0,.8fr) 28px}
+.ohead span:nth-child(5){grid-column:auto}
+.ocell{display:grid;grid-template-columns:minmax(0,1fr) 3em;gap:6px;align-items:center}
+.ocell input[type=range]{width:100%;margin:0;accent-color:var(--g)}
+.ocell output{font-family:var(--font-mono);font-size:.72rem;color:var(--patina);text-align:right}
+.mdel:disabled{opacity:.3;cursor:default}
+.minsenv{display:flex;flex-direction:column;gap:6px}
+.minsenv .lsub{margin:0}
+.m-inst .fader input[type=range]{accent-color:var(--g)}
+.m-inst .fader.driven input[type=range]{accent-color:var(--patina)}
+.m-inst .psave{margin:0}
+@container (max-width:560px){
+  .ohead{display:none}
+  .orow{grid-template-columns:minmax(0,1fr) minmax(0,1fr) 28px;grid-template-areas:"w r x" "d l l" "f f f"}
+  .orow .owave{grid-area:w}.orow .oratio{grid-area:r}.orow .mdel{grid-area:x}.orow .ocell:nth-of-type(1){grid-area:d}.orow .ocell:nth-of-type(2){grid-area:l}.orow .ofade{grid-area:f}
+}
+/* Instrument, Mod matrix and MIDI out share a row: side by side when there's room, wrapping when not.
+   A hidden one shrinks to its + so the others take the space */
+.synth.trio{display:flex;flex-wrap:wrap;gap:12px;align-items:stretch;padding:12px}
+.trio>.module{flex:1 1 400px;min-width:0;container-type:inline-size}
+.trio>.padd{flex:0 0 auto;width:auto;align-self:flex-start}
+.m-inst .minsthead{margin-top:-2px}
+@container (min-width:640px){.m-midi>.lcds{grid-template-columns:repeat(4,minmax(0,1fr))}.m-midi>.leds{grid-template-columns:repeat(3,minmax(0,1fr))}}
