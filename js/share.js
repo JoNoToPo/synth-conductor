@@ -30,6 +30,10 @@ const SHARE={
     pack:(n,c)=>({n,d:c}), unpack:p=>({name:p.n,data:cleanSound(p.d)}), ok:d=>d.key!==undefined,
     describe:c=>soundSummary(c), msg:t=>presetMsg(t),
     capture:captureSound, apply:c=>applySound(c), setActive:n=>{activePreset=n}, render:()=>renderPresets()},
+  matrix:{noun:'mod matrix preset',bank:'vh-matrices',builtins:()=>BUILTIN_MATRICES,panel:'matrix',tryLabel:'Try it',verb:'try it',
+    pack:(n,c)=>({n,d:c}), unpack:p=>({name:p.n,data:matrixClean(p.d)}), ok:d=>Array.isArray(d.rows)&&d.rows.length>0,
+    describe:m=>matrixSummary(m), msg:t=>{$('matrixMsg').textContent=t},
+    capture:matrixCapture, apply:m=>matrixApply(m), setActive:n=>{matrixActive=n}, render:()=>renderMatrices()},
   hands:{noun:'hand setup',bank:'vh-hands',builtins:()=>BUILTIN_HANDS,panel:'presets',tryLabel:'Try it',verb:'try it',
     pack:(n,c)=>({n,d:c}), unpack:p=>({name:p.n,data:cleanHands(p.d)}), ok:d=>Array.isArray(d.rhMap),
     describe:h=>handSummary(h), msg:t=>presetMsg(t),
@@ -61,13 +65,13 @@ async function shareSend(kind,name,data){
   if(navigator.share){ try{ await navigator.share({title:`${name} · Synth Conductor`,text,url}); K.msg(`Shared "${name}".`); return; }
     catch(e){ if(e&&e.name==='AbortError')return; } }
   try{ await navigator.clipboard.writeText(url); K.msg(`Link to "${name}" copied. Whoever opens it can try it and keep it.`); }
-  catch(e){ K.msg(''); const box=kind==='loop'?$('loopBankMsg'):$('presetMsg'), inp=document.createElement('input');
+  catch(e){ K.msg(''); const box=kind==='loop'?$('loopBankMsg'):kind==='matrix'?$('matrixMsg'):$('presetMsg'), inp=document.createElement('input');
     inp.className='lshare'; inp.readOnly=true; inp.value=url; box.append('Copy this link: ',inp); inp.focus(); inp.select(); }
 }
 $('loopShare').addEventListener('click',()=>shareSend('loop',loopActive||$('loopName').value.trim()||'Chord loop',loopNow()));
 
 /* Receive: a card at the top of the page says what arrived */
-const sharedAtStart=/^#(loop|sound|hands)=/.test(location.hash);
+const sharedAtStart=/^#(loop|sound|hands|matrix)=/.test(location.hash);
 let arrival=null;   // {kind,name,data,before}: before is what to go back to while trying a sound or hand setup
 function saveShared(kind,name,data){
   // Keep the sender's name; if a different one here has it already, number it
@@ -88,7 +92,7 @@ function shareShow(){
   const c=$('shareCard'); c.hidden=false; c.scrollIntoView({block:'nearest'});
 }
 function shareFromLink(){
-  const m=/^#(loop|sound|hands)=([\w-]+)$/.exec(location.hash); if(!m)return;
+  const m=/^#(loop|sound|hands|matrix)=([\w-]+)$/.exec(location.hash); if(!m)return;
   history.replaceState(null,'',location.pathname+location.search);   // tidy the address so a reload doesn't offer it again
   if(arrival&&arrival.before)SHARE[arrival.kind].apply(arrival.before);
   const kind=m[1], K=SHARE[kind]; let got;

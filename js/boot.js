@@ -367,3 +367,18 @@ const renderLoops=makeBank({key:'vh-loops',builtins:BUILTIN_LOOPS,list:'loopList
   apply:applyLoop,
   active:()=>loopActive, setActive:n=>{loopActive=n}});
 
+/* Saved mod matrix setups: the rows plus both LFOs and the chord envelope */
+let matrixActive=null;
+const mxPreset=(rows,lfo,env)=>({on:true,rows,lfo:lfo||MATRIX_DEFAULT().lfo,env:env||MATRIX_DEFAULT().env});
+const BUILTIN_MATRICES={
+  'Slow filter sweep':mxPreset([{src:'lfo1',dst:'cutoff',amt:.5}],[{rate:'4bar',shape:'sine'},{rate:'1/4',shape:'tri'}]),
+  'Pluck':mxPreset([{src:'env',dst:'cutoff',amt:.6},{src:'env',dst:'resonance',amt:.25}],null,{a:.005,d:.35}),
+  'Wobble':mxPreset([{src:'lfo2',dst:'cutoff',amt:.45},{src:'lfo2',dst:'resonance',amt:.2}],[{rate:'1bar',shape:'sine'},{rate:'1/8',shape:'sine'}]),
+  'Shimmer':mxPreset([{src:'lfo1',dst:'chorus',amt:.4},{src:'lfo2',dst:'reverb',amt:.3},{src:'rand',dst:'detune',amt:.2}],[{rate:'1/4',shape:'tri'},{rate:'0.3',shape:'sine'}]),
+  'Hand wah':mxPreset([{src:'tilt',dst:'vowel',amt:.8},{src:'dist',dst:'resonance',amt:.5}]),
+};
+const renderMatrices=makeBank({key:'vh-matrices',builtins:BUILTIN_MATRICES,list:'matrixList',form:'matrixForm',name:'matrixName',noun:'mod matrix preset',share:'matrix',
+  msg:t=>{$('matrixMsg').textContent=t}, summary:matrixSummary,
+  capture:()=>({...matrixCapture(),saved:Date.now()}), apply:c=>matrixApply(c),
+  active:()=>matrixActive, setActive:n=>{matrixActive=n}});
+

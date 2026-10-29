@@ -150,7 +150,7 @@
         <button class="btn" id="loopClear" type="button">Clear</button>
       </div>
       <p class="hint" id="loopMsg" aria-live="polite"></p>
-      <div class="plist lchips" id="loopList" aria-label="Saved loops"></div>
+      <div class="plist lchips" id="loopList" data-label="Loops" aria-label="Saved loops"></div>
       <details class="lmore" id="loopMore">
         <summary>Length, time, snap · save, share or export this loop</summary>
       <div class="lcds">
@@ -443,6 +443,13 @@
         <button class="btn" id="modClear" type="button">Clear rows</button>
         <label class="led" title="Turn every row off at once without losing them"><input type="checkbox" id="modOn" checked><span>Matrix on</span></label>
       </div>
+      <div class="plist lchips" id="matrixList" data-label="Presets" aria-label="Saved mod matrix presets"></div>
+      <form class="psave" id="matrixForm">
+        <label class="sr" for="matrixName">Mod matrix preset name</label>
+        <input type="text" id="matrixName" placeholder="Name these rows" maxlength="40" autocomplete="off">
+        <button class="btn primary" type="submit">Save</button>
+      </form>
+      <p class="hint" id="matrixMsg" aria-live="polite">Saves the rows with both LFOs and the chord envelope. Sound presets keep their own copy too.</p>
     </div>
     <div class="module m-midi g-midi" id="s-midi" data-panel="midi">
       <h3>MIDI out</h3>

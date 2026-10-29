@@ -28,6 +28,9 @@ function matrixClean(m){ const d=MATRIX_DEFAULT(); if(!m||typeof m!=='object')re
 try{ matrix=matrixClean(JSON.parse(localStorage.getItem('vh-matrix')||'null')); }catch(e){}
 const matrixSave=()=>{ try{localStorage.setItem('vh-matrix',JSON.stringify(matrix))}catch(e){} };
 const matrixCapture=()=>JSON.parse(JSON.stringify(matrix));
+const modSrcName=k=>(MOD_SRC.find(x=>x[0]===k)||[k,k])[1], modDstName=k=>KSHORT[k]&&KSHORT[k].length>2?KSHORT[k]:TARGETS[k]?.label||k;
+const matrixSummary=m=>{ const r=(m.rows||[]).map(x=>`${modSrcName(x.src)} → ${modDstName(x.dst)}`);
+  return r.length?`${r.length} row${r.length>1?'s':''}: ${r.slice(0,3).join(', ')}${r.length>3?' …':''}`:'No rows'; };
 function matrixApply(m){ matrix=matrixClean(m); matrixSave(); matrixBuild(); matrixRun(); }
 
 /* Sources */

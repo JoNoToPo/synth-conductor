@@ -502,7 +502,7 @@ details.sect>.phide{top:10px;right:40px}
 .lchips .prow.active{border-color:var(--g)}
 .lchips .prow.active .pload{box-shadow:none;color:var(--g)}
 .lchips .prow.builtin .pload::after{content:"·";margin-left:6px;color:var(--muted);font-weight:400}
-.lchips:not(:empty)::before{content:"Loops";align-self:center;font-family:var(--font-mono);font-size:.64rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-right:2px}
+.lchips:not(:empty)::before{content:attr(data-label);align-self:center;font-family:var(--font-mono);font-size:.64rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-right:2px}
 body.full #loopCard{display:none}
 /* Card for an opened share link */
 .sharecard{display:flex;flex-direction:column;gap:6px;margin:0 0 14px;padding:14px 16px;border:1px solid var(--brass);border-radius:14px;
@@ -520,7 +520,11 @@ body.full #loopCard{display:none}
 .knob .mdot{fill:#b59ad7;stroke:#16110e;stroke-width:1;display:none}
 .knob.modded .mdot{display:block}
 .m-matrix .hint{margin:0}
-.msources{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
+/* LFO 1 and 2 side by side with the chord envelope across the full width below; three across when the module is wide */
+.msources{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.msources>.menv{grid-column:1/-1}
+@container (min-width:720px){.msources{grid-template-columns:repeat(3,minmax(0,1fr))}.msources>.menv{grid-column:auto}}
+@container (max-width:340px){.msources{grid-template-columns:minmax(0,1fr)}}
 .msrcset{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;padding:8px 10px;border:1px solid var(--tline);border-radius:8px;background:rgba(15,11,9,.3);min-width:0}
 .msrcset b{flex:1 0 100%;font-family:var(--font-mono);font-weight:500;font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--g)}
 .msrcset select,.mrow select{background:#110d0b;border:1px solid #3a2e26;border-radius:6px;color:var(--patina);font:500 .8rem var(--font-mono);padding:5px 6px;min-width:0}
@@ -576,3 +580,4 @@ body.full #loopCard{display:none}
 .trio>.padd{flex:0 0 auto;width:auto;align-self:flex-start}
 .m-inst .minsthead{margin-top:-2px}
 @container (min-width:640px){.m-midi>.lcds{grid-template-columns:repeat(4,minmax(0,1fr))}.m-midi>.leds{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.m-matrix .psave{margin:0}
