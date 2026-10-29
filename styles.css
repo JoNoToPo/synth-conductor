@@ -462,7 +462,7 @@ body.full:not(.rh-only) .pads,body.full:not(.rh-only) .stage>.row>.fs-rh{display
 .midirow:has(>.padd:not([hidden])){padding:0;border:0;background:none;box-shadow:none}
 .hdrtools{position:relative}
 .pcount{font-family:var(--font-mono);font-size:.72rem;color:var(--muted);margin-left:4px}
-.panelmenu{position:fixed;z-index:30;max-height:calc(100vh - 24px - 2rem);max-height:calc(100dvh - 24px);overflow:auto;width:min(360px,calc(100vw - 32px));display:flex;flex-direction:column;gap:10px;
+.panelmenu{position:fixed;z-index:30;max-height:calc(90vh - 24px);max-height:calc(100dvh - 24px);overflow:auto;width:min(360px,calc(100vw - 32px));display:flex;flex-direction:column;gap:10px;
   padding:14px;border:1px solid var(--line);border-radius:14px;background:var(--surface);box-shadow:0 18px 40px rgba(0,0,0,.45)}
 .panelmenu[hidden]{display:none}
 .pmlist{display:flex;flex-direction:column;gap:2px}
