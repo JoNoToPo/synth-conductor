@@ -8,6 +8,14 @@
 <meta property="og:title" content="Synth Conductor">
 <meta property="og:description" content="Pick chords with your left hand. Shape them with your right. A free webcam instrument that runs in your browser.">
 <meta property="og:type" content="website">
+<!-- The card a messaging app shows for a link (the same for every shared loop or preset: the part after # never reaches it) -->
+<meta property="og:site_name" content="Synth Conductor">
+<meta property="og:url" content="https://jonotopo.github.io/synth-conductor/">
+<meta property="og:image" content="https://jonotopo.github.io/synth-conductor/apple-touch-icon.png">
+<meta property="og:image:width" content="180">
+<meta property="og:image:height" content="180">
+<meta property="og:image:alt" content="An outline of a hand on a dark square">
+<meta name="twitter:card" content="summary">
 <meta name="theme-color" content="#16110e">
 <!-- Added to an iPhone home screen, the page opens without Safari's bars -->
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -42,6 +50,18 @@
     </div>
     <div class="status"><span class="dot" id="audioDot"></span><span id="statusText">Sound off · tap a chord to start</span><span class="lat" id="latency" title="Audio: the browser's output delay. Camera: frames per second. Tracking: time to find your hands in each frame"></span></div>
   </header>
+
+  <section class="sharecard" id="shareCard" aria-labelledby="shareName" hidden>
+    <p class="shkind" id="shareKind"></p>
+    <h2 id="shareName"></h2>
+    <p class="shinfo" id="shareInfo"></p>
+    <div class="row">
+      <button class="btn primary" id="shareTry" type="button"></button>
+      <button class="btn" id="shareKeep" type="button"></button>
+      <button class="btn" id="shareNo" type="button"></button>
+    </div>
+    <p class="hint" id="shareNote"></p>
+  </section>
 
   <section class="progbar" aria-label="Presets" data-panel="presets">
     <h3 title="Key, sound, voicing, chord style, knob and fader values, effects, arpeggio and tempo">Sound</h3>
@@ -520,6 +540,7 @@
 <script src="js/guides.js"></script>
 <script src="js/boot.js"></script>
 <script src="js/midi-panel.js"></script>
+<script src="js/share.js"></script>
 <script src="js/learn.js"></script>
 </body>
 </html>

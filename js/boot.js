@@ -130,6 +130,12 @@ function makeBank(o){
       load.title=sm.textContent; if(builtinOnly(name))row.classList.add('builtin');
       load.addEventListener('click',()=>{audio.init();o.apply(c);o.setActive(name);$(o.name).value=name;render();msg(`Loaded ${o.noun} "${name}".`)});
       row.appendChild(load);
+      if(o.share){
+        const sh=document.createElement('button');sh.type='button';sh.className='pdel pshare';sh.textContent='Share';sh.setAttribute('aria-label','Share '+name);
+        sh.title=`Get a link to "${name}". Opening it offers this ${o.noun} to whoever you send it to`;
+        sh.addEventListener('click',()=>shareSend(o.share,name,c));
+        row.appendChild(sh);
+      }
       if(!builtinOnly(name)){
         const del=document.createElement('button');del.type='button';del.className='pdel';del.textContent='Delete';del.setAttribute('aria-label','Delete '+name);
         let armed=null;
@@ -163,9 +169,9 @@ $('leftTwistSel').value=st.leftTwist;
 $('leftTwistSel').addEventListener('change',e=>{st.leftTwist=e.target.value;try{localStorage.setItem('vh-lefttwist',st.leftTwist)}catch(err){}});
 $('left67Sel').value=st.left67;syncLeftGuide();
 $('left67Sel').addEventListener('change',e=>{st.left67=e.target.value;try{localStorage.setItem('vh-left67',st.left67)}catch(err){}syncLeftGuide()});
-const renderPresets=makeBank({key:'vh-presets',builtins:BUILTIN_PRESETS,list:'presetList',form:'presetForm',name:'presetName',noun:'sound preset',
+const renderPresets=makeBank({key:'vh-presets',builtins:BUILTIN_PRESETS,list:'presetList',form:'presetForm',name:'presetName',noun:'sound preset',share:'sound',
   capture:captureSound,apply:applySound,summary:soundSummary,active:()=>activePreset,setActive:n=>{activePreset=n}});
-const renderHands=makeBank({key:'vh-hands',builtins:BUILTIN_HANDS,list:'handList',form:'handForm',name:'handName',noun:'hand setup',
+const renderHands=makeBank({key:'vh-hands',builtins:BUILTIN_HANDS,list:'handList',form:'handForm',name:'handName',noun:'hand setup',share:'hands',
   capture:captureHands,apply:applyHands,summary:handSummary,active:()=>activeHands,setActive:n=>{activeHands=n}});
 // First visit: start from the included "Default" sound and "Default" hand setup
 let firstVisit=false;
@@ -349,48 +355,10 @@ function applyLoop(c){ if(!c||!Array.isArray(c.events))return; looper.stop(); if
     looper.events=c.events.filter(e=>e&&typeof e.beat==='number'&&e.beat>=0&&e.beat<looper.len()).map(e=>{ const x={...e};
       if(x.s7===null)x.s7=st.s7; if(x.deg!==null&&!x.name){x.roman=romanOf(x.deg);x.name=padsEl.querySelector(`.pad[data-d="${x.deg}"] .c`).textContent} return x; });
     saveLoop(); loopUI(); }
-const renderLoops=makeBank({key:'vh-loops',builtins:BUILTIN_LOOPS,list:'loopList',form:'loopForm',name:'loopName',noun:'loop',
+const renderLoops=makeBank({key:'vh-loops',builtins:BUILTIN_LOOPS,list:'loopList',form:'loopForm',name:'loopName',noun:'loop',share:'loop',
   msg:t=>{$('loopBankMsg').textContent=t},
   summary:c=>{const n=c.events.filter(e=>e.deg!==null).length;return `${c.bars} bar${c.bars>1?'s':''} · ${c.meter}${c.bpm?` · ${c.bpm} BPM`:''} · ${n} chord${n===1?'':'s'}`},
   capture:()=>({bars:looper.bars,snap:looper.snap,meter:st.meter,bpm:st.bpm,key:st.key,mode:st.mode,events:JSON.parse(JSON.stringify(looper.events)),saved:Date.now()}),
   apply:applyLoop,
   active:()=>loopActive, setActive:n=>{loopActive=n}});
-/* Share a loop as a link. The loop rides in the part after #, which browsers never send to the site,
-   so nothing is uploaded: opening the link adds the loop to that person's Loops. */
-const b64url={enc:t=>btoa(String.fromCharCode(...new TextEncoder().encode(t))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''),
-  dec:t=>new TextDecoder().decode(Uint8Array.from(atob(t.replace(/-/g,'+').replace(/_/g,'/')),c=>c.charCodeAt(0)))};
-const LOOP_KEYS=['beat','deg','flip','alt7','s7','sevForce','shift','inv','roman','name'];
-function loopLink(){ const c={n:loopActive||$('loopName').value.trim()||'Shared loop',b:looper.bars,s:looper.snap,m:st.meter,t:st.bpm,k:st.key,o:st.mode,
-    e:looper.events.map(e=>LOOP_KEYS.map(k=>e[k]))};
-  return location.origin+location.pathname+'#loop='+b64url.enc(JSON.stringify(c)); }
-function loopFromLink(){
-  const m=/^#loop=([\w-]+)$/.exec(location.hash); if(!m)return;
-  history.replaceState(null,'',location.pathname+location.search);   // tidy the address so a reload doesn't add it again
-  let c; try{c=JSON.parse(b64url.dec(m[1]))}catch(e){ $('loopBankMsg').textContent='That loop link looks broken: try copying it again.'; return; }
-  if(!c||!Array.isArray(c.e))return;
-  const events=c.e.filter(Array.isArray).map(a=>Object.fromEntries(LOOP_KEYS.map((k,i)=>[k,a[i]===undefined?null:a[i]])))
-    .filter(e=>typeof e.beat==='number'&&(e.deg===null||(Number.isInteger(e.deg)&&e.deg>=0&&e.deg<7)))
-    .map(e=>({beat:Math.max(0,e.beat),deg:e.deg,flip:!!e.flip,alt7:!!e.alt7,s7:e.s7===null?null:!!e.s7,sevForce:['maj','dom'].includes(e.sevForce)?e.sevForce:null,
-      shift:[-1,0,1].includes(e.shift)?e.shift:0,inv:Number.isInteger(e.inv)&&e.inv>=0&&e.inv<4?e.inv:0,
-      roman:String(e.roman||'').slice(0,12),name:String(e.name||'').slice(0,24)})).sort((a,b)=>a.beat-b.beat);
-  const loop={bars:c.b,snap:c.s,meter:c.m,bpm:c.t,key:c.k,mode:c.o,events,saved:Date.now()};
-  // Keep the sender's name; if it clashes with a different loop here, number it
-  const bank=loadBank('vh-loops'); let base=String(c.n||'Shared loop').slice(0,40).trim()||'Shared loop', name=base;
-  for(let i=2;(bank[name]||BUILTIN_LOOPS[name])&&JSON.stringify(bank[name]&&bank[name].events)!==JSON.stringify(events);i++)name=`${base} (${i})`;
-  bank[name]=loop; storeBank('vh-loops',bank);
-  if(typeof setPanel==='function')setPanel('loop',true);
-  applyLoop(loop); loopActive=name; $('loopName').value=name; renderLoops();
-  $('loopBankMsg').textContent=`Added the shared loop "${name}" to your Loops. Press Play to hear it.`;
-  $('loopCard').scrollIntoView({block:'nearest',behavior:'smooth'});
-}
-// Runs once every script has loaded, and again if a loop link is opened in a tab that already has the page
-addEventListener('DOMContentLoaded',loopFromLink); addEventListener('hashchange',loopFromLink);
-$('loopShare').addEventListener('click',async()=>{ const msg=$('loopBankMsg');
-  if(!looper.events.some(e=>e.deg!==null)){ msg.textContent='Record a loop with at least one chord first.'; return; }
-  const url=loopLink(), title=loopActive||'Chord loop';
-  if(navigator.share){ try{ await navigator.share({title:`${title} · Synth Conductor`,url}); msg.textContent='Shared. Opening the link adds the loop to their Loops.'; return; }
-    catch(e){ if(e&&e.name==='AbortError')return; } }
-  try{ await navigator.clipboard.writeText(url); msg.textContent='Link copied. Anyone who opens it gets this loop in their Loops.'; }
-  catch(e){ msg.textContent=''; const inp=document.createElement('input'); inp.className='lshare'; inp.readOnly=true; inp.value=url;
-    msg.append('Copy this link: ',inp); inp.focus(); inp.select(); } });
 

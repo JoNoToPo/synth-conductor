@@ -153,7 +153,7 @@ $('lessonBack').addEventListener('click',()=>lessonGo(lesson.i-1));
 $('lessonNext').addEventListener('click',()=>{ if(lesson.i===LESSONS.length-1)lessonClose(true); else lessonGo(lesson.i+1); });
 $('lessonAct').addEventListener('click',()=>{ audio.init(); const a=LESSONS[lesson.i].act; if(a)a.run(); });
 $('lessonFixBtn').addEventListener('click',()=>{ const f=LESSONS[lesson.i].fix; if(f)f.run(); lessonFix(); });
-if(firstVisit)lessonOpen(false);
+if(firstVisit&&!sharedAtStart)lessonOpen(false);   // someone opening a shared link sees what they were sent first
 
 /* Support link: shown only once a page address is filled in above */
 if(SUPPORT_URL){ $('supportLink').href=SUPPORT_URL; $('supportLine').hidden=false; }

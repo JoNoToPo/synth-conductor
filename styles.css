@@ -505,3 +505,14 @@ details.sect>.phide{top:10px;right:40px}
 .lchips .prow.builtin .pload::after{content:"·";margin-left:6px;color:var(--muted);font-weight:400}
 .lchips:not(:empty)::before{content:"Loops";align-self:center;font-family:var(--font-mono);font-size:.64rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-right:2px}
 body.full #loopCard{display:none}
+/* Card for an opened share link */
+.sharecard{display:flex;flex-direction:column;gap:6px;margin:0 0 14px;padding:14px 16px;border:1px solid var(--brass);border-radius:14px;
+  background:linear-gradient(180deg,rgba(214,171,82,.12),rgba(214,171,82,.04)),var(--surface)}
+.sharecard[hidden]{display:none}
+.sharecard .shkind{margin:0;font-family:var(--font-mono);font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:var(--brass)}
+.sharecard h2{margin:0;font-family:var(--font-display);font-weight:400;font-size:1.5rem;line-height:1.15;color:var(--ivory);overflow-wrap:anywhere}
+.sharecard .shinfo{margin:0;color:var(--ivory);opacity:.85;font-size:.9rem}
+.sharecard .row{margin-top:6px}
+.sharecard .hint{margin:0}
+.prow .pshare{color:var(--brass)}
+.prow .pshare:hover{color:var(--ivory)}
