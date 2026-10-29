@@ -316,6 +316,7 @@ select{background:var(--surface);border:1px solid var(--line);border-radius:10px
 .sq-voicing{display:flex;flex-direction:column;gap:10px;flex:1;padding:10px 12px 12px;border:1px solid var(--line);border-radius:10px;background:rgba(22,17,14,.45)}
 .sq-voicing .cardhead h3{color:var(--brass)}
 .handopts{margin-top:2px}
+.sq-voicing.sq-hands{flex:none}
 @media (max-width:460px){.sq-top{grid-template-columns:minmax(0,1fr)}}
 /* Sound panel: three stacks, each with its own tint and accent */
 .synth{grid-template-columns:minmax(0,1.25fr) minmax(0,1fr) minmax(0,.85fr)}

@@ -187,49 +187,56 @@
     <div class="module m-chord" data-panel="chord">
       <h3>Chord</h3>
       <div class="leds">
-        <label class="led" title="Move as few notes as possible between chords"><input type="checkbox" id="optVL" checked><span>Voice leading</span></label>
         <label class="led" title="Add a 7th to every chord (the right thumb does this too)"><input type="checkbox" id="opt7" checked><span>7ths</span></label>
-        <label class="led" title="Play the bass note an octave or two below the voicing"><input type="checkbox" id="optBass" checked><span>Bass note</span></label>
-        <label class="led" title="Swap major and minor (hold Shift for the same thing)"><input type="checkbox" id="optFlip"><span>Flip maj/min</span></label>
         <label class="led" title="With 7ths: swap to the other 7th. Without: add a 9th"><input type="checkbox" id="optAlt7"><span>Color</span></label>
-        <label class="led" title="Leaning your right hand turns Color on and off"><input type="checkbox" id="optLeanColor"><span>Lean color</span></label>
-        <label class="led wide" title="Right-hand finger count picks the voicing; the thumb adds 7ths"><input type="checkbox" id="optRH" checked><span>Hand picks voicing</span></label>
-        <label class="led" title="Left-hand height picks root, 1st or 2nd inversion"><input type="checkbox" id="optHandInv" checked><span>Height inversions</span></label>
-        <label class="led" title="A hand movement slides the chord up and down the keyboard. Off = the old automatic placement"><input type="checkbox" id="optPos" checked><span>Hand position</span></label>
-        <label class="led wide" title="On: every degree plays a plain major chord and Flip makes it minor (no diminished chords). Off: chords follow the key"><input type="checkbox" id="optPure"><span>Pure maj/min</span></label>
+        <label class="led" title="Swap major and minor (hold Shift for the same thing)"><input type="checkbox" id="optFlip"><span>Flip maj/min</span></label>
+        <label class="led" title="On: every degree plays a plain major chord and Flip makes it minor (no diminished chords). Off: chords follow the key"><input type="checkbox" id="optPure"><span>Pure maj/min</span></label>
+        <label class="led" title="Move as few notes as possible between chords"><input type="checkbox" id="optVL" checked><span>Voice leading</span></label>
+        <label class="led" title="Play the bass note an octave or two below the voicing"><input type="checkbox" id="optBass" checked><span>Bass note</span></label>
       </div>
       <div class="lcds">
-        <label for="invSel" class="wide">Bass note
-          <select id="invSel">
-            <option value="0">Root</option>
-            <option value="1">3rd · 1st inversion</option>
-            <option value="2">5th · 2nd inversion</option>
-            <option value="3">7th · 3rd inversion</option>
-          </select></label>
-        <label for="sevSel" class="wide">7th type
+        <label for="sevSel">7th type
           <select id="sevSel">
             <option value="maj">Major 7th (lean for ♭7)</option>
             <option value="diatonic">From the key</option>
             <option value="twist">Twist: left maj7 · right 7</option>
             <option value="twistE">Twist, Eric style: minor right = °7</option>
           </select></label>
+        <label for="invSel" title="Which chord note is lowest: the left hand's height can pick this too">Inversion
+          <select id="invSel">
+            <option value="0">Root</option>
+            <option value="1">3rd · 1st inversion</option>
+            <option value="2">5th · 2nd inversion</option>
+            <option value="3">7th · 3rd inversion</option>
+          </select></label>
         <p class="hint wide" id="sevNote" hidden>Major 7th follows the key while Lean color is off.</p>
-        <label for="shiftQualSel" class="wide" title="What a ♭ or ♯ chord becomes">Shifted chords
+        <label for="shiftQualSel" title="What a ♭ or ♯ chord becomes">Shifted chords
           <select id="shiftQualSel">
             <option value="common">Common usage</option>
             <option value="keep">Keep quality</option>
           </select></label>
       </div>
-      <div class="knobs posknob" id="m-chordpos"></div>
     </div>
         </div>
         <div class="sq-voicing" data-panel="details" data-panel-min data-panel-sign>
         <div class="cardhead"><h3>Voicing</h3><span class="hint">Hover a voicing for details</span></div>
         <div class="vgrid" id="voicings" role="radiogroup" aria-label="Voicing"></div>
         <p class="vinfo" id="vinfo" aria-live="polite"></p>
-        <div class="cardhead sub adv-only"><h3>Right-hand fingers</h3><span class="hint">thumb not counted</span></div>
+        <div class="cardhead sub"><h3>Right hand</h3><span class="hint">fingers, not counting the thumb</span></div>
+        <div class="leds">
+          <label class="led" title="Right-hand finger count picks the voicing; the thumb adds 7ths"><input type="checkbox" id="optRH" checked><span>Hand picks voicing</span></label>
+          <label class="led" title="Leaning your right hand turns Color on and off"><input type="checkbox" id="optLeanColor"><span>Lean color</span></label>
+        </div>
         <div class="fslots adv-only" id="rhSlots"></div>
-        <div class="lcds handopts adv-only">
+        </div>
+        <div class="sq-voicing sq-hands" data-panel="hands">
+        <div class="cardhead"><h3>What your hands do</h3><span class="hint">left hand</span></div>
+        <div class="leds">
+          <label class="led" title="Left-hand height picks root, 1st or 2nd inversion"><input type="checkbox" id="optHandInv" checked><span>Height inversions</span></label>
+          <label class="led" title="A hand movement slides the chord up and down the keyboard. Off = the old automatic placement"><input type="checkbox" id="optPos" checked><span>Hand position</span></label>
+        </div>
+        <div class="knobs posknob" id="m-chordpos"></div>
+        <div class="lcds handopts">
           <label for="left67Sel" title="Which left-hand shapes play chords 6 and 7">Left hand 6 / 7
             <select id="left67Sel">
               <option value="chinese">Chinese · 🤙 / L</option>
@@ -253,7 +260,7 @@
               <option value="off">Off</option>
             </select></label>
         </div>
-              </div>
+        </div>
       </section>
 
     </aside>

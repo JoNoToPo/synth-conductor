@@ -6,13 +6,14 @@ const SUPPORT_URL='https://paypal.me/JonathanEngelhard/5';   // /5 fills in a su
 
 /* Panels: every part of the page past the camera and pads can be shown or hidden, from the Panels menu or a
    panel's own ✕. New visitors start with just the essentials. "Voicing" (key details) also holds the finer settings
-   (everything marked adv-only) and the voicings no finger plays; with it off the page is in Simple view. */
+   (everything marked adv-only: the finger slots) and the voicings no finger plays; with it off the page is in Simple view. */
 const PANELS=[   // in the order they appear on the page
   ['presets','Presets','Save and load sounds and hand setups'],
   ['piano','Keyboard','The notes that are sounding, with the chord path'],
   ['loop','Chord loop','Record chords to the beat, then play over them'],
-  ['chord','Chord options','7ths, major/minor flips, inversions, ♭ and ♯'],
-  ['details','Voicing','Every voicing, not just the ones your fingers play, plus finger slots and finer chord settings'],
+  ['chord','Chord options','7ths, color, major/minor, voice leading, bass note and inversion'],
+  ['details','Voicing','Every voicing, not just the ones your fingers play, plus the right-hand finger slots'],
+  ['hands','What your hands do','Left-hand shapes for 6 and 7, twist, fist, palm roll, height inversions and position'],
   ['amp','Amp & tone','Bass, treble and the envelope. Volume and pedal ring always show'],
   ['mod','Modulation','Bend, detune, vibrato, tremolo, auto-pan and rotary'],
   ['filter','Filter','Resonance, high-pass and the vowel filter. Cutoff always shows'],
