@@ -16,6 +16,15 @@ buildPads();buildVoicings();buildSelects();buildSlots();buildRoutes();preview();
   a.addEventListener('input',()=>set(0,+a.value)); b.addEventListener('input',()=>set(1,+b.value));
   [a,b].forEach(el=>{ el.addEventListener('keydown',e=>e.stopPropagation()); el.addEventListener('dblclick',()=>{ st.xSpan[st.rightOnly?'r':'b']=st.rightOnly?[.1,.9]:[.45,.95]; show(); save(); }); });
   $('optRightOnly').addEventListener('change',show); show(); }
+/* Up/down span: heights from the bottom of the picture */
+{ const a=$('ySpanA'), b=$('ySpanB');
+  const show=()=>{ a.value=st.ySpan[0]; b.value=st.ySpan[1]; $('ySpanAVal').textContent=Math.round(st.ySpan[0]*100)+'%'; $('ySpanBVal').textContent=Math.round(st.ySpan[1]*100)+'%'; };
+  const save=()=>{ try{localStorage.setItem('vh-yspan',JSON.stringify(st.ySpan))}catch(e){} };
+  const set=(i,v)=>{ const s=st.ySpan.slice(); s[i]=v; if(s[1]-s[0]<.15){ if(i===0)s[0]=s[1]-.15; else s[1]=s[0]+.15; }
+    st.ySpan=[Math.max(0,s[0]),Math.min(1,s[1])]; show(); save(); };
+  a.addEventListener('input',()=>set(0,+a.value)); b.addEventListener('input',()=>set(1,+b.value));
+  [a,b].forEach(el=>{ el.addEventListener('keydown',e=>e.stopPropagation()); el.addEventListener('dblclick',()=>{ st.ySpan=[.1,.8]; show(); save(); }); });
+  show(); }
 /* Chord changes: right away or queued to the beat */
 $('quantSel').value=String(st.quant); $('quantMore').hidden=!st.quant;
 $('quantSel').addEventListener('change',e=>{ st.quant=+e.target.value; if(!st.quant)chordCancel(); try{localStorage.setItem('vh-quant',String(st.quant))}catch(err){}

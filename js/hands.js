@@ -100,6 +100,9 @@ try{ const v=JSON.parse(localStorage.getItem('vh-camview')||'null'); if(v){ if(v
 st.xSpan={r:[.1,.9],b:[.45,.95]};
 try{ const v=JSON.parse(localStorage.getItem('vh-xspan')||'null'); for(const m of ['r','b'])if(v&&Array.isArray(v[m])&&v[m][0]>=0&&v[m][1]<=1&&v[m][1]-v[m][0]>=.15)st.xSpan[m]=v[m]; }catch(e){}
 const xSpanNow=()=>st.xSpan[st.rightOnly?'r':'b'];
+// Up/down the same way, as heights from the bottom of the picture (0 = bottom edge, 1 = top), one span for both modes
+st.ySpan=[.1,.8];
+try{ const v=JSON.parse(localStorage.getItem('vh-yspan')||'null'); if(Array.isArray(v)&&v[0]>=0&&v[1]<=1&&v[1]-v[0]>=.15)st.ySpan=v; }catch(e){}
 const camViewSave=()=>{ try{localStorage.setItem('vh-camview',JSON.stringify({z:st.camZoom,s:st.camShape}))}catch(e){} };
 const camWin={x0:0,x1:1,y0:0,y1:1};   // the part of the camera frame on screen, as frame fractions
 const fvx=x=>(x-camWin.x0)/(camWin.x1-camWin.x0), fvy=y=>(y-camWin.y0)/(camWin.y1-camWin.y0);   // frame → what you see
@@ -451,7 +454,7 @@ function handleHands(L,R){
     st.leanDeg=euro('leanDeg',a,now,45);
     const raw={
       x: (([a,b])=>clamp01((fvx(mx)-a)/(b-a)))(xSpanNow()),   // measured across what you can see, over the span you set
-      y: clamp01((.9-fvy(R[9].y))/.7),
+      y: (([a,b])=>clamp01((1-fvy(R[9].y)-a)/(b-a)))(st.ySpan),   // height in what you can see, over the span you set
       lean: clamp01(a/45),
       tilt: clamp01(.5+a/90),            // upright = ½, 45° either way = the ends
       dist: clamp01((palmNear(R,ar)-.09)/.22),   // push the whole hand toward the camera

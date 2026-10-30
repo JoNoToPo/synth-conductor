@@ -2,7 +2,8 @@
 st.guides=true; try{const v=localStorage.getItem('vh-guides');if(v!==null)st.guides=v==='1'}catch(e){}
 const GCOL={L:'#d6ab52',R:'#83b9a9'};
 // Hand inputs that have a place on screen, with the stretch of the (mirrored) frame each one reads
-const X_RANGE=()=>xSpanNow(), LX_RANGE=[.05,.5], Y_RANGE=[.9,.2];
+const X_RANGE=()=>xSpanNow(), LX_RANGE=[.05,.5];
+const Y_RANGE=()=>[1-st.ySpan[0],1-st.ySpan[1]];   // from the top: the bottom of the span, then its top
 const drivenBy=src=>Object.keys(TARGETS).filter(k=>st.ctrl[k].src===src);
 const ctrlTxt=k=>`${KSHORT[k]} ${fmtVal(k)}`;
 function drawGuides({cw,ch,vw,vh,sc,ox,oy,dpr}){
@@ -42,7 +43,7 @@ function drawGuides({cw,ch,vw,vh,sc,ox,oy,dpr}){
   const xs=drivenBy('x');
   if(xs.length){ const [a,b]=X_RANGE(), y=Y(.955); track(X(a),y,X(b),y,st.inVals.x,GCOL.R,'✋ ↔ '+xs.map(ctrlTxt).join(' · '),'above'); }
   const ys=drivenBy('y');
-  if(ys.length){ const x=X(.975); track(x,Y(Y_RANGE[0]),x,Y(Y_RANGE[1]),st.inVals.y,GCOL.R,'✋ ↕ '+ys.map(ctrlTxt).join(' · ')); }
+  if(ys.length){ const x=X(.975); track(x,Y(Y_RANGE()[0]),x,Y(Y_RANGE()[1]),st.inVals.y,GCOL.R,'✋ ↕ '+ys.map(ctrlTxt).join(' · ')); }
   const lxs=drivenBy('lx');
   if(lxs.length&&!st.rightOnly){ const y=Y(.955); track(X(LX_RANGE[0]),y,X(LX_RANGE[1]),y,st.inVals.lx,GCOL.L,'Left ↔ '+lxs.map(ctrlTxt).join(' · '),'above'); }
   // Hands: a ring that fills while a gesture settles, with what it will play
