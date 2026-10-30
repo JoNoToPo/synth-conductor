@@ -7,7 +7,9 @@ const drivenBy=src=>Object.keys(TARGETS).filter(k=>st.ctrl[k].src===src);
 const ctrlTxt=k=>`${KSHORT[k]} ${fmtVal(k)}`;
 function drawGuides({cw,ch,vw,vh,sc,ox,oy,dpr}){
   // Screen position of a mirrored frame fraction (0 = left edge as you see it) and a frame height fraction
-  const X=mx=>cw-ox-(1-mx)*vw*sc, Y=y=>oy+y*vh*sc, P=p=>[X(1-p.x),Y(p.y)];
+  // X and Y take fractions of what you can see (the view may be zoomed or cropped); P places a tracked point
+  const Xf=mx=>cw-ox-(1-mx)*vw*sc, Yf=y=>oy+y*vh*sc, P=p=>[Xf(1-p.x),Yf(p.y)];
+  const X=mx=>Xf(camWin.x0+mx*(camWin.x1-camWin.x0)), Y=y=>Yf(camWin.y0+y*(camWin.y1-camWin.y0));
   const fs=Math.round(11*dpr);
   g.save(); g.lineCap='round'; g.textBaseline='middle'; g.font=`500 ${fs}px "IBM Plex Mono", ui-monospace, monospace`;
   const chip=(t,x,y,col,align='center')=>{ const w=g.measureText(t).width+fs*.9, h=fs*1.7;

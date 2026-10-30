@@ -91,7 +91,17 @@ setInterval(()=>{
     if(diag.stalls||diag.stutters){const w=document.createElement('span');w.className='warn';w.textContent=' · '+[diag.stalls?diag.stalls+' freeze'+(diag.stalls>1?'s':''):'',diag.stutters?diag.stutters+' stutter'+(diag.stutters>1?'s':''):''].filter(Boolean).join(', ');el.appendChild(w);}}
   lat.frames=0;lat.track=0;lat.cam=0;lat.delay=0;
 },1000);
-function fitView(){ if(video.videoWidth&&video.videoHeight)$('view').style.setProperty('--cam-ar',`${video.videoWidth} / ${video.videoHeight}`); }
+/* Camera view: its shape (the camera's own, square or 2:1) and a zoom. The picture fills the view and the edges
+   that don't fit are cropped; left/right and up/down are then measured across what you can see (camWin), so a hand
+   reaches the end of a range at the visible edge and is still tracked a little past it */
+st.camZoom=1.15; st.camShape='cam';
+try{ const v=JSON.parse(localStorage.getItem('vh-camview')||'null'); if(v){ if(v.z>=1&&v.z<=1.6)st.camZoom=v.z; if(['cam','square','wide'].includes(v.s))st.camShape=v.s; } }catch(e){}
+const camViewSave=()=>{ try{localStorage.setItem('vh-camview',JSON.stringify({z:st.camZoom,s:st.camShape}))}catch(e){} };
+const camWin={x0:0,x1:1,y0:0,y1:1};   // the part of the camera frame on screen, as frame fractions
+const fvx=x=>(x-camWin.x0)/(camWin.x1-camWin.x0), fvy=y=>(y-camWin.y0)/(camWin.y1-camWin.y0);   // frame → what you see
+function fitView(){ const v=$('view');
+  if(st.camShape==='square')v.style.setProperty('--cam-ar','1 / 1'); else if(st.camShape==='wide')v.style.setProperty('--cam-ar','2 / 1');
+  else if(video.videoWidth&&video.videoHeight)v.style.setProperty('--cam-ar',`${video.videoWidth} / ${video.videoHeight}`); else v.style.removeProperty('--cam-ar'); }
 // Hand tracking can run on the graphics chip (default) or the processor; switching rebuilds it
 let trackDelegate='GPU'; try{const v=localStorage.getItem('vh-delegate');if(v==='GPU'||v==='CPU')trackDelegate=v}catch(e){}
 // Each tracker (GPU/CPU × one/two hands) is built once and kept, so switching back is instant.
@@ -299,7 +309,10 @@ function loop(){
   const cw=Math.round(rect.width*dpr),ch=Math.round(rect.height*dpr);
   if(cv.width!==cw||cv.height!==ch){cv.width=cw;cv.height=ch}
   const vw=video.videoWidth,vh=video.videoHeight; if(!vw)return;
-  const sc=Math.min(cw/vw,ch/vh),ox=(cw-vw*sc)/2,oy=(ch-vh*sc)/2;
+  // Fill the view (full screen shows the whole picture instead), then zoom; note which part of the frame is visible
+  const fit=document.body.classList.contains('full')?Math.min(cw/vw,ch/vh):Math.max(cw/vw,ch/vh);
+  const sc=fit*st.camZoom,ox=(cw-vw*sc)/2,oy=(ch-vh*sc)/2;
+  { const wx=Math.min(1,cw/(vw*sc)), wy=Math.min(1,ch/(vh*sc)); camWin.x0=(1-wx)/2; camWin.x1=1-camWin.x0; camWin.y0=(1-wy)/2; camWin.y1=1-camWin.y0; }
   g.save();g.clearRect(0,0,cw,ch);g.translate(cw,0);g.scale(-1,1);
   // In the background mode, show the frame the hand was found in so the skeleton stays on the hand
   const pic=cam.inWorker&&cam.shown&&cam.shown.width?cam.shown:video;
@@ -372,7 +385,7 @@ function handleHands(L,R){
   }
   else if(L&&looper.playing){
     // The loop owns the chord: the left hand only steers Position until the loop stops
-    seen(sL,now); st.inVals.lx=euro('lx',clamp01((1-L[0].x-.05)/.45),now); driveCtrls(['lx']); showRouteVals();
+    seen(sL,now); st.inVals.lx=euro('lx',clamp01((fvx(1-L[0].x)-.05)/.45),now); driveCtrls(['lx']); showRouteVals();
     sL.cand=undefined; $('hudL').textContent='Left · loop is playing the chords (C or Space stops it)';
   }
   else if(L){
@@ -394,10 +407,10 @@ function handleHands(L,R){
     if(want===sL.flipCand)sL.flipN++;else{sL.flipCand=want;sL.flipN=1}
     if(sL.flipN>=nF(4)&&want!==st.flip)setFlip(want);
     // Left/right across the left half of the frame (mirrored) → Position input
-    st.inVals.lx=euro('lx',clamp01((1-L[0].x-.05)/.45),now); driveCtrls(['lx']); showRouteVals();
+    st.inVals.lx=euro('lx',clamp01((fvx(1-L[0].x)-.05)/.45),now); driveCtrls(['lx']); showRouteVals();
     // Height zones for the bass note, with a dead band so it doesn't flicker between zones
     if(st.handInv){
-    const y=L[9].y; let zone=sL.zone??0;
+    const y=fvy(L[9].y); let zone=sL.zone??0;
     if(zone===0){ if(y<0.30)zone=1; else if(y>0.70)zone=2; }
     else if(zone===1){ if(y>0.36)zone=y>0.70?2:0; }
     else if(zone===2){ if(y<0.64)zone=y<0.30?1:0; }
@@ -429,8 +442,8 @@ function handleHands(L,R){
     const ar=(video.videoWidth||16)/(video.videoHeight||9), mx=1-R[0].x, a=lean(R); // left/right from the wrist, so twisting the hand doesn't move it
     st.leanDeg=euro('leanDeg',a,now,45);
     const raw={
-      x: st.rightOnly?clamp01((mx-.1)/.8):clamp01((mx-.45)/.5),
-      y: clamp01((.9-R[9].y)/.7),
+      x: st.rightOnly?clamp01((fvx(mx)-.1)/.8):clamp01((fvx(mx)-.45)/.5),   // measured across what you can see
+      y: clamp01((.9-fvy(R[9].y))/.7),
       lean: clamp01(a/45),
       tilt: clamp01(.5+a/90),            // upright = ½, 45° either way = the ends
       dist: clamp01((palmNear(R,ar)-.09)/.22),   // push the whole hand toward the camera

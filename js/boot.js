@@ -1,5 +1,11 @@
 /* ---------- Boot ---------- */
 buildPads();buildVoicings();buildSelects();buildSlots();buildRoutes();preview();
+/* Camera view shape and zoom */
+{ const z=$('camZoom'), zv=$('camZoomVal'), show=()=>{ zv.textContent=st.camZoom.toFixed(2).replace(/0$/,'')+'×'; };
+  $('camShapeSel').value=st.camShape; z.value=st.camZoom; show(); fitView();
+  $('camShapeSel').addEventListener('change',e=>{ st.camShape=e.target.value; fitView(); camViewSave(); });
+  z.addEventListener('input',()=>{ st.camZoom=+z.value; show(); camViewSave(); });
+  z.addEventListener('keydown',e=>e.stopPropagation()); }
 /* Chord changes: right away or queued to the beat */
 $('quantSel').value=String(st.quant); $('quantMore').hidden=!st.quant;
 $('quantSel').addEventListener('change',e=>{ st.quant=+e.target.value; if(!st.quant)chordCancel(); try{localStorage.setItem('vh-quant',String(st.quant))}catch(err){}

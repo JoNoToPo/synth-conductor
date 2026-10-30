@@ -628,3 +628,6 @@ body.full #loopCard{display:none}
 .dpicker .row{justify-content:space-between;align-items:center;margin-top:6px;gap:8px}
 .dpicker .hint{margin:0;font-size:.74rem}
 .dpicker .btn{padding:4px 10px;font-size:.78rem}
+/* Camera view controls in What your hands do */
+.handopts label output{font-family:var(--font-mono);color:var(--patina);text-transform:none;letter-spacing:0;margin-left:4px}
+.handopts input[type=range]{width:100%;margin:6px 0 2px;accent-color:var(--brass)}
