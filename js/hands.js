@@ -313,9 +313,9 @@ function loop(){
   const cw=Math.round(rect.width*dpr),ch=Math.round(rect.height*dpr);
   if(cv.width!==cw||cv.height!==ch){cv.width=cw;cv.height=ch}
   const vw=video.videoWidth,vh=video.videoHeight; if(!vw)return;
-  // The picture's box: the whole view, or in full screen with Square or 2:1, the biggest box of that shape that fits.
-  // The picture fills its box (full screen in the camera's own shape shows all of it instead), then zooms; camWin is what shows
-  const full=document.body.classList.contains('full'), A=st.camShape==='square'?1:st.camShape==='wide'?2:0;
+  // The picture's box: the whole view, or in full screen with 2:1, the biggest 2:1 box that fits (Square isn't kept in full
+  // screen: the left/right span does that job). The picture fills its box (otherwise full screen shows all of it), then zooms
+  const full=document.body.classList.contains('full'), A=st.camShape==='wide'?2:0;
   let rx=0,ry=0,rw=cw,rh=ch; if(full&&A){ if(cw/ch>A){rw=ch*A;rx=(cw-rw)/2}else{rh=cw/A;ry=(ch-rh)/2} }
   const fit=full&&!A?Math.min(rw/vw,rh/vh):Math.max(rw/vw,rh/vh);
   const sc=fit*st.camZoom,ox=rx+(rw-vw*sc)/2,oy=ry+(rh-vh*sc)/2;
