@@ -142,6 +142,11 @@ function baseName(){
     const nine=rest.has(c.n%12);
     return pcName(rootPc)+base+(iv===9?(nine?'6/9':'6'):(nine?'(♭6,add9)':'(♭6)'));
   }
+  if(voicingNow()==='two'){   // the added 2nd: "add2" on a triad, a 9 on a 7th chord
+    const c=tonesOf(st.degree), iv=c.n%12, rest=new Set(rel); rest.delete(iv);
+    if(rest.has(c.s%12)) return chordName(st.degree,rest)+(iv===1?'(♭9)':'(9)');
+    return chordName(st.degree,rest)+(iv===1?'(add♭2)':'(add2)');
+  }
   if(voicingNow()==='sus4'||voicingNow()==='sus2'){
     const c=tonesOf(st.degree), s=c.s%12, sev=rel.has(s)?(s===11?'maj7':'7'):'';
     const extra=voicingNow()==='sus4'&&rel.has(c.n%12)?'(add9)':'';

@@ -109,6 +109,8 @@ const VOICINGS=[
   shapes:(c,s7)=>s7?[[0,c.s,c.t+12,21],[0,c.t,c.s,21]]:inversions([0,c.t,c.f,9])},
  {id:'flat6',name:'♭6',key:'Y',blurb:'Triad plus the flat 6th. Bittersweet and cinematic. With 7ths: a ♭13 voicing.',
   shapes:(c,s7)=>s7?[[0,c.s,c.t+12,20],[0,c.t,c.s,20]]:inversions([0,c.t,c.f,8])},
+ {id:'two',name:'2',key:';',blurb:'Triad plus the 2nd, tucked in close between the root and 3rd. Warm and a little crunchy. With 7ths: a close 9 chord.',
+  shapes:(c,s7)=>inversions(s7?[0,c.n-12,c.t,c.s]:[0,c.n-12,c.t,c.f])},
  {id:'drop2',name:'Drop 2',key:'U',blurb:'Second voice from the top dropped an octave. The jazz guitar sound.',
   shapes:(c,s7)=>inversions(s7?[0,c.t,c.f,c.s]:[0,c.t,c.f,12]).map(v=>drop(v,2))},
  {id:'drop3',name:'Drop 3',key:'I',blurb:'Third voice from the top dropped. Big spread with a gap in the middle.',
