@@ -185,10 +185,10 @@ const audio={
     const g=ctx.createGain(); g.gain.value=0; g.connect(this.bus);
     let live=p.osc.length;
     const oscs=p.osc.map(([type,det,ratio,lvl,fade],i)=>{const o=ctx.createOscillator(),og=ctx.createGain();o.type=type;o.frequency.value=f*ratio;
-      o._base=det;o._i=i;o.detune.value=this.oscDetune(o);this.vibDepth.connect(o.detune);this.bend.connect(o.detune);
+      o._base=det;o._i=i;o.detune.value=this.oscDetune(o);this.vibDepth.connect(o.detune);this.bend.connect(o.detune);if(this.wobble)this.wobble.connect(o.detune);
       og.gain.value=lvl; if(fade){og.gain.setValueAtTime(lvl,t);og.gain.setTargetAtTime(0,t,fade/3);}
       o.connect(og);og.connect(g);o.start(t);
-      o.onended=()=>{try{this.vibDepth.disconnect(o.detune)}catch(e){} try{this.bend.disconnect(o.detune)}catch(e){} try{o.disconnect();og.disconnect()}catch(e){}
+      o.onended=()=>{try{this.vibDepth.disconnect(o.detune)}catch(e){} try{this.bend.disconnect(o.detune)}catch(e){} try{this.wobble&&this.wobble.disconnect(o.detune)}catch(e){} try{o.disconnect();og.disconnect()}catch(e){}
         if(--live<=0){try{g.disconnect()}catch(e){}}};
       return o});
     return {g,oscs,p};

@@ -323,11 +323,12 @@ select{background:var(--surface);border:1px solid var(--line);border-radius:10px
 @media (prefers-reduced-motion:reduce){.pad.queued,.vchip.queued{animation:none}}
 @media (max-width:460px){.sq-top{grid-template-columns:minmax(0,1fr)}}
 /* Sound panel: three stacks, each with its own tint and accent */
-.synth{grid-template-columns:minmax(0,1.25fr) minmax(0,1fr) minmax(0,.85fr)}
+.synth{grid-template-columns:minmax(0,1.35fr) minmax(0,.8fr) minmax(0,.95fr)}   /* tone wide, filter & effects narrower, timing between */
 .synth>.bank{display:flex;flex-direction:column;gap:10px;padding:10px;border-radius:12px;background:var(--tint);border:1px solid var(--tline);min-width:0}
 .synth .module{grid-column:auto;background:rgba(15,11,9,.35);border-color:var(--tline)}
 .synth .module h3{color:var(--g);border-bottom-color:var(--tline)}
-.synth .module.m-filter,.synth .module.m-fx,.synth .module.m-amp,.synth .module.m-mod,.synth .module.m-arp{flex:1}
+/* Modules are as tall as what's in them; the column's tint fills any space below */
+.synth>.bank>.module{flex:none}
 .g-amp{--g:#d6ab52;--tint:rgba(214,171,82,.07);--tline:rgba(214,171,82,.22)}
 .g-filter{--g:#8fb3d9;--tint:rgba(143,179,217,.07);--tline:rgba(143,179,217,.24)}
 .g-arp{--g:#d79aa9;--tint:rgba(215,154,169,.07);--tline:rgba(215,154,169,.24)}
@@ -601,3 +602,18 @@ body.full #loopCard{display:none}
 .dstep{min-width:34px;padding:5px 6px;border:1px solid var(--tline);border-radius:6px;background:#110d0b;color:var(--muted);font:500 .78rem var(--font-mono);cursor:pointer}
 .dstep.on{background:var(--g);border-color:var(--g);color:#16110e}
 .dstep:focus-visible{outline:2px solid var(--brass);outline-offset:1px}
+/* Modulation's three menus in a row, two then one, or stacked, as the module narrows */
+.m-mod,.m-drone{container-type:inline-size}
+.mmenus{grid-template-columns:repeat(3,minmax(0,1fr))}
+@container (max-width:520px){.mmenus{grid-template-columns:repeat(2,minmax(0,1fr))}.mmenus>label:first-child{grid-column:1/-1}}
+@container (max-width:300px){.mmenus{grid-template-columns:minmax(0,1fr)}}
+/* Drone: the step buttons share the width evenly */
+.dsteps{display:grid;grid-template-columns:repeat(13,minmax(0,1fr));gap:3px}
+.dstep{min-width:0;padding:5px 0}
+@container (max-width:420px){.dsteps{grid-template-columns:repeat(7,minmax(0,1fr))}}
+@container (max-width:300px){.m-drone .lcds{grid-template-columns:minmax(0,1fr)}}
+/* Knob rows split evenly (set by balanceKnobs): 6 becomes 3 + 3, 5 becomes 3 + 2, never one left alone */
+.knobs.bal{justify-content:center;gap:10px 6px}
+.knobs.bal>.knob{flex:0 0 calc((100% - (var(--per) - 1) * 6px) / var(--per) - .5px);width:auto;min-width:0}   /* half a pixel spare so rounding never wraps one */
+.knobs.bal>.knob .ksrc{max-width:74px}
+.knobs.bal>.knob.big .ksrc{max-width:92px}

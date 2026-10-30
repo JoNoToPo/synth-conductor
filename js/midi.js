@@ -2,7 +2,8 @@
 // Knobs sent as controllers. Standard numbers where one exists, so most synths respond without any setup
 const MIDI_CC={vibrato:1,volume:7,cutoff:74,resonance:71,attack:73,release:72,decay:75,reverb:91,chorus:93,tremolo:92,detune:94,phaser:95,drive:85,delay:86,feedback:87,
   // No standard numbers for these, so they sit together on 20–31, which MIDI leaves free for this kind of use
-  bass:20,treble:21,pedal:22,highpass:23,vowel:24,flanger:25,autopan:26,rotary:27,sustain:28,pump:29,strum:30,mid:31};
+  bass:20,treble:21,pedal:22,highpass:23,vowel:24,flanger:25,autopan:26,rotary:27,sustain:28,pump:29,strum:30,mid:31,
+  crush:102,rate:103,wobble:104,noise:105};
 // Pitch bend knob: a dead zone around the middle so an upright hand is reliably in tune. Returns -1..1
 const bendAmt=v=>v<.45?(v-.45)/.45:v>.55?(v-.55)/.45:0;
 const midiOut={

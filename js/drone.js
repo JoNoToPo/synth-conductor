@@ -51,7 +51,7 @@ function droneSync(){
     dr.filt.frequency.value=T.cut; dr.filt.Q.value=T.q;
     dr.voices=notes.map(m=>{ const f=440*Math.pow(2,(m-69)/12);
       return {oscs:T.osc.map(([w,det,ratio,lvl])=>{ const o=c.createOscillator(), g=c.createGain(); o.type=w; o.frequency.value=f*ratio; o.detune.value=det;
-        o._ratio=ratio; g.gain.value=lvl; o.connect(g); g.connect(dr.filt); o.start(); return o; })}; });
+        o._ratio=ratio; g.gain.value=lvl; o.connect(g); g.connect(dr.filt); if(audio.wobble)audio.wobble.connect(o.detune); o.start(); return o; })}; });
     dr.sig=sig; dr.notes=key; if(droneHeard())dr.out.gain.setTargetAtTime(droneGain(),now,.35); return; }
   if(key!==dr.notes){ dr.notes=key;   // same sound, new root: glide there
     notes.forEach((m,i)=>{ const f=440*Math.pow(2,(m-69)/12); for(const o of dr.voices[i].oscs)o.frequency.setTargetAtTime(f*o._ratio,now,.06); }); }

@@ -19,6 +19,7 @@ const PANELS=[   // in the order they appear on the page
   ['drone','Drone','Notes held under everything, like bagpipes'],
   ['filter','Filter','Resonance, high-pass and the vowel filter. Cutoff always shows'],
   ['fx','Effects','Drive, phaser, flanger and the reverb type. Reverb, chorus and pedal ring always show'],
+  ['lofi','Lo-fi','Bit crush, lower sample rate, tape wobble and hiss or vinyl crackle'],
   ['tempo','Tempo & pump','BPM, tap, sync, click and pump'],
   ['arp','Arp & strum','Play chords as arpeggios, or strum them'],
   ['delay','Delay','Echoes in time with the tempo'],

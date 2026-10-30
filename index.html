@@ -347,21 +347,21 @@
     <div class="module m-mod" data-panel="mod">
       <h3>Modulation</h3>
       <div class="knobs" id="m-mod"></div>
-      <div class="lcds"><label for="midiBendRange" class="wide" title="How far the Bend knob goes at either end. Also sent to a MIDI instrument, for synths that accept it">Bend range
+      <div class="lcds mmenus"><label for="midiBendRange" title="How far the Bend knob goes at either end. Also sent to a MIDI instrument, for synths that accept it">Bend range
         <select id="midiBendRange">
           <option value="1">±1 semitone</option>
           <option value="2">±2 semitones</option>
           <option value="7">±7 semitones</option>
           <option value="12">±12 semitones</option>
         </select></label>
-        <label for="tremDiv" class="wide">Tremolo / pan rate
+        <label for="tremDiv">Tremolo / pan rate
         <select id="tremDiv">
           <option value="1/4">1/4 note</option>
           <option value="1/8">1/8 note</option>
           <option value="1/8T">1/8 triplet</option>
           <option value="1/16">1/16 note</option>
         </select></label>
-        <label for="vibDiv" class="wide">Vibrato rate
+        <label for="vibDiv">Vibrato rate
         <select id="vibDiv">
           <option value="free">Free · 5.5 Hz</option>
           <option value="1/4">1/4 note</option>
@@ -402,11 +402,11 @@
           <option value="4">High</option>
         </select></label>
         <div class="dsteps wide" id="droneCustom" role="group" aria-label="Custom drone notes, steps above the root" hidden></div>
-        <label for="droneArp" class="wide" title="While the arpeggiator is on: keep droning underneath, or play the drone notes as part of the arpeggio">With the arp<select id="droneArp">
+        <label for="droneArp" title="While the arpeggiator is on: keep droning underneath, or play the drone notes as part of the arpeggio">With the arp<select id="droneArp">
           <option value="along">Drone alongside it</option>
           <option value="join">Join the arpeggio</option>
         </select></label>
-        <label for="droneWhen" class="wide" title="Always: it keeps going between chords. With the chords: it comes in when a chord starts and fades out with the instrument's release when it stops">Plays<select id="droneWhen">
+        <label for="droneWhen" title="Always: it keeps going between chords. With the chords: it comes in when a chord starts and fades out with the instrument's release when it stops">Plays<select id="droneWhen">
           <option value="always">Always</option>
           <option value="chord">With the chords</option>
         </select></label>
@@ -430,6 +430,15 @@
           <option value="cathedral">Cathedral</option>
         </select></label></div>
     </div>
+    <div class="module m-lofi" data-panel="lofi">
+      <h3>Lo-fi</h3>
+      <div class="knobs" id="m-lofi"></div>
+      <div class="lcds"><label for="noiseType" class="wide" title="What the Noise knob adds">Noise type
+        <select id="noiseType">
+          <option value="hiss">Tape hiss</option>
+          <option value="vinyl">Vinyl crackle</option>
+        </select></label></div>
+    </div>
     </div>
     <div class="bank g-arp" id="timeBank">
     <div class="module m-tempo" data-panel="tempo">
@@ -451,14 +460,14 @@
       <h3>Arp &amp; strum</h3>
       <div class="knobs" id="m-arp"></div>
       <div class="lcds">
-        <label for="arpPat" class="wide">Pattern
+        <label for="arpPat">Pattern
               <select id="arpPat">
                 <option value="up">Up</option>
                 <option value="down">Down</option>
                 <option value="updown">Up &amp; down</option>
                 <option value="random">Random</option>
               </select></label>
-        <label for="strumDir" class="wide" title="Which way the Strum knob sweeps through a chord. With Arp on too, each new chord is strummed first, then arpeggiated">Strum
+        <label for="strumDir" title="Which way the Strum knob sweeps through a chord. With Arp on too, each new chord is strummed first, then arpeggiated">Strum
               <select id="strumDir">
                 <option value="up">Up (low to high)</option>
                 <option value="down">Down (high to low)</option>
@@ -677,6 +686,7 @@
 <script src="js/looper.js"></script>
 <script src="js/modmatrix.js"></script>
 <script src="js/drone.js"></script>
+<script src="js/lofi.js"></script>
 <script src="js/hands.js"></script>
 <script src="js/guides.js"></script>
 <script src="js/boot.js"></script>

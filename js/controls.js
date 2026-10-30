@@ -34,6 +34,11 @@ const TARGETS={
   tremolo:  {label:'Tremolo', base:0, apply:v=>audio.setTrem(v)},
   autopan:  {label:'Auto-pan',base:0, apply:v=>audio.setPan(v)},
   rotary:   {label:'Rotary speaker', base:0, apply:v=>audio.setRotary(v), fmt:v=>v<.03?'Off':(.7*Math.pow(6.8/.7,(v-.03)/.97)).toFixed(1)+' Hz'},
+  crush:    {label:'Bit crush: fewer bits, grittier', base:0, apply:()=>{ if(typeof lofiApply==='function')lofiApply(); }, noCtx:true, fmt:v=>v<.02?'Off':Math.round(16-v*12)+' bit'},
+  rate:     {label:'Sample rate: lower is grittier and more aliased', base:0, apply:()=>{ if(typeof lofiApply==='function')lofiApply(); }, noCtx:true,
+             fmt:v=>v<.02?'Off':((audio.ctx?audio.ctx.sampleRate:48000)/(1+Math.round(v*v*31))/1000).toFixed(1)+' kHz'},
+  wobble:   {label:'Wobble: tape wow and flutter on the pitch', base:0, apply:v=>{ if(typeof lofiWobble==='function')lofiWobble(v); }},
+  noise:    {label:'Noise: a bed of hiss or vinyl crackle', base:0, apply:v=>{ if(typeof lofiNoise==='function')lofiNoise(v); }},
   delay:    {label:'Delay',   base:0, apply:v=>audio.setDelayMix(v)},
   feedback: {label:'Delay feedback', base:.35, apply:v=>audio.setFeedback(v)},
   pump:     {label:'Pump',    base:0, apply:v=>audio.setPump(v), fmt:v=>v<.02?'Off':Math.round(v*100)+'%'},
@@ -84,7 +89,7 @@ function setArp(v){
   st.arpLabel=label; audio.setArpRate(nps);
 }
 // Tremolo/auto-pan rate and delay time follow the BPM
-st.fx={reverbType:'hall',tremDiv:'1/8',delayDiv:'1/8d'};
+st.fx={reverbType:'hall',tremDiv:'1/8',delayDiv:'1/8d',noiseType:'hiss'};
 try{const f=JSON.parse(localStorage.getItem('vh-fx')||'null');if(f)Object.assign(st.fx,f)}catch(e){}
 const DELAY_DIVS={'1/4':1,'1/8d':.75,'1/8':.5,'1/8T':1/3,'1/16':.25};
 function saveFx(){try{localStorage.setItem('vh-fx',JSON.stringify(st.fx))}catch(e){}}
@@ -140,10 +145,10 @@ function saveRoutes(){clearTimeout(saveTimer);saveTimer=setTimeout(()=>{try{
 // Which module each control lives in, and its short panel name
 const MODULE_OF={amp:['volume','velocity','bass','mid','treble'],env:['attack','decay','sustain','release'],
   filter:['cutoff','resonance','highpass','vowel'],fx:['reverb','chorus','pedal','drive','phaser','flanger'],mod:['bend','detune','vibrato','tremolo','autopan','rotary'],
-  pump:['pump'],drone:['drone'],delay:['delay','feedback'],arp:['arp','strum'],chordpos:['position']};
+  pump:['pump'],drone:['drone'],lofi:['crush','rate','wobble','noise'],delay:['delay','feedback'],arp:['arp','strum'],chordpos:['position']};
 // The finer knobs: hidden when their panel is switched to just the basics
 const CTRL_ADV=new Set(['bass','mid','treble','resonance','highpass','vowel','drive','phaser','flanger']);
-const KSHORT={drone:'Drone',velocity:'Velocity',bass:'Bass',mid:'Mid',treble:'Treble',pedal:'Pedal ring',volume:'Volume',cutoff:'Cutoff',resonance:'Reso',highpass:'Hi-pass',vowel:'Vowel',reverb:'Reverb',chorus:'Chorus',
+const KSHORT={crush:'Crush',rate:'Rate',wobble:'Wobble',noise:'Noise',drone:'Drone',velocity:'Velocity',bass:'Bass',mid:'Mid',treble:'Treble',pedal:'Pedal ring',volume:'Volume',cutoff:'Cutoff',resonance:'Reso',highpass:'Hi-pass',vowel:'Vowel',reverb:'Reverb',chorus:'Chorus',
   drive:'Drive',detune:'Detune',vibrato:'Vibrato',strum:'Strum',arp:'Arp rate',phaser:'Phaser',flanger:'Flanger',tremolo:'Tremolo',autopan:'Auto-pan',rotary:'Rotary',delay:'Delay',feedback:'Feedback',pump:'Pump',position:'Position',bend:'Bend',attack:'A',decay:'D',sustain:'S',release:'R'};
 // Hand menu: source + direction in one choice
 const SRC_OPTS=[['none','✋ off'],['x','✋ →'],['x:i','✋ ←'],['y','✋ ↑'],['y:i','✋ ↓'],['lean','Lean'],['lean:i','Lean inv'],['tilt','Tilt'],['tilt:i','Tilt inv'],['dist','Push'],['dist:i','Pull'],['roll','Palm'],['roll:i','Back'],['speed','Speed'],['speed:i','Speed inv']];
@@ -193,13 +198,21 @@ function makeFader(k){
   sl.addEventListener('keydown',e=>e.stopPropagation()); // arrow keys move the fader, not the synth shortcuts
   return w;
 }
+// Knob rows: as many as fit, but split evenly across rows so no knob sits alone on a row
+function balanceKnobs(){ document.querySelectorAll('.knobs').forEach(box=>{ if(!box.offsetParent)return;
+  const ks=[...box.children].filter(k=>k.classList.contains('knob')&&getComputedStyle(k).display!=='none'); if(!ks.length)return;
+  const w=box.clientWidth, kw=ks.reduce((a,k)=>a+(k.classList.contains('big')?92:74),0)/ks.length+6, fit=Math.max(1,Math.floor((w+6)/kw)),   // average width: one big knob doesn't cost a column
+    rows=Math.ceil(ks.length/fit), per=Math.ceil(ks.length/rows);
+  box.style.setProperty('--per',per); box.classList.add('bal'); }); }
+{ let raf=0; const later=()=>{ cancelAnimationFrame(raf); raf=requestAnimationFrame(balanceKnobs); };
+  addEventListener('resize',later); if(window.ResizeObserver)new ResizeObserver(later).observe(document.documentElement); }
 function buildRoutes(){
   for(const [mod,keys] of Object.entries(MODULE_OF)){
     const box=$('m-'+mod);box.innerHTML='';
     keys.forEach(k=>box.appendChild(mod==='env'?makeFader(k):makeKnob(k,k==='volume')));
   }
   $('optLeanColor').checked=st.leanColor;
-  showRouteVals();
+  showRouteVals(); requestAnimationFrame(balanceKnobs);
 }
 function showRouteVals(){ syncPedalAuto(); showRouteVals0(); }
 function showRouteVals0(){
