@@ -130,7 +130,7 @@ function render(){
     b.classList.toggle('on',st.sounding&&st.degree===d);
     b.classList.toggle('queued',chordQ.timer!==null&&chordQ.d===d);
   });
-  [...vEl.children].forEach(b=>{const on=b.dataset.id===st.voicing;b.classList.toggle('on',on);b.setAttribute('aria-checked',on);
+  [...vEl.children].forEach(b=>{const on=b.dataset.id===st.voicing;b.classList.toggle('on',on);b.setAttribute('aria-checked',on);b.classList.toggle('queued',voiceQ.timer!==null&&voiceQ.id===b.dataset.id);
     const slots=st.rhMap.map((id,i)=>id===b.dataset.id?String(i):null).filter(x=>x!==null);
     b.querySelector('.vh').textContent=slots.length?'✋ '+slots.join(' · '):'';
     b.classList.toggle('spare',!slots.length&&!on);}); // no finger plays it: tucked away unless Voicing is open

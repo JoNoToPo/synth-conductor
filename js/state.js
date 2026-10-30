@@ -72,8 +72,10 @@ function setPosition(v){
   const c=st.ctrl.position;
   if(v<.03&&c.src!=='none'){st.posSrcMem=c.src+(c.inv?':i':'');c.src='none';c.inv=false} // turned all the way down by hand
   const P=posTarget();
-  const go=()=>{posTimer=null;posLastApplied=P;posLastTime=performance.now();
-    st.posMove=true; if(st.sounding&&st.degree!==null)play(st.degree,{fromVoicingChange:true}); else preview(); st.posMove=false;};
+  const move=()=>{ const p=posTarget(); posLastApplied=p; posLastTime=performance.now();
+    st.posMove=true; if(st.sounding&&st.degree!==null)play(st.degree,{fromVoicingChange:true}); else preview(); st.posMove=false; };
+  // Waiting for the beat: the chord moves once, to wherever Position is when the step comes
+  const go=()=>{ posTimer=null; if(positionWaits()){ if(posQ.timer===null)posQ.timer=setTimeout(()=>{posQ.timer=null;move()},gridDelay()); return; } move(); };
   if(posLastApplied===null||P===null||Math.abs(P-posLastApplied)>=1.5){
     clearTimeout(posTimer);
     const wait=Math.max(0,90-(performance.now()-posLastTime)); // at most ~11 re-voicings a second
@@ -106,17 +108,25 @@ function moved(a,b){if(!a.length)return null;let s=0;for(const x of b)s+=Math.mi
 // st.quant is that step in beats (0 = right away). The loop, voicing changes and Stop/Space never wait
 const chordQ={d:undefined,o:null,timer:null};
 const quantOn=()=>st.quant>0&&audio.ctx&&audio.ctx.state==='running';
+const quantBeats=()=>st.quant===4?meterOf().bar:st.quant===2?meterOf().bar/2:st.quant;   // "bar" and "half bar" follow the meter
+const gridDelay=()=>Math.max(0,(looper.nextGrid(quantBeats(),0)-audio.ctx.currentTime)*1000-6);   // ms to the next step
 function play(d,o={}){
   if(o.now||o.fromLoop||o.fromVoicingChange||!quantOn()){ if(o.now&&!o.queued)chordCancel(); return timed('building the chord',()=>playCore(d,o)); }
   // Already sounding and nothing to restart: no need to wait
   if(d!==null&&d===st.degree&&st.sounding&&!o.retrigger&&chordQ.timer===null)return timed('building the chord',()=>playCore(d,o));
   chordQ.d=d; chordQ.o=o; clearTimeout(chordQ.timer);
-  const t=looper.nextGrid(st.quant===4?meterOf().bar:st.quant===2?meterOf().bar/2:st.quant,0), ms=Math.max(0,(t-audio.ctx.currentTime)*1000-6);
+  const ms=gridDelay();
   chordQ.timer=setTimeout(()=>{ const q=chordQ.d, qo=chordQ.o; chordQ.d=undefined; chordQ.o=null; chordQ.timer=null;
     play(q,{...qo,now:true,queued:true,retrigger:qo.retrigger||(q!==null&&q===st.degree&&st.sounding)}); },ms);
   render();
 }
-function chordCancel(){ if(chordQ.timer===null)return; clearTimeout(chordQ.timer); chordQ.timer=null; chordQ.d=undefined; chordQ.o=null; render(); }
+function chordCancel(){ if(chordQ.timer!==null){ clearTimeout(chordQ.timer); chordQ.timer=null; chordQ.d=undefined; chordQ.o=null; }
+  if(voiceQ.timer!==null){ clearTimeout(voiceQ.timer); voiceQ.timer=null; voiceQ.id=null; } if(posQ.timer!==null){ clearTimeout(posQ.timer); posQ.timer=null; } render(); }
+// Voicing and Position can wait for the beat too (each a switch, only while chord changes wait).
+// Only while a chord is sounding: with nothing playing there's nothing to land on time
+const voiceQ={id:null,timer:null}, posQ={timer:null};
+const voicingWaits=()=>st.quantVoicing&&quantOn()&&st.sounding, positionWaits=()=>st.quantPos&&quantOn()&&st.sounding;
+try{ const v=JSON.parse(localStorage.getItem('vh-quantvp')||'{}'); st.quantVoicing=v.v===true; st.quantPos=v.p===true; }catch(e){ st.quantVoicing=st.quantPos=false; }
 try{ const q=+localStorage.getItem('vh-quant'); if([0,.25,.5,1,2,4].includes(q))st.quant=q; }catch(e){}
 if(st.quant===undefined)st.quant=0;
 function playCore(d,{fromVoicingChange=false,retrigger=false,fromLoop=false}={}){
@@ -170,7 +180,11 @@ function baseName(){
   }
   return chordName(st.degree,rel);
 }
-function setVoicing(id){
+function setVoicing(id,o={}){
+  if(!o.now&&voicingWaits()){ if(voiceQ.id===id||(st.voicing===id&&voiceQ.timer===null))return;
+    if(st.voicing===id){ clearTimeout(voiceQ.timer); voiceQ.timer=null; voiceQ.id=null; render(); return; }   // back to the one playing: nothing to wait for
+    voiceQ.id=id; clearTimeout(voiceQ.timer);
+    voiceQ.timer=setTimeout(()=>{ const q=voiceQ.id; voiceQ.id=null; voiceQ.timer=null; setVoicing(q,{now:true}); },gridDelay()); render(); return; }
   if(st.voicing===id)return; st.voicing=id;
   if(st.degree!==null){ const wasOn=st.sounding; play(st.degree,{fromVoicingChange:!wasOn}); } else render();
 }

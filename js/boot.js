@@ -1,9 +1,13 @@
 /* ---------- Boot ---------- */
 buildPads();buildVoicings();buildSelects();buildSlots();buildRoutes();preview();
 /* Chord changes: right away or queued to the beat */
-$('quantSel').value=String(st.quant);
+$('quantSel').value=String(st.quant); $('quantMore').hidden=!st.quant;
 $('quantSel').addEventListener('change',e=>{ st.quant=+e.target.value; if(!st.quant)chordCancel(); try{localStorage.setItem('vh-quant',String(st.quant))}catch(err){}
-  if(typeof panelsApply==='function')panelsApply(); });
+  $('quantMore').hidden=!st.quant; if(typeof panelsApply==='function')panelsApply(); });
+{ const saveVP=()=>{ try{localStorage.setItem('vh-quantvp',JSON.stringify({v:st.quantVoicing,p:st.quantPos}))}catch(e){} };
+  $('optQuantVoicing').checked=st.quantVoicing; $('optQuantPos').checked=st.quantPos;
+  $('optQuantVoicing').addEventListener('change',e=>{ st.quantVoicing=e.target.checked; saveVP(); });
+  $('optQuantPos').addEventListener('change',e=>{ st.quantPos=e.target.checked; saveVP(); }); }
 /* Tempo controls */
 function syncTempoUI(){ $('bpm').value=st.bpm; $('bpmSlider').value=st.bpm; $('optSync').checked=st.sync; $('optClick').checked=st.click; $('vibDiv').value=st.vibDiv; $('vibDiv').disabled=!st.sync; }
 function setBpm(b){ b=Math.round(Math.max(40,Math.min(240,b))); if(!b||b===st.bpm){syncTempoUI();return} st.bpm=b; syncTempoUI(); tempoChanged();
