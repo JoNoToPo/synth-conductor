@@ -78,7 +78,7 @@ function setShift(src,val){
   const before=shiftAmt();
   if(src==='key')st.shiftKey=val; else st.shiftPalm=val;
   if(shiftAmt()===before)return;
-  if(st.sounding&&st.degree!==null)play(st.degree); else preview();
+  if(st.sounding&&st.degree!==null)play(st.degree,{refresh:true}); else preview();
 }
 function twistTag(){ if(!st.sevForce||st.degree===null)return '';
   const c=tonesOf(st.degree); return c.f===6&&c.s===9?'°7':c.s===11?'maj7':c.t===3?'m7':'7'; }
@@ -88,11 +88,11 @@ function setSevForce(f){
 }
 function setFlip(on){
   if(st.flip===on)return; st.flip=on; $('optFlip').checked=on;
-  if(st.sounding&&st.degree!==null)play(st.degree); else preview();
+  if(st.sounding&&st.degree!==null)play(st.degree,{refresh:true}); else preview();
 }
 function setAlt7(on){
   if(st.alt7===on)return; st.alt7=on; $('optAlt7').checked=on;
-  if(st.sounding&&st.degree!==null)play(st.degree); else preview();
+  if(st.sounding&&st.degree!==null)play(st.degree,{refresh:true}); else preview();
 }
 function setSevenths(on){
   if(st.s7===on)return; st.s7=on; $('opt7').checked=on; refreshAfterChange();

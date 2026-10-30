@@ -115,7 +115,8 @@ const gridDelay=()=>Math.max(0,gridPos().until*1000-6);   // ms to the next step
 // Just past a step (a fifth of it, at most 120 ms): a change that's only a little late plays straight away instead of waiting a whole step
 const gridGrace=()=>{ const p=gridPos(); return p.since<Math.min(.12,p.step*.2); };
 function play(d,o={}){
-  if(o.now||o.fromLoop||o.fromVoicingChange||!quantOn()){ if(o.now&&!o.queued)chordCancel(); return timed('building the chord',()=>playCore(d,o)); }
+  // A refresh re-plays the sounding chord after a flip, 7th color or flat/sharp: it never waits, and leaves a queued chord alone
+  if(o.now||o.refresh||o.fromLoop||o.fromVoicingChange||!quantOn()){ if(o.now&&!o.queued)chordCancel(); return timed('building the chord',()=>playCore(d,o)); }
   // Already what's sounding and nothing to restart: no need to wait, and anything queued is called off
   const already=d===null?!st.sounding:d===st.degree&&st.sounding;
   if(already&&!o.retrigger){ if(chordQ.timer!==null){ clearTimeout(chordQ.timer); chordQ.timer=null; chordQ.d=undefined; chordQ.o=null; render(); return; }
@@ -193,7 +194,7 @@ function setVoicing(id,o={}){
     voiceQ.id=id; clearTimeout(voiceQ.timer);
     voiceQ.timer=setTimeout(()=>{ const q=voiceQ.id; voiceQ.id=null; voiceQ.timer=null; setVoicing(q,{now:true}); },gridDelay()); render(); return; }
   if(st.voicing===id)return; st.voicing=id;
-  if(st.degree!==null){ const wasOn=st.sounding; play(st.degree,{fromVoicingChange:!wasOn}); } else render();
+  if(st.degree!==null){ const wasOn=st.sounding; play(st.degree,{fromVoicingChange:!wasOn,refresh:true}); } else render();
 }
 function preview(){ // compute display without sound
   if(st.degree===null){render();return}
