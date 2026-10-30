@@ -358,6 +358,47 @@
           <option value="1/16T">1/16 triplet</option>
         </select></label></div>
     </div>
+    <div class="module m-drone" data-panel="drone">
+      <h3>Drone</h3>
+      <div class="ledknob">
+        <div class="leds">
+          <label class="led" title="Notes that keep sounding under everything you play, like bagpipe drones"><input type="checkbox" id="droneOn"><span>Drone on</span></label>
+        </div>
+        <div class="knobs" id="m-drone"></div>
+      </div>
+      <div class="lcds">
+        <label for="droneNotes">Notes<select id="droneNotes">
+          <option value="root">Root</option>
+          <option value="fifth">Root + 5th</option>
+          <option value="pipes">Root + octave (bagpipes)</option>
+          <option value="pipes5">Root, 5th + octave</option>
+          <option value="custom">Custom…</option>
+        </select></label>
+        <label for="droneFollow" title="Stay on the key's root, or move to each chord's root as you play">Follows<select id="droneFollow">
+          <option value="key">The key</option>
+          <option value="chord">Each chord</option>
+        </select></label>
+        <label for="droneTone">Sound<select id="droneTone">
+          <option value="reed">Reed (bagpipe)</option>
+          <option value="organ">Organ</option>
+          <option value="soft">Soft</option>
+        </select></label>
+        <label for="droneOct">Octave<select id="droneOct">
+          <option value="2">Low</option>
+          <option value="3">Middle</option>
+          <option value="4">High</option>
+        </select></label>
+        <div class="dsteps wide" id="droneCustom" role="group" aria-label="Custom drone notes, steps above the root" hidden></div>
+        <label for="droneArp" class="wide" title="While the arpeggiator is on: keep droning underneath, or play the drone notes as part of the arpeggio">With the arp<select id="droneArp">
+          <option value="along">Drone alongside it</option>
+          <option value="join">Join the arpeggio</option>
+        </select></label>
+        <label for="droneWhen" class="wide" title="Always: it keeps going between chords. With the chords: it comes in when a chord starts and fades out with the instrument's release when it stops">Plays<select id="droneWhen">
+          <option value="always">Always</option>
+          <option value="chord">With the chords</option>
+        </select></label>
+      </div>
+    </div>
     </div>
     <div class="bank g-filter">
     <div class="module m-filter" data-panel="filter" data-panel-min>
@@ -622,6 +663,7 @@
 <script src="js/ui.js"></script>
 <script src="js/looper.js"></script>
 <script src="js/modmatrix.js"></script>
+<script src="js/drone.js"></script>
 <script src="js/hands.js"></script>
 <script src="js/guides.js"></script>
 <script src="js/boot.js"></script>

@@ -11,7 +11,7 @@ const MOD_RATES=[['4bar','4 bars',{bars:4}],['2bar','2 bars',{bars:2}],['1bar','
   ['1/8','1/8 note',{beats:.5}],['1/16','1/16 note',{beats:.25}],['0.1','0.1 Hz',{hz:.1}],['0.3','0.3 Hz',{hz:.3}],['1','1 Hz',{hz:1}],['3','3 Hz',{hz:3}],['7','7 Hz',{hz:7}]];
 const MOD_SHAPES=[['sine','Sine'],['tri','Triangle'],['square','Square'],['saw','Saw up'],['ramp','Saw down'],['sh','Random steps']];
 // Knobs it can move, grouped the way the panels are. Position and Arp rate re-voice the chord, so they stay out
-const MOD_GROUPS=[['Amp & tone',['volume','velocity','bass','mid','treble','attack','decay','sustain','release']],['Filter',['cutoff','resonance','highpass','vowel']],
+const MOD_GROUPS=[['Amp & tone',['volume','velocity','drone','bass','mid','treble','attack','decay','sustain','release']],['Filter',['cutoff','resonance','highpass','vowel']],
   ['Effects',['reverb','chorus','pedal','drive','phaser','flanger']],['Modulation',['bend','detune','vibrato','tremolo','autopan','rotary']],['Timing',['pump','delay','feedback','strum']]];
 const MOD_DST=MOD_GROUPS.flatMap(g=>g[1]);
 const MOD_MAX_ROWS=8;

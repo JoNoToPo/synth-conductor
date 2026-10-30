@@ -16,6 +16,7 @@ const PANELS=[   // in the order they appear on the page
   ['hands','What your hands do','Left-hand shapes for 6 and 7, twist, fist, palm roll, height inversions and position'],
   ['amp','Amp & tone','Bass, mid and treble. Volume always shows'],
   ['mod','Modulation','Bend, detune, vibrato, tremolo, auto-pan and rotary'],
+  ['drone','Drone','Notes held under everything, like bagpipes'],
   ['filter','Filter','Resonance, high-pass and the vowel filter. Cutoff always shows'],
   ['fx','Effects','Drive, phaser, flanger and the reverb type. Reverb, chorus and pedal ring always show'],
   ['tempo','Tempo & pump','BPM, tap, sync, click and pump'],
@@ -53,6 +54,7 @@ function panelsApply(){
   const on=PANELS.filter(([k])=>panelShown(k)).length; $('panelsCount').textContent=`${on}/${PANELS.length}`;
   $('panelList').querySelectorAll('input').forEach(i=>i.checked=panelShown(i.value));
   try{localStorage.setItem('vh-panels',JSON.stringify(panels))}catch(e){}
+  if(typeof droneSync==='function')droneSync();   // a hidden Drone panel is a silent one
   dispatchEvent(new Event('resize'));
 }
 function setPanel(k,on){ panels[k]=on; panelsApply(); }
