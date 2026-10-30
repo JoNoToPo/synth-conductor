@@ -102,7 +102,23 @@ function vlCost(a,b){
 }
 function moved(a,b){if(!a.length)return null;let s=0;for(const x of b)s+=Math.min(...a.map(y=>Math.abs(x-y)));return s}
 
-function play(d,o){ return timed('building the chord',()=>playCore(d,o)); }
+// Chord changes can wait for the next step of the beat grid, so you queue a chord and it lands on time.
+// st.quant is that step in beats (0 = right away). The loop, voicing changes and Stop/Space never wait
+const chordQ={d:undefined,o:null,timer:null};
+const quantOn=()=>st.quant>0&&audio.ctx&&audio.ctx.state==='running';
+function play(d,o={}){
+  if(o.now||o.fromLoop||o.fromVoicingChange||!quantOn()){ if(o.now&&!o.queued)chordCancel(); return timed('building the chord',()=>playCore(d,o)); }
+  // Already sounding and nothing to restart: no need to wait
+  if(d!==null&&d===st.degree&&st.sounding&&!o.retrigger&&chordQ.timer===null)return timed('building the chord',()=>playCore(d,o));
+  chordQ.d=d; chordQ.o=o; clearTimeout(chordQ.timer);
+  const t=looper.nextGrid(st.quant===4?meterOf().bar:st.quant===2?meterOf().bar/2:st.quant,0), ms=Math.max(0,(t-audio.ctx.currentTime)*1000-6);
+  chordQ.timer=setTimeout(()=>{ const q=chordQ.d, qo=chordQ.o; chordQ.d=undefined; chordQ.o=null; chordQ.timer=null;
+    play(q,{...qo,now:true,queued:true,retrigger:qo.retrigger||(q!==null&&q===st.degree&&st.sounding)}); },ms);
+  render();
+}
+function chordCancel(){ if(chordQ.timer===null)return; clearTimeout(chordQ.timer); chordQ.timer=null; chordQ.d=undefined; chordQ.o=null; render(); }
+try{ const q=+localStorage.getItem('vh-quant'); if([0,.25,.5,1,2,4].includes(q))st.quant=q; }catch(e){}
+if(st.quant===undefined)st.quant=0;
 function playCore(d,{fromVoicingChange=false,retrigger=false,fromLoop=false}={}){
   if(!fromLoop&&!fromVoicingChange)st.loopOv=null;   // a chord you play yourself uses your own flat/sharp and inversion
   playChord(d,fromVoicingChange,retrigger);

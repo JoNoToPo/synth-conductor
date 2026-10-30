@@ -317,6 +317,10 @@ select{background:var(--surface);border:1px solid var(--line);border-radius:10px
 .sq-voicing .cardhead h3{color:var(--brass)}
 .handopts{margin-top:2px}
 .sq-voicing.sq-hands{flex:none}
+/* A chord waiting for the beat */
+.pad.queued{outline:2px dashed var(--brass);outline-offset:-4px;animation:padq .5s ease-in-out infinite alternate}
+@keyframes padq{from{outline-color:rgba(214,171,82,.35)}to{outline-color:var(--brass)}}
+@media (prefers-reduced-motion:reduce){.pad.queued{animation:none}}
 @media (max-width:460px){.sq-top{grid-template-columns:minmax(0,1fr)}}
 /* Sound panel: three stacks, each with its own tint and accent */
 .synth{grid-template-columns:minmax(0,1.25fr) minmax(0,1fr) minmax(0,.85fr)}

@@ -1,5 +1,9 @@
 /* ---------- Boot ---------- */
 buildPads();buildVoicings();buildSelects();buildSlots();buildRoutes();preview();
+/* Chord changes: right away or queued to the beat */
+$('quantSel').value=String(st.quant);
+$('quantSel').addEventListener('change',e=>{ st.quant=+e.target.value; if(!st.quant)chordCancel(); try{localStorage.setItem('vh-quant',String(st.quant))}catch(err){}
+  if(typeof panelsApply==='function')panelsApply(); });
 /* Tempo controls */
 function syncTempoUI(){ $('bpm').value=st.bpm; $('bpmSlider').value=st.bpm; $('optSync').checked=st.sync; $('optClick').checked=st.click; $('vibDiv').value=st.vibDiv; $('vibDiv').disabled=!st.sync; }
 function setBpm(b){ b=Math.round(Math.max(40,Math.min(240,b))); if(!b||b===st.bpm){syncTempoUI();return} st.bpm=b; syncTempoUI(); tempoChanged();

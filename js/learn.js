@@ -28,7 +28,7 @@ const PANELS=[   // in the order they appear on the page
 ];
 const PANELS_ESSENTIAL=['piano','loop'];
 // Panels that keep time: while any of them shows, Tempo shows too
-const NEEDS_TEMPO={loop:'Chord loop',arp:'Arp & strum',delay:'Delay',mod:'Modulation'};
+const NEEDS_TEMPO={quant:'Chord changes on the beat',loop:'Chord loop',arp:'Arp & strum',delay:'Delay',mod:'Modulation'};
 // Older saves had one switch for all the sound panels and one for arp, tempo and delay
 const PANELS_WAS={amp:'sound',mod:'sound',filter:'sound',fx:'sound',tempo:'rhythm',arp:'rhythm',delay:'rhythm'};
 let panels={};
@@ -36,7 +36,7 @@ let panels={};
   let simple=firstVisit; try{const v=localStorage.getItem('vh-simple');if(v!==null)simple=v==='1'}catch(e){}   // carried over from Simple view
     const was=k=>saved&&(typeof saved[k]==='boolean'?saved[k]:typeof saved[PANELS_WAS[k]]==='boolean'?saved[PANELS_WAS[k]]:undefined);
   PANELS.forEach(([k])=>{const w=was(k); panels[k]=w!==undefined?w:simple?PANELS_ESSENTIAL.includes(k):true}); }
-const tempoNeededBy=()=>Object.keys(NEEDS_TEMPO).filter(k=>panels[k]);
+const tempoNeededBy=()=>[...Object.keys(NEEDS_TEMPO).filter(k=>panels[k]),...(st.quant>0?['quant']:[])];
 const panelShown=k=>panels[k]||(k==='tempo'&&tempoNeededBy().length>0);
 function panelsApply(){
   document.querySelectorAll('[data-panel]').forEach(el=>{ const on=panelShown(el.dataset.panel);

@@ -19,7 +19,7 @@ function buildPads(){
   });
   const s=document.createElement('button');s.type='button';s.className='pad stop';
   s.innerHTML='<span class="r">Stop</span><span class="c">silence</span><span class="k">space</span>';
-  s.addEventListener('click',()=>{looper.stop();play(null);audio.damp()});padsEl.appendChild(s);
+  s.addEventListener('click',()=>{looper.stop();play(null,{now:true});audio.damp()});padsEl.appendChild(s);
 }
 // Voicings as buttons; the description shows on hover (and below the grid, so touch screens get it too)
 let vHover=null;
@@ -128,6 +128,7 @@ function render(){
     b.querySelector('.c').textContent=chordName(d,rel);
     b.querySelector('.r').textContent=romanOf(d);
     b.classList.toggle('on',st.sounding&&st.degree===d);
+    b.classList.toggle('queued',chordQ.timer!==null&&chordQ.d===d);
   });
   [...vEl.children].forEach(b=>{const on=b.dataset.id===st.voicing;b.classList.toggle('on',on);b.setAttribute('aria-checked',on);
     const slots=st.rhMap.map((id,i)=>id===b.dataset.id?String(i):null).filter(x=>x!==null);
@@ -278,7 +279,7 @@ document.addEventListener('keydown',e=>{
     const d=+dm[1]-1;audio.init();handOwnsChord=false;
     const i=heldDigits.indexOf(d); if(i>=0)heldDigits.splice(i,1); heldDigits.push(d);
     play(d,{retrigger:st.degree===d&&st.sounding});e.preventDefault();return}
-  if(k===' '){looper.stop();play(null);audio.damp();e.preventDefault();return}
+  if(k===' '){looper.stop();play(null,{now:true});audio.damp();e.preventDefault();return}
   if(k==='c'){audio.init();looper.toggle();return}
   if(k==='f'){setFlip(!st.flip);return}
   if(k==='s'){setSevenths(!st.s7);return}
