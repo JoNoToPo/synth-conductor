@@ -6,6 +6,16 @@ buildPads();buildVoicings();buildSelects();buildSlots();buildRoutes();preview();
   $('camShapeSel').addEventListener('change',e=>{ st.camShape=e.target.value; fitView(); camViewSave(); });
   z.addEventListener('input',()=>{ st.camZoom=+z.value; show(); camViewSave(); });
   z.addEventListener('keydown',e=>e.stopPropagation()); }
+/* Left/right span, one for Right hand only and one for two hands */
+{ const a=$('xSpanA'), b=$('xSpanB');
+  const show=()=>{ const [x0,x1]=xSpanNow(); a.value=x0; b.value=x1; $('xSpanAVal').textContent=Math.round(x0*100)+'%'; $('xSpanBVal').textContent=Math.round(x1*100)+'%';
+    $('xSpanNote').textContent=`For ${st.rightOnly?'Right hand only':'two hands'}: 0% is the left edge of the picture, 100% the right. The other mode keeps its own.`; };
+  const save=()=>{ try{localStorage.setItem('vh-xspan',JSON.stringify(st.xSpan))}catch(e){} };
+  const set=(i,v)=>{ const s=xSpanNow().slice(); s[i]=v; if(s[1]-s[0]<.15){ if(i===0)s[0]=s[1]-.15; else s[1]=s[0]+.15; }   // keep at least 15% between them
+    st.xSpan[st.rightOnly?'r':'b']=[Math.max(0,s[0]),Math.min(1,s[1])]; show(); save(); };
+  a.addEventListener('input',()=>set(0,+a.value)); b.addEventListener('input',()=>set(1,+b.value));
+  [a,b].forEach(el=>{ el.addEventListener('keydown',e=>e.stopPropagation()); el.addEventListener('dblclick',()=>{ st.xSpan[st.rightOnly?'r':'b']=st.rightOnly?[.1,.9]:[.45,.95]; show(); save(); }); });
+  $('optRightOnly').addEventListener('change',show); show(); }
 /* Chord changes: right away or queued to the beat */
 $('quantSel').value=String(st.quant); $('quantMore').hidden=!st.quant;
 $('quantSel').addEventListener('change',e=>{ st.quant=+e.target.value; if(!st.quant)chordCancel(); try{localStorage.setItem('vh-quant',String(st.quant))}catch(err){}

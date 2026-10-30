@@ -2,7 +2,7 @@
 st.guides=true; try{const v=localStorage.getItem('vh-guides');if(v!==null)st.guides=v==='1'}catch(e){}
 const GCOL={L:'#d6ab52',R:'#83b9a9'};
 // Hand inputs that have a place on screen, with the stretch of the (mirrored) frame each one reads
-const X_RANGE=()=>st.rightOnly?[.1,.9]:[.45,.95], LX_RANGE=[.05,.5], Y_RANGE=[.9,.2];
+const X_RANGE=()=>xSpanNow(), LX_RANGE=[.05,.5], Y_RANGE=[.9,.2];
 const drivenBy=src=>Object.keys(TARGETS).filter(k=>st.ctrl[k].src===src);
 const ctrlTxt=k=>`${KSHORT[k]} ${fmtVal(k)}`;
 function drawGuides({cw,ch,vw,vh,sc,ox,oy,dpr}){

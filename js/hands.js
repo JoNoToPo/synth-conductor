@@ -96,6 +96,10 @@ setInterval(()=>{
    reaches the end of a range at the visible edge and is still tracked a little past it */
 st.camZoom=1.15; st.camShape='cam';
 try{ const v=JSON.parse(localStorage.getItem('vh-camview')||'null'); if(v){ if(v.z>=1&&v.z<=1.6)st.camZoom=v.z; if(['cam','square','wide'].includes(v.s))st.camShape=v.s; } }catch(e){}
+// Where across the visible picture the right hand's left/right range runs (0 = left edge, 1 = right edge), one per mode
+st.xSpan={r:[.1,.9],b:[.45,.95]};
+try{ const v=JSON.parse(localStorage.getItem('vh-xspan')||'null'); for(const m of ['r','b'])if(v&&Array.isArray(v[m])&&v[m][0]>=0&&v[m][1]<=1&&v[m][1]-v[m][0]>=.15)st.xSpan[m]=v[m]; }catch(e){}
+const xSpanNow=()=>st.xSpan[st.rightOnly?'r':'b'];
 const camViewSave=()=>{ try{localStorage.setItem('vh-camview',JSON.stringify({z:st.camZoom,s:st.camShape}))}catch(e){} };
 const camWin={x0:0,x1:1,y0:0,y1:1};   // the part of the camera frame on screen, as frame fractions
 const fvx=x=>(x-camWin.x0)/(camWin.x1-camWin.x0), fvy=y=>(y-camWin.y0)/(camWin.y1-camWin.y0);   // frame → what you see
@@ -309,11 +313,15 @@ function loop(){
   const cw=Math.round(rect.width*dpr),ch=Math.round(rect.height*dpr);
   if(cv.width!==cw||cv.height!==ch){cv.width=cw;cv.height=ch}
   const vw=video.videoWidth,vh=video.videoHeight; if(!vw)return;
-  // Fill the view (full screen shows the whole picture instead), then zoom; note which part of the frame is visible
-  const fit=document.body.classList.contains('full')?Math.min(cw/vw,ch/vh):Math.max(cw/vw,ch/vh);
-  const sc=fit*st.camZoom,ox=(cw-vw*sc)/2,oy=(ch-vh*sc)/2;
-  { const wx=Math.min(1,cw/(vw*sc)), wy=Math.min(1,ch/(vh*sc)); camWin.x0=(1-wx)/2; camWin.x1=1-camWin.x0; camWin.y0=(1-wy)/2; camWin.y1=1-camWin.y0; }
+  // The picture's box: the whole view, or in full screen with Square or 2:1, the biggest box of that shape that fits.
+  // The picture fills its box (full screen in the camera's own shape shows all of it instead), then zooms; camWin is what shows
+  const full=document.body.classList.contains('full'), A=st.camShape==='square'?1:st.camShape==='wide'?2:0;
+  let rx=0,ry=0,rw=cw,rh=ch; if(full&&A){ if(cw/ch>A){rw=ch*A;rx=(cw-rw)/2}else{rh=cw/A;ry=(ch-rh)/2} }
+  const fit=full&&!A?Math.min(rw/vw,rh/vh):Math.max(rw/vw,rh/vh);
+  const sc=fit*st.camZoom,ox=rx+(rw-vw*sc)/2,oy=ry+(rh-vh*sc)/2;
+  { const wx=Math.min(1,rw/(vw*sc)), wy=Math.min(1,rh/(vh*sc)); camWin.x0=(1-wx)/2; camWin.x1=1-camWin.x0; camWin.y0=(1-wy)/2; camWin.y1=1-camWin.y0; }
   g.save();g.clearRect(0,0,cw,ch);g.translate(cw,0);g.scale(-1,1);
+  if(rw<cw||rh<ch){ g.beginPath(); g.rect(rx,ry,rw,rh); g.clip(); }
   // In the background mode, show the frame the hand was found in so the skeleton stays on the hand
   const pic=cam.inWorker&&cam.shown&&cam.shown.width?cam.shown:video;
   g.globalAlpha=.55;g.drawImage(pic,ox,oy,vw*sc,vh*sc);g.globalAlpha=1;
@@ -442,7 +450,7 @@ function handleHands(L,R){
     const ar=(video.videoWidth||16)/(video.videoHeight||9), mx=1-R[0].x, a=lean(R); // left/right from the wrist, so twisting the hand doesn't move it
     st.leanDeg=euro('leanDeg',a,now,45);
     const raw={
-      x: st.rightOnly?clamp01((fvx(mx)-.1)/.8):clamp01((fvx(mx)-.45)/.5),   // measured across what you can see
+      x: (([a,b])=>clamp01((fvx(mx)-a)/(b-a)))(xSpanNow()),   // measured across what you can see, over the span you set
       y: clamp01((.9-fvy(R[9].y))/.7),
       lean: clamp01(a/45),
       tilt: clamp01(.5+a/90),            // upright = ½, 45° either way = the ends
