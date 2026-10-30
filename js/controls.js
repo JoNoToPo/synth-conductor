@@ -41,6 +41,8 @@ const TARGETS={
   noise:    {label:'Noise: a bed of hiss or vinyl crackle', base:0, apply:v=>{ if(typeof lofiNoise==='function')lofiNoise(v); }},
   delay:    {label:'Delay',   base:0, apply:v=>audio.setDelayMix(v)},
   feedback: {label:'Delay feedback', base:.35, apply:v=>audio.setFeedback(v)},
+  tempo:    {label:'Tempo push and pull (centre = your BPM)', base:.5, apply:()=>{ if(typeof setArp==='function')tempoNudged(); }, noCtx:true,
+             fmt:v=>{ const d=tempoOff(v); return Math.abs(d)<.5?'Set BPM':`${d>0?'+':'−'}${Math.round(Math.abs(d))} · ${Math.round(Math.max(40,Math.min(240,st.bpm+d)))}`; }},
   pump:     {label:'Pump',    base:0, apply:v=>audio.setPump(v), fmt:v=>v<.02?'Off':Math.round(v*100)+'%'},
   vibrato:  {label:'Vibrato depth (MIDI mod wheel)', base:0, apply:v=>audio.ramp(audio.vibDepth.gain,v*35)},
   bend:     {label:'Pitch bend (centre = in tune)', base:.5, apply:v=>audio.ramp(audio.bend.offset,bendAmt(v)*midiOut.bendRange*100,.02),
@@ -78,12 +80,20 @@ function meterOf(){ const m=METERS[st.meter]||METERS['4/4'], strong=new Set([0])
   return {n:m.n,d:m.d,bar:m.n*4/m.d,step:4/m.d,strong}; }
 // Note values in beats
 const DIVS=[['1/4',1],['1/8',.5],['1/8T',1/3],['1/16',.25],['1/16T',1/6],['1/32',.125]];
-const beatSec=()=>60/st.bpm;
+// The Tempo knob pushes and pulls the BPM like Bend does pitch: the middle (with a small dead zone) is your set BPM,
+// the ends are ± Tempo knob range. Everything that keeps time reads beatSec, so it all follows
+st.tempoRange=10; try{ const v=+localStorage.getItem('vh-temporange'); if([5,10,20,40].includes(v))st.tempoRange=v; }catch(e){}
+const tempoOff=(v=effV('tempo'))=>bendAmt(v)*st.tempoRange;
+const bpmNow=()=>Math.max(40,Math.min(240,st.bpm+tempoOff()));
+const beatSec=()=>60/bpmNow();
+let tempoLast=null;
+function tempoNudged(){ const b=bpmNow(); if(tempoLast!==null&&Math.abs(b-tempoLast)<.25)return; tempoLast=b;
+  setArp(st.ctrl.arp.v); setVibRate(); setTimeFx(); }
 // Arpeggio speed 0..1: Off near zero. Synced: steps through note values at the current BPM. Free: 2 → 16 notes per second.
 function setArp(v){
   st.arp=v; let nps=0,label='Off';
   if(v>=.03){
-    if(st.sync){const d=DIVS[Math.min(DIVS.length-1,Math.floor((v-.03)/.97*DIVS.length))];nps=1/(beatSec()*d[1]);label=`${d[0]} @ ${st.bpm}`;audio.arpDiv=d[1]}
+    if(st.sync){const d=DIVS[Math.min(DIVS.length-1,Math.floor((v-.03)/.97*DIVS.length))];nps=1/(beatSec()*d[1]);label=`${d[0]} @ ${Math.round(bpmNow())}`;audio.arpDiv=d[1]}
     else{nps=2*Math.pow(2,(v-.03)/.97*3);label=`${nps.toFixed(1)}/s`;audio.arpDiv=null}
   }
   st.arpLabel=label; audio.setArpRate(nps);
@@ -145,10 +155,10 @@ function saveRoutes(){clearTimeout(saveTimer);saveTimer=setTimeout(()=>{try{
 // Which module each control lives in, and its short panel name
 const MODULE_OF={amp:['volume','velocity','bass','mid','treble'],env:['attack','decay','sustain','release'],
   filter:['cutoff','resonance','highpass','vowel'],fx:['reverb','chorus','pedal','drive','phaser','flanger'],mod:['bend','detune','vibrato','tremolo','autopan','rotary'],
-  pump:['pump'],drone:['drone'],lofi:['crush','rate','wobble','noise'],delay:['delay','feedback'],arp:['arp','strum'],chordpos:['position']};
+  pump:['pump','tempo'],drone:['drone'],lofi:['crush','rate','wobble','noise'],delay:['delay','feedback'],arp:['arp','strum'],chordpos:['position']};
 // The finer knobs: hidden when their panel is switched to just the basics
 const CTRL_ADV=new Set(['bass','mid','treble','resonance','highpass','vowel','drive','phaser','flanger']);
-const KSHORT={crush:'Crush',rate:'Rate',wobble:'Wobble',noise:'Noise',drone:'Drone',velocity:'Velocity',bass:'Bass',mid:'Mid',treble:'Treble',pedal:'Pedal ring',volume:'Volume',cutoff:'Cutoff',resonance:'Reso',highpass:'Hi-pass',vowel:'Vowel',reverb:'Reverb',chorus:'Chorus',
+const KSHORT={tempo:'Tempo',crush:'Crush',rate:'Rate',wobble:'Wobble',noise:'Noise',drone:'Drone',velocity:'Velocity',bass:'Bass',mid:'Mid',treble:'Treble',pedal:'Pedal ring',volume:'Volume',cutoff:'Cutoff',resonance:'Reso',highpass:'Hi-pass',vowel:'Vowel',reverb:'Reverb',chorus:'Chorus',
   drive:'Drive',detune:'Detune',vibrato:'Vibrato',strum:'Strum',arp:'Arp rate',phaser:'Phaser',flanger:'Flanger',tremolo:'Tremolo',autopan:'Auto-pan',rotary:'Rotary',delay:'Delay',feedback:'Feedback',pump:'Pump',position:'Position',bend:'Bend',attack:'A',decay:'D',sustain:'S',release:'R'};
 // Hand menu: source + direction in one choice
 const SRC_OPTS=[['none','✋ off'],['x','✋ →'],['x:i','✋ ←'],['y','✋ ↑'],['y:i','✋ ↓'],['lean','Lean'],['lean:i','Lean inv'],['tilt','Tilt'],['tilt:i','Tilt inv'],['dist','Push'],['dist:i','Pull'],['roll','Palm'],['roll:i','Back'],['speed','Speed'],['speed:i','Speed inv']];

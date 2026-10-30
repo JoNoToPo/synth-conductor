@@ -25,6 +25,9 @@ buildPads();buildVoicings();buildSelects();buildSlots();buildRoutes();preview();
   a.addEventListener('input',()=>set(0,+a.value)); b.addEventListener('input',()=>set(1,+b.value));
   [a,b].forEach(el=>{ el.addEventListener('keydown',e=>e.stopPropagation()); el.addEventListener('dblclick',()=>{ st.ySpan=[.1,.8]; show(); save(); }); });
   show(); }
+/* Tempo knob range */
+$('tempoRange').value=String(st.tempoRange);
+$('tempoRange').addEventListener('change',e=>{ st.tempoRange=+e.target.value; try{localStorage.setItem('vh-temporange',String(st.tempoRange))}catch(err){} tempoLast=null; tempoNudged(); showRouteVals(); });
 /* Chord changes: right away or queued to the beat */
 $('quantSel').value=String(st.quant); $('quantMore').hidden=!st.quant;
 $('quantSel').addEventListener('change',e=>{ st.quant=+e.target.value; if(!st.quant)chordCancel(); try{localStorage.setItem('vh-quant',String(st.quant))}catch(err){}

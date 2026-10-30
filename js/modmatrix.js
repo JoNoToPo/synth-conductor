@@ -12,7 +12,7 @@ const MOD_RATES=[['4bar','4 bars',{bars:4}],['2bar','2 bars',{bars:2}],['1bar','
 const MOD_SHAPES=[['sine','Sine'],['tri','Triangle'],['square','Square'],['saw','Saw up'],['ramp','Saw down'],['sh','Random steps']];
 // Knobs it can move, grouped the way the panels are. Position and Arp rate re-voice the chord, so they stay out
 const MOD_GROUPS=[['Amp & tone',['volume','velocity','drone','bass','mid','treble','attack','decay','sustain','release']],['Filter',['cutoff','resonance','highpass','vowel']],
-  ['Effects',['reverb','chorus','pedal','drive','phaser','flanger']],['Lo-fi',['crush','rate','wobble','noise']],['Modulation',['bend','detune','vibrato','tremolo','autopan','rotary']],['Timing',['pump','delay','feedback','strum']]];
+  ['Effects',['reverb','chorus','pedal','drive','phaser','flanger']],['Lo-fi',['crush','rate','wobble','noise']],['Modulation',['bend','detune','vibrato','tremolo','autopan','rotary']],['Timing',['tempo','pump','delay','feedback','strum']]];
 const MOD_DST=MOD_GROUPS.flatMap(g=>g[1]);
 const MOD_MAX_ROWS=8;
 const MATRIX_DEFAULT=()=>({on:true,rows:[],lfo:[{rate:'1bar',shape:'sine'},{rate:'1/4',shape:'tri'}],env:{a:.02,d:.8}});
