@@ -109,11 +109,18 @@ function moved(a,b){if(!a.length)return null;let s=0;for(const x of b)s+=Math.mi
 const chordQ={d:undefined,o:null,timer:null};
 const quantOn=()=>st.quant>0&&audio.ctx&&audio.ctx.state==='running';
 const quantBeats=()=>st.quant===4?meterOf().bar:st.quant===2?meterOf().bar/2:st.quant;   // "bar" and "half bar" follow the meter
-const gridDelay=()=>Math.max(0,(looper.nextGrid(quantBeats(),0)-audio.ctx.currentTime)*1000-6);   // ms to the next step
+// Where we are between steps: seconds since the last one and until the next
+function gridPos(){ const step=beatSec()*quantBeats(), k=(audio.ctx.currentTime-audio.t0)/step, since=(k-Math.floor(k))*step; return {step,since,until:step-since}; }
+const gridDelay=()=>Math.max(0,gridPos().until*1000-6);   // ms to the next step
+// Just past a step (a fifth of it, at most 120 ms): a change that's only a little late plays straight away instead of waiting a whole step
+const gridGrace=()=>{ const p=gridPos(); return p.since<Math.min(.12,p.step*.2); };
 function play(d,o={}){
   if(o.now||o.fromLoop||o.fromVoicingChange||!quantOn()){ if(o.now&&!o.queued)chordCancel(); return timed('building the chord',()=>playCore(d,o)); }
-  // Already sounding and nothing to restart: no need to wait
-  if(d!==null&&d===st.degree&&st.sounding&&!o.retrigger&&chordQ.timer===null)return timed('building the chord',()=>playCore(d,o));
+  // Already what's sounding and nothing to restart: no need to wait, and anything queued is called off
+  const already=d===null?!st.sounding:d===st.degree&&st.sounding;
+  if(already&&!o.retrigger){ if(chordQ.timer!==null){ clearTimeout(chordQ.timer); chordQ.timer=null; chordQ.d=undefined; chordQ.o=null; render(); return; }
+    if(d!==null)return timed('building the chord',()=>playCore(d,o)); return; }
+  if(gridGrace()){ if(chordQ.timer!==null){ clearTimeout(chordQ.timer); chordQ.timer=null; chordQ.d=undefined; chordQ.o=null; } return timed('building the chord',()=>playCore(d,o)); }
   chordQ.d=d; chordQ.o=o; clearTimeout(chordQ.timer);
   const ms=gridDelay();
   chordQ.timer=setTimeout(()=>{ const q=chordQ.d, qo=chordQ.o; chordQ.d=undefined; chordQ.o=null; chordQ.timer=null;
@@ -125,7 +132,7 @@ function chordCancel(){ if(chordQ.timer!==null){ clearTimeout(chordQ.timer); cho
 // Voicing and Position can wait for the beat too (each a switch, only while chord changes wait).
 // Only while a chord is sounding: with nothing playing there's nothing to land on time
 const voiceQ={id:null,timer:null}, posQ={timer:null};
-const voicingWaits=()=>st.quantVoicing&&quantOn()&&st.sounding, positionWaits=()=>st.quantPos&&quantOn()&&st.sounding;
+const voicingWaits=()=>st.quantVoicing&&quantOn()&&st.sounding&&!gridGrace(), positionWaits=()=>st.quantPos&&quantOn()&&st.sounding&&!gridGrace();
 try{ const v=JSON.parse(localStorage.getItem('vh-quantvp')||'{}'); st.quantVoicing=v.v===true; st.quantPos=v.p===true; }catch(e){ st.quantVoicing=st.quantPos=false; }
 try{ const q=+localStorage.getItem('vh-quant'); if([0,.25,.5,1,2,4].includes(q))st.quant=q; }catch(e){}
 if(st.quant===undefined)st.quant=0;

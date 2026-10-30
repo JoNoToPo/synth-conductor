@@ -432,7 +432,9 @@ function handleHands(L,R){
     $('hudL').textContent=`Left · ${fs.filter(Boolean).length} up → ${deg===null?'stop':romanOf(deg)} · lean ${Math.round(a)}°${palmTxt}${st.handInv?' · '+['root','1st inv','2nd inv'][sL.zone??0]:''}${posTarget()!==null&&st.ctrl.position.src.startsWith('lx')?' · pos '+midiName(Math.round(posTarget())):''}`;
     // With "Left fist holds the pedal", a fist lets the chord go but keeps it ringing under the pedal
     if(fire&&st.pedalHand==='fist'&&(deg===null)!==pedalSrc.hand){audio.init();setPedal('hand',deg===null);}
-    if(fire){ handOwnsChord=true; if(deg===null){ if(st.sounding)play(null) } else if(deg!==st.degree||!st.sounding) play(deg); }
+    // Compare with the chord that's coming: a queued one if chord changes wait for the beat, otherwise the one sounding
+    if(fire){ handOwnsChord=true; const next=chordQ.timer!==null?chordQ.d:st.sounding?st.degree:null;
+      if(deg!==next)play(deg); }
   } else {
     $('hudL').textContent='Left hand · chord';
     if(goneOnce(sL,now)){
