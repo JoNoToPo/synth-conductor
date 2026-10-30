@@ -617,3 +617,14 @@ body.full #loopCard{display:none}
 .knobs.bal>.knob{flex:0 0 calc((100% - (var(--per) - 1) * 6px) / var(--per) - .5px);width:auto;min-width:0}   /* half a pixel spare so rounding never wraps one */
 .knobs.bal>.knob .ksrc{max-width:74px}
 .knobs.bal>.knob.big .ksrc{max-width:92px}
+/* Drone: picking custom notes on a small keyboard */
+.dpicker[hidden]{display:none}
+.dpicker>summary{cursor:pointer;font-size:.8rem;color:var(--muted);padding:2px 0}
+.dpicker[open]>summary{margin-bottom:6px}
+.dpick{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.dpick svg{display:block;width:100%;min-width:560px;height:auto;touch-action:pan-x}   /* keys stay big enough to tap; narrow screens scroll the picker sideways */
+.dpick .dkey{cursor:pointer}
+.dpick .dkey:hover{stroke:var(--drone)}
+.dpicker .row{justify-content:space-between;align-items:center;margin-top:6px;gap:8px}
+.dpicker .hint{margin:0;font-size:.74rem}
+.dpicker .btn{padding:4px 10px;font-size:.78rem}

@@ -13,6 +13,7 @@ const SOUNDS={
   vibes:{label:'Vibraphone',osc:[['sine',0,1,.75],['sine',0,4,.14,.4],['sine',2,3,.05,.2]],a:.003,d:3.5,s:.05,r:1.2,cut:6000,strike:true},
   kalimba:{label:'Kalimba',osc:[['sine',0,1,.8,1.1],['sine',0,5.4,.14,.06],['triangle',0,2,.09,.2]],a:.002,d:1.3,s:0,r:.4,cut:6000,strike:true},
   musicbox:{label:'Music box',osc:[['sine',0,2,.6,1.6],['sine',0,4,.22,.6],['sine',0,8.4,.1,.2],['sine',0,13.6,.04,.08]],a:.001,d:2,s:0,r:.6,cut:9000,strike:true},
+  reed:{label:'Reed (bagpipe)',osc:[['sawtooth',0,1,.45],['square',7,1,.2],['sawtooth',-6,2,.12]],a:.04,d:.3,s:.9,r:.2,cut:1700},   // the drone's reed, to play chords with
   harp:{label:'Harp',osc:[['triangle',0,1,.75,1.2],['sawtooth',0,1,.18,.25],['sine',0,2,.16,.6]],a:.002,d:1.8,s:0,r:.5,cut:4500,strike:true},
 };
 // Instruments you build in the Mod matrix panel: the same shape as above, kept in this browser under ids starting u_

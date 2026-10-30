@@ -391,17 +391,17 @@
           <option value="key">The key</option>
           <option value="chord">Each chord</option>
         </select></label>
-        <label for="droneTone">Sound<select id="droneTone">
-          <option value="reed">Reed (bagpipe)</option>
-          <option value="organ">Organ</option>
-          <option value="soft">Soft</option>
-        </select></label>
+        <label for="droneTone" title="One of the drone's own sounds, any instrument (yours too), or the same one you're playing">Sound<select id="droneTone"></select></label>
         <label for="droneOct">Octave<select id="droneOct">
           <option value="2">Low</option>
           <option value="3">Middle</option>
           <option value="4">High</option>
         </select></label>
-        <div class="dsteps wide" id="droneCustom" role="group" aria-label="Custom drone notes, steps above the root" hidden></div>
+        <details class="dpicker wide" id="droneCustom" hidden open>
+          <summary>Pick notes on the keyboard</summary>
+          <div class="dpick" id="dronePick"></div>
+          <div class="row"><span class="hint" id="dronePickNote"></span><button class="btn" id="droneClear" type="button">Clear</button></div>
+        </details>
         <label for="droneArp" title="While the arpeggiator is on: keep droning underneath, or play the drone notes as part of the arpeggio">With the arp<select id="droneArp">
           <option value="along">Drone alongside it</option>
           <option value="join">Join the arpeggio</option>

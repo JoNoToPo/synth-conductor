@@ -48,7 +48,7 @@ function fillSoundSel(){ const ss=$('soundSel'); ss.innerHTML='';
     const list=Object.entries(SOUNDS).filter(([k,s])=>test(s)); if(!list.length)continue;
     const grp=document.createElement('optgroup');grp.label=name;
     list.forEach(([k,s])=>{const o=document.createElement('option');o.value=k;o.textContent=s.label;grp.appendChild(o)}); ss.appendChild(grp);}
-  ss.value=st.sound; }
+  ss.value=st.sound; if(typeof droneToneFill==='function')droneToneFill(); }
 function buildSelects(){
   const ks=$('keySel');KEYS.forEach(([pc,n],i)=>{const o=document.createElement('option');o.value=i;o.textContent=n;ks.appendChild(o)});
   const ms=$('modeSel');Object.entries(MODES).forEach(([k,m])=>{const o=document.createElement('option');o.value=k;o.textContent=m.name;ms.appendChild(o)});
@@ -61,7 +61,7 @@ function buildSelects(){
     for(const k in TARGETS)if(TARGETS[k].perSound&&st.ctrl[k].src==='none')st.ctrl[k].v=baseOf(k);
     showRouteVals();saveRoutes();
     applyAllRoutes();if(st.sounding&&st.degree!==null){const all=st.bassNote!==null?[st.bassNote,...st.upper]:st.upper;audio.setNotes(all)}
-    instPicked();});
+    instPicked(); if(typeof droneSync==='function')droneSync();});
 }
 function buildSlots(){
   const wrap=$('rhSlots');wrap.innerHTML='';

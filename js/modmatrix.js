@@ -139,7 +139,7 @@ function instEditable(){
   SOUNDS._draft=copy; st.sound='_draft'; fillSoundSel(); return copy; }
 // Rebuild what's sounding so a change is heard now
 function instRefresh(){ audio.allOff(); if(st.sounding&&st.degree!==null){const all=st.bassNote!==null?[st.bassNote,...st.upper]:st.upper;audio.setNotes(all)} }
-function instChanged(rebuild){ instSaveMine(); if(rebuild)instRefresh(); instHeader(); }
+function instChanged(rebuild){ instSaveMine(); if(rebuild)instRefresh(); instHeader(); if(typeof droneSync==='function')droneSync(); }
 function instHeader(){ const s0=SOUNDS[st.sound];
   $('instName').textContent=s0.label; $('instState').textContent=s0.mine?'yours · changes save as you go':s0.draft?'edited copy · save it to keep it':'built-in · changing it makes a copy';
   $('instStrike').checked=!!s0.strike; $('oscAdd').disabled=s0.osc.length>=INSTR_MAX_OSC; instList(); }

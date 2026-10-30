@@ -8,13 +8,29 @@ const DRONE_TONES={
   organ:{osc:[['sine',0,1,.55],['sine',0,2,.28],['sine',0,4,.08]],cut:6000,q:.5},
   soft:{osc:[['triangle',0,1,.6],['sine',3,2,.1]],cut:1500,q:.4},
 };
+// The drone's sound: one of its own, any instrument (yours too), or whatever the Instrument menu has.
+// An instrument's oscillators play held (its own fades and envelope are left out), at the drone's usual loudness
+function droneTone(){
+  const id=drone.tone==='same'?st.sound:drone.tone.startsWith('i:')?drone.tone.slice(2):null;
+  if(id===null)return {id:drone.tone,...DRONE_TONES[drone.tone]||DRONE_TONES.reed};
+  const s=SOUNDS[id]; if(!s)return {id:'reed',...DRONE_TONES.reed};
+  const sum=s.osc.reduce((a,o)=>a+o[3],0)||1;
+  return {id:'i:'+id,osc:s.osc.map(([w,det,ratio,lvl])=>[w,det,ratio,lvl*.78/sum]),cut:Math.min(9000,s.cut||3000),q:.6};
+}
+function droneToneFill(){ const sel=$('droneTone'); if(!sel)return;
+  const opt=(v,l)=>`<option value="${v}">${l}</option>`, list=Object.entries(SOUNDS).filter(([k])=>k!=='_draft');
+  sel.innerHTML=`<optgroup label="Drone">${opt('reed','Reed (bagpipe)')}${opt('organ','Organ')}${opt('soft','Soft')}</optgroup>`
+    +`<optgroup label="Instrument">${opt('same','Same as Instrument')}</optgroup>`
+    +`<optgroup label="Any instrument">${list.map(([k,s])=>opt('i:'+k,s.label)).join('')}</optgroup>`;
+  sel.value=drone.tone; if(sel.value!==drone.tone)sel.value='reed'; }
 const DRONE_DEFAULT=()=>({on:false,notes:'pipes',follow:'key',tone:'reed',oct:2,when:'always',arp:'along',custom:[0,7]});
 // Custom notes: any of these steps above the drone's root
-const DRONE_STEPS=['1','♭2','2','♭3','3','4','♯4','5','♭6','6','♭7','7','8'];
+const DRONE_STEPS=['1','♭2','2','♭3','3','4','♯4','5','♭6','6','♭7','7'];
+const droneStep=off=>DRONE_STEPS[((off%12)+12)%12];
 function droneClean(d){ const x=DRONE_DEFAULT(); if(!d||typeof d!=='object')return x;
   return {on:d.on===true,notes:DRONE_NOTES[d.notes]||d.notes==='custom'?d.notes:x.notes,arp:d.arp==='join'?'join':'along',
-    custom:Array.isArray(d.custom)?[...new Set(d.custom.filter(n=>Number.isInteger(n)&&n>=0&&n<=12))].sort((a,b)=>a-b):x.custom,follow:d.follow==='chord'?'chord':'key',
-    tone:DRONE_TONES[d.tone]?d.tone:x.tone,oct:[2,3,4].includes(d.oct)?d.oct:x.oct,when:d.when==='chord'?'chord':'always'}; }
+    custom:Array.isArray(d.custom)?[...new Set(d.custom.filter(n=>Number.isInteger(n)&&n>=-48&&n<=72))].sort((a,b)=>a-b).slice(0,24):x.custom,follow:d.follow==='chord'?'chord':'key',
+    tone:DRONE_TONES[d.tone]||d.tone==='same'||/^i:[\w-]+$/.test(d.tone||'')?d.tone:x.tone,oct:[2,3,4].includes(d.oct)?d.oct:x.oct,when:d.when==='chord'?'chord':'always'}; }
 let drone=DRONE_DEFAULT();
 try{ drone=droneClean(JSON.parse(localStorage.getItem('vh-drone')||'null')); }catch(e){}
 const droneSave=()=>{ try{localStorage.setItem('vh-drone',JSON.stringify(drone))}catch(e){} };
@@ -33,6 +49,7 @@ function droneFade(now){ const on=droneHeard(); dr.out.gain.setTargetAtTime(on?d
 function droneNotes(){
   if(drone.follow==='chord'&&st.sounding&&st.degree!==null)dr.root=rootPcOf(st.degree);
   const root=drone.follow==='chord'&&dr.root!==null?dr.root:KEYS[st.key][0];
+  dr.base=12*(drone.oct+1)+root;   // the drone's root note: custom notes are counted from here
   const steps=drone.notes==='custom'?(drone.custom.length?drone.custom:[0]):DRONE_NOTES[drone.notes];
   return steps.map(i=>12*(drone.oct+1)+root+i);
 }
@@ -46,7 +63,7 @@ function droneSync(){
   const now=c.currentTime;
   if(!want){ if(dr.voices.length&&!dr.stop){ dr.out.gain.setTargetAtTime(0,now,.25); dr.stop=setTimeout(()=>{dr.stop=null;droneKill()},1500); } return; }
   if(dr.stop){ clearTimeout(dr.stop); dr.stop=null; }
-  const T=DRONE_TONES[drone.tone], notes=droneNotes(), sig=drone.tone+'|'+notes.length, key=notes.join();
+  const T=droneTone(), notes=droneNotes(), sig=T.id+'|'+JSON.stringify(T.osc)+'|'+notes.length, key=notes.join();
   if(sig!==dr.sig){ droneKill();   // a new sound or number of notes: build them fresh
     dr.filt.frequency.value=T.cut; dr.filt.Q.value=T.q;
     dr.voices=notes.map(m=>{ const f=440*Math.pow(2,(m-69)/12);
@@ -60,17 +77,37 @@ function droneSync(){
 function droneLevel(){ if(audio.ctx&&dr.out&&dr.voices.length&&!dr.stop&&droneHeard())dr.out.gain.setTargetAtTime(droneGain(),audio.ctx.currentTime,.05); }
 
 /* Panel */
-function droneSteps(){ const box=$('droneCustom'); box.hidden=drone.notes!=='custom';
-  box.querySelectorAll('button').forEach(b=>{ const on=drone.custom.includes(+b.dataset.n); b.classList.toggle('on',on); b.setAttribute('aria-pressed',on); }); }
-function droneUI(){ $('droneArp').value=drone.arp; droneSteps(); $('droneOn').checked=drone.on; $('droneNotes').value=drone.notes; $('droneFollow').value=drone.follow; $('droneTone').value=drone.tone; $('droneOct').value=String(drone.oct); $('droneWhen').value=drone.when; }
+// Custom notes are picked on a small keyboard, the same range as the one at the top. Each chosen key is kept as a
+// distance from the drone's root, so the set moves with the key (or chord) and with Octave
+function droneSteps(){ $('droneCustom').hidden=drone.notes!=='custom'; dronePick(); }
+function dronePick(){
+  const box=$('dronePick'); if(drone.notes!=='custom'||!$('droneCustom').open){ return; }
+  droneNotes(); const base=dr.base, sel=new Set(drone.custom.map(o=>base+o)), W=14,H=62,BW=9,BH=38;
+  const xs={}; let wi=0; for(let m=LO;m<=HI;m++){ if(!isBlack(m)){xs[m]=wi*W;wi++} else xs[m]=wi*W-BW/2; }
+  let s=`<svg viewBox="0 0 ${wi*W} ${H+2}" role="group" aria-label="Drone notes: tap keys to add or remove them">`;
+  const key=(m,black)=>{ const on=sel.has(m), x=xs[m], w=black?BW:W, h=black?BH:H, off=m-base;
+    const fill=on?'var(--drone)':black?'var(--key-black)':'var(--key-white)';
+    return `<rect class="dkey" data-m="${m}" x="${x+.5}" y=".5" width="${w-1}" height="${h}" rx="2" fill="${fill}" stroke="var(--line)"><title>${pcName(m)}${Math.floor(m/12)-1} · ${droneStep(off)}${off===0?' (root)':''}</title></rect>`
+      +(on?`<text x="${x+w/2}" y="${h-(black?6:8)}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="${black?6:7}" fill="#16110e" pointer-events="none">${droneStep(off)}</text>`:'')
+      +(!on&&!black&&m===base?`<circle cx="${x+w/2}" cy="${h-8}" r="2.5" fill="var(--drone)" pointer-events="none"/>`:''); };
+  for(let m=LO;m<=HI;m++)if(!isBlack(m))s+=key(m,false);
+  for(let m=LO;m<=HI;m++)if(isBlack(m))s+=key(m,true);
+  const scrolled=box.scrollLeft; box.innerHTML=s+'</svg>';
+  // On a narrow screen, start with the drone's root in view (then leave the scroll where you put it)
+  if(!dronePick.seen&&box.scrollWidth>box.clientWidth){ dronePick.seen=true; box.scrollLeft=Math.max(0,xs[base]/(wi*W)*box.scrollWidth-40); } else box.scrollLeft=scrolled;
+  $('dronePickNote').textContent=drone.custom.length?`${drone.custom.length} note${drone.custom.length>1?'s':''}: ${drone.custom.map(o=>pcName(base+o)+(Math.floor((base+o)/12)-1)).join(' ')}`:'None picked: the root plays';
+}
+function droneUI(){ droneToneFill(); $('droneArp').value=drone.arp; droneSteps(); $('droneOn').checked=drone.on; $('droneNotes').value=drone.notes; $('droneFollow').value=drone.follow; $('droneTone').value=drone.tone; $('droneOct').value=String(drone.oct); $('droneWhen').value=drone.when; }
 $('droneOn').addEventListener('change',e=>{ audio.init(); drone.on=e.target.checked; droneSave(); droneSync(); });
 $('droneNotes').addEventListener('change',e=>{ drone.notes=e.target.value; droneSteps(); droneSave(); droneSync(); });
 $('droneArp').addEventListener('change',e=>{ drone.arp=e.target.value; droneSave(); droneSync(); });
 // Custom: a toggle per step above the root
-$('droneCustom').innerHTML=DRONE_STEPS.map((l,n)=>`<button type="button" class="dstep" data-n="${n}" aria-pressed="false" title="${n===12?'Octave':l} above the drone's root">${l}</button>`).join('');
-$('droneCustom').addEventListener('click',e=>{ const b=e.target.closest('.dstep'); if(!b)return; const n=+b.dataset.n, i=drone.custom.indexOf(n);
-  if(i>=0)drone.custom.splice(i,1); else { drone.custom.push(n); drone.custom.sort((a,c)=>a-c); }
-  droneSteps(); droneSave(); droneSync(); });
+$('dronePick').addEventListener('click',e=>{ const k=e.target.closest('.dkey'); if(!k)return; droneNotes();
+  const n=+k.dataset.m-dr.base, i=drone.custom.indexOf(n);
+  if(i>=0)drone.custom.splice(i,1); else if(drone.custom.length<24){ drone.custom.push(n); drone.custom.sort((a,c)=>a-c); }
+  dronePick(); droneSave(); droneSync(); });
+$('droneCustom').addEventListener('toggle',dronePick);
+$('droneClear').addEventListener('click',()=>{ drone.custom=[]; dronePick(); droneSave(); droneSync(); });
 $('droneFollow').addEventListener('change',e=>{ drone.follow=e.target.value; dr.root=null; droneSave(); droneSync(); });
 $('droneTone').addEventListener('change',e=>{ drone.tone=e.target.value; droneSave(); droneSync(); });
 $('droneOct').addEventListener('change',e=>{ drone.oct=+e.target.value; droneSave(); droneSync(); });
@@ -79,7 +116,7 @@ droneUI();
 // Every redraw (a new chord, a key change, sound starting up) checks whether the drone should move
 { const r0=render; render=function(){ r0.apply(this,arguments); droneSync(); }; }
 // When the drone's notes change (turned on or off, a new key, fading with the chords) the keyboard follows
-{ const s0=droneSync; droneSync=function(){ s0(); if(typeof drawPiano==='function'&&droneShown().join()!==(drawPiano.drone||''))drawPiano(); }; }
+{ const s0=droneSync; droneSync=function(){ s0(); if(drone.notes==='custom'&&(droneNotes(),dr.base!==dronePick.base)){ dronePick.base=dr.base; dronePick(); } if(typeof drawPiano==='function'&&droneShown().join()!==(drawPiano.drone||''))drawPiano(); }; }
 // The arpeggio takes the drone's notes while it runs (when set to), and turning it on or off moves the drone in or out
 { const n0=audio.arpNotes.bind(audio); audio.arpNotes=()=>{ const ns=n0(); if(!ns.length||!droneInArp())return ns;
     return [...new Set([...ns,...droneNotes()])].sort((a,b)=>a-b); };
