@@ -36,6 +36,8 @@ function droneNotes(){
   const steps=drone.notes==='custom'?(drone.custom.length?drone.custom:[0]):DRONE_NOTES[drone.notes];
   return steps.map(i=>12*(drone.oct+1)+root+i);
 }
+// The drone notes you can hear right now (held, or stepping through the arpeggio), for the keyboard
+const droneShown=()=>droneActive()&&audio.ctx&&(droneHeard()||droneInArp())?droneNotes():[];
 function droneKill(){ for(const v of dr.voices)for(const o of v.oscs){ try{o.stop();o.disconnect()}catch(e){} } dr.voices=[]; dr.sig=''; dr.notes=''; }
 function droneSync(){
   const c=audio.ctx; if(!c)return;
@@ -76,6 +78,8 @@ $('droneWhen').addEventListener('change',e=>{ drone.when=e.target.value; droneSa
 droneUI();
 // Every redraw (a new chord, a key change, sound starting up) checks whether the drone should move
 { const r0=render; render=function(){ r0.apply(this,arguments); droneSync(); }; }
+// When the drone's notes change (turned on or off, a new key, fading with the chords) the keyboard follows
+{ const s0=droneSync; droneSync=function(){ s0(); if(typeof drawPiano==='function'&&droneShown().join()!==(drawPiano.drone||''))drawPiano(); }; }
 // The arpeggio takes the drone's notes while it runs (when set to), and turning it on or off moves the drone in or out
 { const n0=audio.arpNotes.bind(audio); audio.arpNotes=()=>{ const ns=n0(); if(!ns.length||!droneInArp())return ns;
     return [...new Set([...ns,...droneNotes()])].sort((a,b)=>a-b); };

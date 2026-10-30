@@ -174,25 +174,30 @@ function drawPiano(){
   const width=wi*W, height=H+46;
   const rootPc=st.degree!==null?rootPcOf(st.degree):0;
   const active=new Map(); if(st.degree!==null){ st.upper.forEach(m=>active.set(m,'v')); if(st.bassNote!==null)active.set(st.bassNote,'b'); }
+  const drn=new Set(typeof droneShown==='function'?droneShown():[]);   // drone notes: their own colour, a ring when a chord note shares the key
+  const dot=(cx,cy,r,a,m)=>(a?`<circle cx="${cx}" cy="${cy}" r="${r}" fill="${a==='b'?'var(--patina)':'var(--brass)'}"/>`:'')
+    +(drn.has(m)?(a?`<circle cx="${cx}" cy="${cy}" r="${r+3}" fill="none" stroke="var(--drone)" stroke-width="2"/>`:`<circle cx="${cx}" cy="${cy}" r="${r}" fill="var(--drone)"/>`):'');
   let s=`<svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Keyboard showing the sounding notes">`;
   for(let m=LO;m<=HI;m++) if(!isBlack(m)){
     const a=active.get(m);
     s+=`<rect x="${xs[m]+.5}" y=".5" width="${W-1}" height="${H}" rx="3" fill="var(--key-white)" stroke="var(--line)"/>`;
-    if(a) s+=`<circle cx="${xs[m]+W/2}" cy="${H-16}" r="8" fill="${a==='b'?'var(--patina)':'var(--brass)'}"/>`;
-    if(m%12===0&&!a) s+=`<text x="${xs[m]+W/2}" y="${H-10}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="8" fill="#8a7c6e">C${Math.floor(m/12)-1}</text>`;
+    s+=dot(xs[m]+W/2,H-16,8,a,m);
+    if(m%12===0&&!a&&!drn.has(m)) s+=`<text x="${xs[m]+W/2}" y="${H-10}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="8" fill="#8a7c6e">C${Math.floor(m/12)-1}</text>`;
   }
   for(let m=LO;m<=HI;m++) if(isBlack(m)){
     const a=active.get(m);
     s+=`<rect x="${xs[m]}" y=".5" width="${BW}" height="${BH}" rx="2" fill="var(--key-black)" stroke="var(--line)"/>`;
-    if(a) s+=`<circle cx="${xs[m]+BW/2}" cy="${BH-12}" r="5.5" fill="${a==='b'?'var(--patina)':'var(--brass)'}"/>`;
+    s+=dot(xs[m]+BW/2,BH-12,5.5,a,m);
   }
-  const act=[...active.keys()].sort((a,b)=>a-b);
+  const act=[...new Set([...active.keys(),...drn])].sort((a,b)=>a-b);
   act.forEach((m,i)=>{
-    const cx=xs[m]+(isBlack(m)?BW/2:W/2), y=H+16+(i%2)*16, a=active.get(m);
-    s+=`<text x="${cx}" y="${y}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="${a==='b'?'var(--patina)':'var(--brass)'}">${FN[((m-rootPc)%12+12)%12]} ${pcName(m)}</text>`;
+    const cx=xs[m]+(isBlack(m)?BW/2:W/2), y=H+16+(i%2)*16, a=active.get(m), col=a==='b'?'var(--patina)':a?'var(--brass)':'var(--drone)';
+    s+=`<text x="${cx}" y="${y}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="${col}">${a?FN[((m-rootPc)%12+12)%12]+' ':''}${pcName(m)}</text>`;
   });
   s+='</svg>';
   $('piano').innerHTML=s;
+  { const l=document.getElementById('droneLegend'); if(l)l.hidden=!drn.size; }
+  drawPiano.drone=[...drn].join();   // what was drawn, so the drone can ask for a redraw when it changes
 }
 
 

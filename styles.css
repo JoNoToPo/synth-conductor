@@ -1,5 +1,5 @@
 /* Layout: an instrument on a walnut stage — the camera "stage" with the chord read out on it, a voicing rack on the right, a keyboard across the bottom. Single dark theme by design. */
-:root{
+:root{--drone:#b59ad7;
   --bg:#16110e;
   --surface:#211915;
   --surface-2:#2b211b;
