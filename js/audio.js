@@ -187,8 +187,11 @@ const audio={
   build(m,t){
     const ctx=this.ctx,p=SOUNDS[st.sound],f=440*Math.pow(2,(m-69)/12);
     const g=ctx.createGain(); g.gain.value=0; g.connect(this.voiceBus);
-    let live=p.osc.length;
-    const oscs=p.osc.map(([type,det,ratio,lvl,fade],i)=>{const o=ctx.createOscillator(),og=ctx.createGain();o.type=type;o.frequency.value=f*ratio;
+    // Low notes get an octave-up overtone: small speakers can't play a low fundamental, and the ear rebuilds it from this
+    const lo=lowBelow(m), boost=effV('lowboost'), sum=p.osc.reduce((a,x)=>a+x[3],0), fade=p.osc[0][4];
+    const osc=lo>0&&boost>.01?[...p.osc,...LOW_OT.map(([r,k])=>['sine',0,r,boost*k*lo*sum,fade])]:p.osc;
+    let live=osc.length;
+    const oscs=osc.map(([type,det,ratio,lvl,fade],i)=>{const o=ctx.createOscillator(),og=ctx.createGain();o.type=type;o.frequency.value=f*ratio;
       o._base=det;o._i=i;o.detune.value=this.oscDetune(o);this.vibDepth.connect(o.detune);this.bend.connect(o.detune);if(this.wobble)this.wobble.connect(o.detune);
       og.gain.value=lvl; if(fade){og.gain.setValueAtTime(lvl,t);og.gain.setTargetAtTime(0,t,fade/3);}
       o.connect(og);og.connect(g);o.start(t);
@@ -199,7 +202,8 @@ const audio={
   },
   noteOn(m,delay=0){
     const t=this.ctx.currentTime+delay,{g,oscs}=this.build(m,t),e=env(),vel=midiOut.velocity();
-    const peak=.16*midiOut.level(vel); g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(peak,t+e.a); g.gain.setTargetAtTime(peak*e.s,t+e.a,e.d/3);
+    // Low notes are lifted (Low notes dial)
+    const peak=.16*midiOut.level(vel)*lowGain(m); g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(peak,t+e.a); g.gain.setTargetAtTime(peak*e.s,t+e.a,e.d/3);
     this.voices.set(m,{g,oscs,start:t}); midiOut.on(m,t,vel);
   },
   releasing:[],
@@ -310,7 +314,7 @@ const audio={
   },
   shot(m,t,dur){
     // Arpeggio notes: attack is limited to a third of the step; release is capped so fast patterns stay clear
-    const {g,oscs}=this.build(m,t),e=env(),peak=.17*midiOut.level(midiOut.lastVel);
+    const {g,oscs}=this.build(m,t),e=env(),peak=.17*midiOut.level(midiOut.lastVel)*lowGain(m);
     const a=Math.min(e.a,dur*.3), end=t+dur, rel=Math.min(e.r,.6);
     g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(peak,t+a); g.gain.setTargetAtTime(peak*e.s,t+a,Math.max(.01,e.d/3));
     if(this.pedal){ const R=this.ringSec; g.gain.setTargetAtTime(0,end,R/5); oscs.forEach(o=>o.stop(end+R*1.2)); this.sustained.push({g,oscs,end:end+R*1.2}); }

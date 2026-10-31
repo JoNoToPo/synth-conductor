@@ -166,7 +166,7 @@ function status(){
 }
 
 /* Piano */
-const LO=36,HI=88,isBlack=m=>[1,3,6,8,10].includes(m%12);
+const LO=28,HI=96,isBlack=m=>[1,3,6,8,10].includes(m%12);
 function drawPiano(){
   const W=24,H=118,BW=14,BH=74;
   const xs={};let wi=0;
@@ -196,6 +196,8 @@ function drawPiano(){
   });
   s+='</svg>';
   $('piano').innerHTML=s;
+  // When it has to scroll, start with middle C in view
+  { const sc=$('piano'); if(!drawPiano.centred&&sc.scrollWidth>sc.clientWidth+4){ drawPiano.centred=true; sc.scrollLeft=Math.max(0,(xs[60]+W/2)/width*sc.scrollWidth-sc.clientWidth/2); } }
   { const l=document.getElementById('droneLegend'); if(l)l.hidden=!drn.size; }
   drawPiano.drone=[...drn].join();   // what was drawn, so the drone can ask for a redraw when it changes
 }

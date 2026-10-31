@@ -15,6 +15,8 @@ const TARGETS={
   drone:    {label:'Drone level', base:.5, apply:()=>{ if(typeof droneLevel==='function')droneLevel(); }, noCtx:true},
   bow:      {label:'Bow: left of the middle is an up bow (soft start that swells), right a down bow (bright bite); crossing re-strikes', base:.5,
              apply:()=>{ if(typeof bowMoved==='function')bowMoved(); }, noCtx:true, fmt:v=>v<.45?'↑ up bow':v>.55?'↓ down bow':'Plain'},
+  lowboost: {label:'Low notes: lifts notes below C4, more the lower they go, and adds overtones so small speakers can play them. 100% evens them out on laptop speakers', base:.7,
+             apply:()=>{}, noCtx:true, fmt:v=>v<.02?'Off':Math.round(v*100)+'%'},
   volume:   {label:'Volume',         base:.75, apply:v=>audio.ramp(audio.master.gain,.04+v*.76)},
   pedal:    {label:'Pedal ring length (with a hand assigned, the pedal stays down)', base:()=>expInv(4,PEDAL_RING), apply:v=>audio.setRing(expMap(v,PEDAL_RING)), noCtx:true, fmt:v=>fmtSec(expMap(v,PEDAL_RING))},
   attack:   {label:'Attack',  base:()=>expInv(SOUNDS[st.sound].a,ENV.a), apply:()=>{}, noCtx:true, fmt:v=>fmtSec(expMap(v,ENV.a)), perSound:true},
@@ -125,6 +127,11 @@ function tempoChanged(){ setArp(st.ctrl.arp.v); setVibRate(); setTimeFx(); saveT
 // The mod matrix adds an offset on top of each knob; what you hear (and MIDI out sends) is the two together
 const modOff={};
 const effV=k=>clamp01(st.ctrl[k].v+(modOff[k]||0));
+// Low notes: how far below C4 a note is (0 at C4, 1 at C2), and the level lift that gets (×1.8 at C2 to start)
+// Low notes: a level lift and the 2nd, 3rd and 4th overtones, like a piano's bass strings. Tuned by measuring loudness as the ear
+// hears it through a laptop speaker (which loses most below ~300 Hz): at 100% every instrument sits within ~1 dB from C2 to C6
+const LOW_LIFT=2.2, LOW_OT=[[2,.55],[3,.35],[4,.2]];
+const lowBelow=m=>Math.max(0,Math.min(1.4,(60-m)/24)), lowGain=m=>1+effV('lowboost')*LOW_LIFT*lowBelow(m);
 function applyCtrl(k){ const t=TARGETS[k], v=effV(k); midiOut.ctrl(k,v); if(!audio.ctx&&!t.noCtx)return; t.apply(v); }
 function applyAllRoutes(){ for(const k in TARGETS)applyCtrl(k); }
 // Called every camera frame with the right hand's smoothed inputs
@@ -157,12 +164,12 @@ let saveTimer=null;
 function saveRoutes(){clearTimeout(saveTimer);saveTimer=setTimeout(()=>{try{
   localStorage.setItem('vh-ctrl',JSON.stringify(st.ctrl));localStorage.setItem('vh-leancolor',st.leanColor?'1':'0')}catch(e){}},300)}
 // Which module each control lives in, and its short panel name
-const MODULE_OF={amp:['volume','velocity','bow','bass','mid','treble'],env:['attack','decay','sustain','release'],
+const MODULE_OF={amp:['volume','velocity','bow','lowboost','bass','mid','treble'],env:['attack','decay','sustain','release'],
   filter:['cutoff','resonance','highpass','vowel'],fx:['reverb','chorus','pedal','drive','phaser','flanger'],mod:['bend','detune','vibrato','tremolo','autopan','rotary'],
   pump:['pump','tempo'],perc:['perc'],drone:['drone','buzz'],lofi:['crush','rate','wobble','noise'],delay:['delay','feedback'],arp:['arp','strum'],chordpos:['position']};
 // The finer knobs: hidden when their panel is switched to just the basics
 const CTRL_ADV=new Set(['bass','mid','treble','resonance','highpass','vowel','drive','phaser','flanger']);
-const KSHORT={buzz:'Buzz',perc:'Percussion',bow:'Bow',tempo:'Tempo',crush:'Crush',rate:'Rate',wobble:'Wobble',noise:'Noise',drone:'Drone',velocity:'Velocity',bass:'Bass',mid:'Mid',treble:'Treble',pedal:'Pedal ring',volume:'Volume',cutoff:'Cutoff',resonance:'Reso',highpass:'Hi-pass',vowel:'Vowel',reverb:'Reverb',chorus:'Chorus',
+const KSHORT={lowboost:'Low notes',buzz:'Buzz',perc:'Percussion',bow:'Bow',tempo:'Tempo',crush:'Crush',rate:'Rate',wobble:'Wobble',noise:'Noise',drone:'Drone',velocity:'Velocity',bass:'Bass',mid:'Mid',treble:'Treble',pedal:'Pedal ring',volume:'Volume',cutoff:'Cutoff',resonance:'Reso',highpass:'Hi-pass',vowel:'Vowel',reverb:'Reverb',chorus:'Chorus',
   drive:'Drive',detune:'Detune',vibrato:'Vibrato',strum:'Strum',arp:'Arp rate',phaser:'Phaser',flanger:'Flanger',tremolo:'Tremolo',autopan:'Auto-pan',rotary:'Rotary',delay:'Delay',feedback:'Feedback',pump:'Pump',position:'Position',bend:'Bend',attack:'A',decay:'D',sustain:'S',release:'R'};
 // Hand menu: source + direction in one choice
 const SRC_OPTS=[['none','✋ off'],['x','✋ →'],['x:i','✋ ←'],['y','✋ ↑'],['y:i','✋ ↓'],['lean','Lean'],['lean:i','Lean inv'],['tilt','Tilt'],['tilt:i','Tilt inv'],['dist','Push'],['dist:i','Pull'],['roll','Palm'],['roll:i','Back'],['speed','Speed'],['speed:i','Speed inv']];

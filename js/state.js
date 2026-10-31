@@ -62,6 +62,8 @@ function realize(d){
       let m=pick.notes[0]-3; while(((m-bassPc)%12+12)%12)m--;
       while(m>55)m-=12; while(m<28)m+=12; bass=m;
     }
+    // Higher bass: an octave up, so laptop and phone speakers (which can't make deep notes) can play it; never into the chord
+    if(st.bassHigh){ bass+=12; while(bass>=pick.notes[0])bass-=12; }
   }
   return {upper:pick.notes, bass, rootPc};
 }
