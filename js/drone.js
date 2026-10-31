@@ -39,7 +39,7 @@ const droneCapture=()=>({...drone});
 function droneApply(d){ drone=droneClean(d); droneSave(); droneUI(); droneSync(); }
 
 const dr={out:null,filt:null,voices:[],sig:'',notes:'',root:null,stop:null};
-const droneGain=()=>effV('drone')*.09;
+const droneGain=()=>effV('drone')*.14;   // at the middle it sits a few dB under the chords, at the top a little over them
 // With the chords: only while one is sounding, fading out with the instrument's Release when it stops
 // In the arp: while the arpeggiator runs a chord, the drone's notes join it instead of holding underneath
 const droneActive=()=>drone.on&&(typeof panelShown!=='function'||panelShown('drone'));
@@ -80,9 +80,11 @@ function droneSync(){
   if(sig!==dr.sig){ droneKill();   // a new sound or number of notes: build them fresh
     dr.filt.frequency.value=T.cut; dr.filt.Q.value=T.q;
     droneBuzzBuild(c);
-    dr.voices=notes.map(m=>{ const f=440*Math.pow(2,(m-69)/12);
-      return {oscs:T.osc.map(([w,det,ratio,lvl])=>{ const o=c.createOscillator(), g=c.createGain(); o.type=w; o.frequency.value=f*ratio; o.detune.value=det;
-        o._ratio=ratio; g.gain.value=lvl; o.connect(g); g.connect(dr.filt); if(audio.wobble)audio.wobble.connect(o.detune); o.start(); return o; })}; });
+    // Low drone notes get the same lift as the chords' (the Low notes dial): louder, plus overtones small speakers can play
+    dr.voices=notes.map(m=>{ const f=440*Math.pow(2,(m-69)/12), lo=lowBelow(m), boost=effV('lowboost'), sum=T.osc.reduce((a,x)=>a+x[3],0), lift=lowGain(m);
+      const osc=lo>0&&boost>.01?[...T.osc,...LOW_OT.map(([r,k])=>['sine',0,r,boost*k*lo*sum])]:T.osc;
+      return {oscs:osc.map(([w,det,ratio,lvl])=>{ const o=c.createOscillator(), g=c.createGain(); o.type=w; o.frequency.value=f*ratio; o.detune.value=det;
+        o._ratio=ratio; g.gain.value=lvl*lift; o.connect(g); g.connect(dr.filt); if(audio.wobble)audio.wobble.connect(o.detune); o.start(); return o; })}; });
     dr.sig=sig; dr.notes=key; if(droneHeard())dr.out.gain.setTargetAtTime(droneGain(),now,.35); return; }
   if(key!==dr.notes){ dr.notes=key;   // same sound, new root: glide there
     notes.forEach((m,i)=>{ const f=440*Math.pow(2,(m-69)/12); for(const o of dr.voices[i].oscs)o.frequency.setTargetAtTime(f*o._ratio,now,.06); }); droneBuzzSet(); }
