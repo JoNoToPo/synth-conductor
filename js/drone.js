@@ -7,6 +7,7 @@ const DRONE_TONES={
   reed:{osc:[['sawtooth',0,1,.45],['square',7,1,.2],['sawtooth',-6,2,.12]],cut:1700,q:1.4},   // buzzy, like a chanter's drones
   organ:{osc:[['sine',0,1,.55],['sine',0,2,.28],['sine',0,4,.08]],cut:6000,q:.5},
   soft:{osc:[['triangle',0,1,.6],['sine',3,2,.1]],cut:1500,q:.4},
+  gurdy:{osc:[['sawtooth',0,1,.4],['sawtooth',5,1,.24],['square',0,2,.1]],cut:2300,q:2.2},   // nasal and bright, like a hurdy-gurdy's drone strings
 };
 // The drone's sound: one of its own, any instrument (yours too), or whatever the Instrument menu has.
 // An instrument's oscillators play held (its own fades and envelope are left out), at the drone's usual loudness
@@ -19,7 +20,7 @@ function droneTone(){
 }
 function droneToneFill(){ const sel=$('droneTone'); if(!sel)return;
   const opt=(v,l)=>`<option value="${v}">${l}</option>`, list=Object.entries(SOUNDS).filter(([k])=>k!=='_draft');
-  sel.innerHTML=`<optgroup label="Drone">${opt('reed','Reed (bagpipe)')}${opt('organ','Organ')}${opt('soft','Soft')}</optgroup>`
+  sel.innerHTML=`<optgroup label="Drone">${opt('reed','Reed (bagpipe)')}${opt('organ','Organ')}${opt('soft','Soft')}${opt('gurdy','Hurdy-gurdy')}</optgroup>`
     +`<optgroup label="Instrument">${opt('same','Same as Instrument')}</optgroup>`
     +`<optgroup label="Any instrument">${list.map(([k,s])=>opt('i:'+k,s.label)).join('')}</optgroup>`;
   sel.value=drone.tone; if(sel.value!==drone.tone)sel.value='reed'; }
@@ -55,7 +56,19 @@ function droneNotes(){
 }
 // The drone notes you can hear right now (held, or stepping through the arpeggio), for the keyboard
 const droneShown=()=>droneActive()&&audio.ctx&&(droneHeard()||droneInArp())?droneNotes():[];
-function droneKill(){ for(const v of dr.voices)for(const o of v.oscs){ try{o.stop();o.disconnect()}catch(e){} } dr.voices=[]; dr.sig=''; dr.notes=''; }
+/* Buzz: the hurdy-gurdy's buzzing bridge, a rasp over the drone that rattles faster and louder the higher the Buzz dial.
+   The dial follows how fast your right hand moves to start, like turning the crank harder. It plays whenever the drone does */
+function droneBuzzBuild(c){ const o=c.createOscillator(); o.type='sawtooth';
+  const sh=c.createWaveShaper(), cv=new Float32Array(256); for(let i=0;i<256;i++){const x=i/127.5-1; cv[i]=Math.tanh(3*x)} sh.curve=cv;
+  const bp=c.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=1300; bp.Q.value=2;
+  const am=c.createGain(); am.gain.value=.5; const lfo=c.createOscillator(); lfo.type='square'; const lg=c.createGain(); lg.gain.value=.5; lfo.connect(lg); lg.connect(am.gain);
+  const g=c.createGain(); g.gain.value=0; o.connect(sh); sh.connect(bp); bp.connect(am); am.connect(g); g.connect(dr.out);
+  if(audio.wobble)audio.wobble.connect(o.detune); o.start(); lfo.start(); dr.buzz={o,lfo,g}; droneBuzzSet(); }
+function droneBuzzSet(){ const b=dr.buzz; if(!b||!audio.ctx)return; const v=effV('buzz'), t=audio.ctx.currentTime;
+  b.g.gain.setTargetAtTime(Math.pow(v,1.1)*4,t,.04);   // it goes through the drone's quiet output (about 0.05), so it starts big here b.lfo.frequency.setTargetAtTime(6+v*34,t,.05);   // faster crank, quicker rattle
+  if(dr.base)b.o.frequency.setTargetAtTime(440*Math.pow(2,(dr.base+12-69)/12),t,.06); }
+function droneKill(){ for(const v of dr.voices)for(const o of v.oscs){ try{o.stop();o.disconnect()}catch(e){} } dr.voices=[]; dr.sig=''; dr.notes='';
+  if(dr.buzz){ for(const o of [dr.buzz.o,dr.buzz.lfo]){ try{o.stop();o.disconnect()}catch(e){} } try{dr.buzz.g.disconnect()}catch(e){} dr.buzz=null; } }
 function droneSync(){
   const c=audio.ctx; if(!c)return;
   const want=droneActive();
@@ -66,12 +79,13 @@ function droneSync(){
   const T=droneTone(), notes=droneNotes(), sig=T.id+'|'+JSON.stringify(T.osc)+'|'+notes.length, key=notes.join();
   if(sig!==dr.sig){ droneKill();   // a new sound or number of notes: build them fresh
     dr.filt.frequency.value=T.cut; dr.filt.Q.value=T.q;
+    droneBuzzBuild(c);
     dr.voices=notes.map(m=>{ const f=440*Math.pow(2,(m-69)/12);
       return {oscs:T.osc.map(([w,det,ratio,lvl])=>{ const o=c.createOscillator(), g=c.createGain(); o.type=w; o.frequency.value=f*ratio; o.detune.value=det;
         o._ratio=ratio; g.gain.value=lvl; o.connect(g); g.connect(dr.filt); if(audio.wobble)audio.wobble.connect(o.detune); o.start(); return o; })}; });
     dr.sig=sig; dr.notes=key; if(droneHeard())dr.out.gain.setTargetAtTime(droneGain(),now,.35); return; }
   if(key!==dr.notes){ dr.notes=key;   // same sound, new root: glide there
-    notes.forEach((m,i)=>{ const f=440*Math.pow(2,(m-69)/12); for(const o of dr.voices[i].oscs)o.frequency.setTargetAtTime(f*o._ratio,now,.06); }); }
+    notes.forEach((m,i)=>{ const f=440*Math.pow(2,(m-69)/12); for(const o of dr.voices[i].oscs)o.frequency.setTargetAtTime(f*o._ratio,now,.06); }); droneBuzzSet(); }
   droneFade(now);
 }
 function droneLevel(){ if(audio.ctx&&dr.out&&dr.voices.length&&!dr.stop&&droneHeard())dr.out.gain.setTargetAtTime(droneGain(),audio.ctx.currentTime,.05); }

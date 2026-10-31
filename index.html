@@ -511,6 +511,35 @@
           <option value="1/16">1/16 note</option>
         </select></label></div>
     </div>
+    <div class="module m-perc" data-panel="perc">
+      <h3>Percussion</h3>
+      <div class="ledknob">
+        <div class="leds">
+          <label class="led" title="A steady rhythm under everything, locked to the tempo"><input type="checkbox" id="percOn"><span>Percussion on</span></label>
+        </div>
+        <div class="knobs" id="m-perc"></div>
+      </div>
+      <div class="lcds">
+        <label for="percSound">Sound<select id="percSound">
+          <option value="shaker">Shaker</option>
+          <option value="rattle">Rattle</option>
+          <option value="click">Click</option>
+        </select></label>
+        <label for="percPattern">Pattern<select id="percPattern">
+          <option value="q">1/4 notes</option>
+          <option value="e">1/8 notes</option>
+          <option value="s">1/16 notes</option>
+          <option value="off">Off-beats</option>
+          <option value="t">Triplets</option>
+          <option value="dial">Played by the dial</option>
+        </select></label>
+        <p class="hint wide" id="percDialNote" hidden>Each time the Level dial rises past the middle is one hit; the faster it rises, the harder. Give the dial a hand movement (✋ menu) or a Mod matrix row to play it.</p>
+        <label for="percWhen" class="wide" title="Always: it keeps going between chords. With the chords: only while one is sounding">Plays<select id="percWhen">
+          <option value="always">Always</option>
+          <option value="chord">With the chords</option>
+        </select></label>
+      </div>
+    </div>
     </div>
     <p class="panelhint">Drag a knob up or down, scroll on it, or use the arrow keys. Double-click resets it. The menu under each control lets a right-hand movement play it, and it turns green while your hand drives it. <b>Pedal ring:</b> giving it a hand holds the sustain pedal down the whole time, and the hand sets how long notes ring. <b>Bend:</b> try Tilt, where an upright hand is in tune and tilting either way bends; it springs back when your hand leaves the frame.</p>
   </section>
@@ -711,6 +740,8 @@
 <script src="js/modmatrix.js"></script>
 <script src="js/drone.js"></script>
 <script src="js/lofi.js"></script>
+<script src="js/bow.js"></script>
+<script src="js/perc.js"></script>
 <script src="js/hands.js"></script>
 <script src="js/guides.js"></script>
 <script src="js/boot.js"></script>

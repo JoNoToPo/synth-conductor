@@ -46,6 +46,7 @@ function cleanSound(d){ if(!d||typeof d!=='object')return {};
   if(d.ctrl&&typeof d.ctrl==='object'){o.ctrl={};for(const k in TARGETS)if(d.ctrl[k]&&typeof d.ctrl[k].v==='number')o.ctrl[k]={v:d.ctrl[k].v}}
   if(d.matrix)o.matrix=matrixClean(d.matrix);
   if(d.drone)o.drone=droneClean(d.drone);
+  if(d.perc)o.perc=percClean(d.perc);
   if(d.instrument){const x=instrClean(d.instrument);if(x)o.instrument=x}
   if(d.fx&&typeof d.fx==='object')o.fx=pickTyped(d.fx,Object.keys(st.fx),(v,k)=>typeof v===typeof st.fx[k]);
   return o; }

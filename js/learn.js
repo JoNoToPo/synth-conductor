@@ -16,13 +16,14 @@ const PANELS=[   // in the order they appear on the page
   ['hands','What your hands do','Left-hand shapes for 6 and 7, twist, fist, palm roll, height inversions and position'],
   ['amp','Amp & tone','Bass, mid and treble. Volume always shows'],
   ['mod','Modulation','Bend, detune, vibrato, tremolo, auto-pan and rotary'],
-  ['drone','Drone','Notes held under everything, like bagpipes'],
+  ['drone','Drone','Notes held under everything, like bagpipes, with a hurdy-gurdy buzz'],
   ['filter','Filter','Resonance, high-pass and the vowel filter. Cutoff always shows'],
   ['fx','Effects','Drive, phaser, flanger and the reverb type. Reverb, chorus and pedal ring always show'],
   ['lofi','Lo-fi','Bit crush, lower sample rate, tape wobble and hiss or vinyl crackle'],
   ['tempo','Tempo & pump','BPM, tap, sync, click and pump'],
   ['arp','Arp & strum','Play chords as arpeggios, or strum them'],
   ['delay','Delay','Echoes in time with the tempo'],
+  ['perc','Percussion','A shaker, rattle or click on the beat, or played by its dial'],
   ['instrument','Instrument','Build your own: oscillators, envelope, struck or held'],
   ['matrix','Mod matrix','Let LFOs, a chord envelope or your hands move any knob'],
   ['midi','MIDI out','Play other synths or a DAW, or record a .mid file'],
@@ -55,7 +56,7 @@ function panelsApply(){
   const on=PANELS.filter(([k])=>panelShown(k)).length; $('panelsCount').textContent=`${on}/${PANELS.length}`;
   $('panelList').querySelectorAll('input').forEach(i=>i.checked=panelShown(i.value));
   try{localStorage.setItem('vh-panels',JSON.stringify(panels))}catch(e){}
-  if(typeof droneSync==='function')droneSync();   // a hidden Drone panel is a silent one
+  if(typeof droneSync==='function')droneSync();   // a hidden Drone (or Percussion) panel is a silent one
   dispatchEvent(new Event('resize'));
 }
 function setPanel(k,on){ panels[k]=on; panelsApply(); }

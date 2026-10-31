@@ -49,6 +49,9 @@ const audio={
     const G=v=>{const g=ctx.createGain();g.gain.value=v;return g};
     // Chain: voices → bus → drive → high-pass → low-pass → vowel formants → chorus → post → (dry + reverb) → bass → mid → treble → comp → master
     this.bus=G(1);
+    this.voiceBus=G(1); // chord voices only: the Bow dial shapes each stroke here
+    this.bowTone=ctx.createBiquadFilter(); this.bowTone.type='highshelf'; this.bowTone.frequency.value=2800; this.bowTone.gain.value=0;   // a down bow's bite, an up bow's softness
+    this.voiceBus.connect(this.bowTone); this.bowTone.connect(this.bus);
     this.drive=ctx.createWaveShaper(); this.driveGain=G(1);
     this.hp=ctx.createBiquadFilter(); this.hp.type='highpass'; this.hp.frequency.value=20; this.hp.Q.value=.7;
     this.filter=ctx.createBiquadFilter(); this.filter.type='lowpass'; this.filter.Q.value=.6; this.filter.frequency.value=SOUNDS[st.sound].cut;
@@ -183,7 +186,7 @@ const audio={
   // so finished notes don't stay in the audio graph (they were piling up and stalling playback).
   build(m,t){
     const ctx=this.ctx,p=SOUNDS[st.sound],f=440*Math.pow(2,(m-69)/12);
-    const g=ctx.createGain(); g.gain.value=0; g.connect(this.bus);
+    const g=ctx.createGain(); g.gain.value=0; g.connect(this.voiceBus);
     let live=p.osc.length;
     const oscs=p.osc.map(([type,det,ratio,lvl,fade],i)=>{const o=ctx.createOscillator(),og=ctx.createGain();o.type=type;o.frequency.value=f*ratio;
       o._base=det;o._i=i;o.detune.value=this.oscDetune(o);this.vibDepth.connect(o.detune);this.bend.connect(o.detune);if(this.wobble)this.wobble.connect(o.detune);
