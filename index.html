@@ -309,23 +309,6 @@
           <div class="knobs posknob" id="m-chordpos"></div>
         </div>
         <div class="lcds handopts">
-          <label for="camShapeSel" title="The camera picture's shape. Square suits Right hand only; 2:1 gives two hands room side by side">View shape
-            <select id="camShapeSel">
-              <option value="cam">Camera's own</option>
-              <option value="square">Square</option>
-              <option value="wide">Wide 2:1</option>
-            </select></label>
-          <label for="camZoom" title="Zoom the picture in. Left/right and up/down are measured across what you can see, so your hand still registers a little past the edge">Zoom <output id="camZoomVal"></output>
-            <input type="range" id="camZoom" min="1" max="1.6" step="0.05"></label>
-          <label for="xSpanA" title="Where across the picture the right hand's left/right range starts. Move it right so you don't have to reach across">Left/right starts <output id="xSpanAVal"></output>
-            <input type="range" id="xSpanA" min="0" max="0.85" step="0.01"></label>
-          <label for="xSpanB" title="Where across the picture the right hand's left/right range ends">Left/right ends <output id="xSpanBVal"></output>
-            <input type="range" id="xSpanB" min="0.15" max="1" step="0.01"></label>
-          <p class="hint wide" id="xSpanNote"></p>
-          <label for="ySpanA" title="How high your right hand starts to count. 0% is the bottom of the picture">Up/down from <output id="ySpanAVal"></output>
-            <input type="range" id="ySpanA" min="0" max="0.85" step="0.01"></label>
-          <label for="ySpanB" title="How high your right hand has to go for the top of the range. Lower it so you don't have to reach up as far">Up/down to <output id="ySpanBVal"></output>
-            <input type="range" id="ySpanB" min="0.15" max="1" step="0.01"></label>
           <label for="left67Sel" title="Which left-hand shapes play chords 6 and 7">Left hand 6 / 7
             <select id="left67Sel">
               <option value="chinese">Chinese · 🤙 / L</option>
@@ -348,6 +331,28 @@
               <option value="sharp">Sharp ♯</option>
               <option value="off">Off</option>
             </select></label>
+        </div>
+        </div>
+        <div class="sq-voicing sq-cam" data-panel="camera">
+        <div class="cardhead"><h3>Camera</h3><span class="hint">view and ranges</span></div>
+        <div class="lcds handopts">
+          <label for="camShapeSel" title="The camera picture's shape. Square suits Right hand only; 2:1 gives two hands room side by side">View shape
+            <select id="camShapeSel">
+              <option value="cam">Camera's own</option>
+              <option value="square">Square</option>
+              <option value="wide">Wide 2:1</option>
+            </select></label>
+          <label for="camZoom" title="Zoom the picture in. Left/right and up/down are measured across what you can see, so your hand still registers a little past the edge">Zoom <output id="camZoomVal"></output>
+            <input type="range" id="camZoom" min="1" max="1.6" step="0.05"></label>
+          <label for="xSpanA" title="Where across the picture the right hand's left/right range starts. Move it right so you don't have to reach across">Left/right starts <output id="xSpanAVal"></output>
+            <input type="range" id="xSpanA" min="0" max="0.85" step="0.01"></label>
+          <label for="xSpanB" title="Where across the picture the right hand's left/right range ends">Left/right ends <output id="xSpanBVal"></output>
+            <input type="range" id="xSpanB" min="0.15" max="1" step="0.01"></label>
+          <p class="hint wide" id="xSpanNote"></p>
+          <label for="ySpanA" title="How high your right hand starts to count. 0% is the bottom of the picture">Up/down from <output id="ySpanAVal"></output>
+            <input type="range" id="ySpanA" min="0" max="0.85" step="0.01"></label>
+          <label for="ySpanB" title="How high your right hand has to go for the top of the range. Lower it so you don't have to reach up as far">Up/down to <output id="ySpanBVal"></output>
+            <input type="range" id="ySpanB" min="0.15" max="1" step="0.01"></label>
         </div>
         </div>
       </section>

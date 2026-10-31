@@ -14,6 +14,7 @@ const PANELS=[   // in the order they appear on the page
   ['chord','Chord options','7ths, color, major/minor, voice leading, bass note and inversion'],
   ['details','Voicing','Every voicing, not just the ones your fingers play, plus the right-hand finger slots'],
   ['hands','What your hands do','Left-hand shapes for 6 and 7, twist, fist, palm roll, height inversions and position'],
+  ['camera','Camera','View shape, zoom, and where left/right and up/down are measured'],
   ['amp','Amp & tone','Bass, mid and treble. Volume always shows'],
   ['mod','Modulation','Bend, detune, vibrato, tremolo, auto-pan and rotary'],
   ['drone','Drone','Notes held under everything, like bagpipes, with a hurdy-gurdy buzz'],

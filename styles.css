@@ -316,7 +316,7 @@ select{background:var(--surface);border:1px solid var(--line);border-radius:10px
 .sq-voicing{display:flex;flex-direction:column;gap:10px;flex:1;padding:10px 12px 12px;border:1px solid var(--line);border-radius:10px;background:rgba(22,17,14,.45)}
 .sq-voicing .cardhead h3{color:var(--brass)}
 .handopts{margin-top:2px}
-.sq-voicing.sq-hands{flex:none}
+.sq-voicing.sq-hands,.sq-voicing.sq-cam{flex:none}
 /* A chord waiting for the beat */
 .pad.queued,.vchip.queued{outline:2px dashed var(--brass);outline-offset:-4px;animation:padq .5s ease-in-out infinite alternate}
 @keyframes padq{from{outline-color:rgba(214,171,82,.35)}to{outline-color:var(--brass)}}
