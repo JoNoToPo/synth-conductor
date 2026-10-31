@@ -240,6 +240,12 @@
         <label for="modeSel">Mode<select id="modeSel"></select></label>
         <label for="soundSel" class="wide" title="The instrument that plays your chords. Build your own in the Instrument panel">Instrument<select id="soundSel"></select></label>
       </div>
+      <div class="ledknob">
+        <div class="leds">
+          <label class="led" title="A hand movement slides the chord up and down the keyboard. Off = the old automatic placement"><input type="checkbox" id="optPos" checked><span>Hand position</span></label>
+        </div>
+        <div class="knobs posknob" id="m-chordpos"></div>
+      </div>
     </div>
     <div class="module m-chord" data-panel="chord">
       <h3>Chord</h3>
@@ -300,13 +306,9 @@
         <div class="fslots adv-only" id="rhSlots"></div>
         </div>
         <div class="sq-voicing sq-hands" data-panel="hands">
-        <div class="cardhead"><h3>What your hands do</h3><span class="hint">left hand</span></div>
-        <div class="ledknob">
-          <div class="leds">
-            <label class="led" title="Left-hand height picks root, 1st or 2nd inversion"><input type="checkbox" id="optHandInv" checked><span>Height inversions</span></label>
-            <label class="led" title="A hand movement slides the chord up and down the keyboard. Off = the old automatic placement"><input type="checkbox" id="optPos" checked><span>Hand position</span></label>
-          </div>
-          <div class="knobs posknob" id="m-chordpos"></div>
+        <div class="cardhead"><h3>Left hand</h3></div>
+        <div class="leds">
+          <label class="led" title="Left-hand height picks root, 1st or 2nd inversion"><input type="checkbox" id="optHandInv" checked><span>Height inversions</span></label>
         </div>
         <div class="lcds handopts">
           <label for="left67Sel" title="Which left-hand shapes play chords 6 and 7">Left hand 6 / 7
