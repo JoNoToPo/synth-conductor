@@ -10,8 +10,9 @@ const MOD_BIPOLAR=new Set(['lfo1','lfo2','rand']);
 const MOD_RATES=[['4bar','4 bars',{bars:4}],['2bar','2 bars',{bars:2}],['1bar','1 bar',{bars:1}],['1/2','1/2 note',{beats:2}],['1/4','1/4 note',{beats:1}],
   ['1/8','1/8 note',{beats:.5}],['1/16','1/16 note',{beats:.25}],['0.1','0.1 Hz',{hz:.1}],['0.3','0.3 Hz',{hz:.3}],['1','1 Hz',{hz:1}],['3','3 Hz',{hz:3}],['7','7 Hz',{hz:7}]];
 const MOD_SHAPES=[['sine','Sine'],['tri','Triangle'],['square','Square'],['saw','Saw up'],['ramp','Saw down'],['sh','Random steps']];
-// Knobs it can move, grouped the way the panels are. Position and Arp rate re-voice the chord, so they stay out
-const MOD_GROUPS=[['Amp & tone',['volume','velocity','bow','drone','buzz','bass','mid','treble','attack','decay','sustain','release']],['Filter',['cutoff','resonance','highpass','vowel']],
+// Knobs it can move, grouped the way the panels are. Arp rate restarts the arpeggio, so it stays out. Position re-voices
+// the chord, but limits itself to about 11 times a second, so it can move with the matrix
+const MOD_GROUPS=[['Key',['position']],['Amp & tone',['volume','velocity','bow','drone','buzz','bass','mid','treble','attack','decay','sustain','release']],['Filter',['cutoff','resonance','highpass','vowel']],
   ['Effects',['reverb','chorus','pedal','drive','phaser','flanger']],['Lo-fi',['crush','rate','wobble','noise']],['Modulation',['bend','detune','vibrato','tremolo','autopan','rotary']],['Timing',['tempo','pump','perc','delay','feedback','strum']]];
 const MOD_DST=MOD_GROUPS.flatMap(g=>g[1]);
 const MOD_MAX_ROWS=8;

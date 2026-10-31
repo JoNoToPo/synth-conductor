@@ -28,6 +28,9 @@ buildPads();buildVoicings();buildSelects();buildSlots();buildRoutes();preview();
 /* Tempo knob range */
 $('tempoRange').value=String(st.tempoRange);
 $('tempoRange').addEventListener('change',e=>{ st.tempoRange=+e.target.value; try{localStorage.setItem('vh-temporange',String(st.tempoRange))}catch(err){} tempoLast=null; tempoNudged(); showRouteVals(); });
+/* Re-strike only changed notes */
+st.keepCommon=!!st.keepCommon; $('optKeep').checked=st.keepCommon;
+$('optKeep').addEventListener('change',e=>{ st.keepCommon=e.target.checked; savePlay(); });
 /* Chord changes: right away or queued to the beat */
 $('quantSel').value=String(st.quant); $('quantMore').hidden=!st.quant;
 $('quantSel').addEventListener('change',e=>{ st.quant=+e.target.value; if(!st.quant)chordCancel(); try{localStorage.setItem('vh-quant',String(st.quant))}catch(err){}
@@ -223,14 +226,14 @@ try{ if(!localStorage.getItem('vh-visited')){ localStorage.setItem('vh-visited',
     applyHands(BUILTIN_HANDS.Default);activeHands='Default';applySound(BUILTIN_PRESETS.Default);activePreset='Default';renderPresets();renderHands()} } }catch(e){}
 // The rest of how you play: key, voicing, 7ths, voice leading, bass note, inversion and Hand picks voicing.
 // Kept when you leave or hide the page (those change too often to save on every move: the thumb and the loop flip 7ths)
-const PLAY_KEYS=['key','voicing','s7','vl','bass','rh','invBase'];
+const PLAY_KEYS=['key','voicing','s7','vl','bass','rh','invBase','keepCommon'];
 function savePlay(){ const m=looper.mine||{};   // while the loop plays, save your own settings, not the loop's
   const p={}; for(const k of PLAY_KEYS)p[k]=k in m?m[k]:st[k]; try{localStorage.setItem('vh-play',JSON.stringify(p))}catch(e){} }
 addEventListener('pagehide',savePlay); document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='hidden')savePlay(); });
 try{ const p=JSON.parse(localStorage.getItem('vh-play')||'null');
   if(p){ if(Number.isInteger(p.key)&&p.key>=0&&p.key<12)st.key=p.key; if(VOICINGS.some(v=>v.id===p.voicing))st.voicing=p.voicing;
-    for(const k of ['s7','vl','bass','rh'])if(typeof p[k]==='boolean')st[k]=p[k]; if([0,1,2,3].includes(p.invBase))st.invBase=p.invBase;
-    $('keySel').value=st.key; $('opt7').checked=st.s7; $('optVL').checked=st.vl; $('optBass').checked=st.bass; $('optRH').checked=st.rh; $('invSel').value=st.invBase;
+    for(const k of ['s7','vl','bass','rh','keepCommon'])if(typeof p[k]==='boolean')st[k]=p[k]; if([0,1,2,3].includes(p.invBase))st.invBase=p.invBase;
+    $('keySel').value=st.key; $('opt7').checked=st.s7; $('optVL').checked=st.vl; $('optBass').checked=st.bass; $('optRH').checked=st.rh; $('optKeep').checked=!!st.keepCommon; $('invSel').value=st.invBase;
     st.upper=[]; preview(); } }catch(e){}
 $('presetExport').addEventListener('click',()=>{
   const p=loadBank('vh-presets'),h=loadBank('vh-hands'),np=Object.keys(p).length,nh=Object.keys(h).length,ta=$('presetJson');

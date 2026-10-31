@@ -326,12 +326,13 @@ const audio={
     const arp=this.arpRate>0&&this.arpNotes().length>0;
     if(arp)list=list.filter(m=>m===st.bassNote);     // only the bass sustains while arpeggiating
     const want=new Set(list), strike=SOUNDS[st.sound].strike;
-    for(const m of [...this.voices.keys()]) if(!want.has(m)||strike) this.noteOff(m);
+    // Struck sounds re-strike every note on a change, unless only changed notes should: then notes that stay keep ringing
+    for(const m of [...this.voices.keys()]) if(!want.has(m)||(strike&&!st.keepCommon)) this.noteOff(m);
     // Strum: new notes enter low to high, spaced by this.strum seconds
     const fresh=[...want].filter(m=>!this.voices.has(m)); this.strumOrder(fresh,fresh.length>1).forEach((m,i)=>this.noteOn(m,i*this.strum));
     if(arp){ const k=this.arpNotes().join(',');
       if(!this.arpTimer){this.lastArpKey=k;this.startArp();}
-      else if(k!==this.lastArpKey||retrigger){this.lastArpKey=k;this.arpRetrigger();} }
+      else if(retrigger||(k!==this.lastArpKey&&!st.keepCommon)){this.lastArpKey=k;this.arpRetrigger();} else this.lastArpKey=k; }   // otherwise it carries on with the new notes
     else { this.stopArp(); this.lastArpKey=''; }
   },
   allOff(){for(const m of [...this.voices.keys()])this.noteOff(m)},

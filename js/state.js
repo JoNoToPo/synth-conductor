@@ -66,11 +66,13 @@ function realize(d){
   return {upper:pick.notes, bass, rootPc};
 }
 // Chord position: knob 0 = off (old automatic placement); otherwise the chord centres between C3 and C6
-const posTarget=()=>{const v=st.ctrl?.position?.v??0;return v<.03?null:48+v*36};
+// Where the chord sits, as a MIDI note. Off when the knob itself is all the way down; the mod matrix can move it
+// around but never switch it off
+const posTarget=()=>{const v=st.ctrl?.position?.v??0;if(v<.03)return null;const e=typeof effV==='function'?Math.max(.03,effV('position')):v;return 48+e*36};
 let posTimer=null,posLastApplied=null,posLastTime=0;
 function setPosition(v){
   const c=st.ctrl.position;
-  if(v<.03&&c.src!=='none'){st.posSrcMem=c.src+(c.inv?':i':'');c.src='none';c.inv=false} // turned all the way down by hand
+  if(c.v<.03&&c.src!=='none'){st.posSrcMem=c.src+(c.inv?':i':'');c.src='none';c.inv=false} // the knob turned all the way down (not the matrix dipping it)
   const P=posTarget();
   const move=()=>{ const p=posTarget(); posLastApplied=p; posLastTime=performance.now();
     st.posMove=true; if(st.sounding&&st.degree!==null)play(st.degree,{fromVoicingChange:true}); else preview(); st.posMove=false; };
