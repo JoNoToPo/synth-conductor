@@ -45,7 +45,12 @@ const droneGain=()=>effV('drone')*.14;   // at the middle it sits a few dB under
 const droneActive=()=>drone.on&&(typeof panelShown!=='function'||panelShown('drone'));
 const droneInArp=()=>droneActive()&&drone.arp==='join'&&audio.arpRate>0&&st.sounding;
 const droneHeard=()=>(drone.when==='always'||st.sounding)&&!droneInArp();
-function droneFade(now){ const on=droneHeard(); dr.out.gain.setTargetAtTime(on?droneGain():0,now,on?.08:Math.max(.05,env().r/3)); }
+// Joined to the arp, a short gap between chords (a key let go before the next is pressed) mustn't bring the held drone
+// in for a moment: it waits a little, and comes in only if no chord has started by then
+function droneFade(now){ let on=droneHeard();
+  const inArp=droneInArp(); if(dr.inArp&&!inArp)dr.leftAt=performance.now(); dr.inArp=inArp;   // when the arp last let it go
+  if(on&&drone.arp==='join'&&audio.arpRate>0&&performance.now()-(dr.leftAt||0)<450){ on=false; clearTimeout(dr.back); dr.back=setTimeout(droneSync,470); }
+  dr.out.gain.setTargetAtTime(on?droneGain():0,now,on?.08:Math.max(.05,env().r/3)); }
 // The drone's root: the key's, or the chord's while one is sounding (it stays put through a stop)
 function droneNotes(){
   if(drone.follow==='chord'&&st.sounding&&st.degree!==null)dr.root=rootPcOf(st.degree);
@@ -136,4 +141,7 @@ droneUI();
 // The arpeggio takes the drone's notes while it runs (when set to), and turning it on or off moves the drone in or out
 { const n0=audio.arpNotes.bind(audio); audio.arpNotes=()=>{ const ns=n0(); if(!ns.length||!droneInArp())return ns;
     return [...new Set([...ns,...droneNotes()])].sort((a,b)=>a-b); };
+  // A new chord starts its arpeggio on one of its own notes, not the drone's, so the drone doesn't sound on every change.
+  // With Strum on, the whole set (drone included) is strummed together, as before
+  audio.arpSkip=m=>droneInArp()&&droneNotes().includes(m)&&!n0().includes(m);   // n0: the chord's own arp notes
   const s0=audio.setArpRate.bind(audio); audio.setArpRate=nps=>{ s0(nps); droneSync(); }; }

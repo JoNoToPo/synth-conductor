@@ -277,7 +277,9 @@ const audio={
       next=this.arpDiv?this.gridNext():done+step;
       while(next<done+step*.5)next+=step;
     } else {
-      this.shot(this.arpPick(notes,0),t,step*.85); this.arpIdx=1;
+      // The first note is the chord's own: notes the arp may skip here (the drone's, when it joins) wait for their turn in the pattern
+      let i=0, m=this.arpPick(notes,0); if(this.arpSkip)while(this.arpSkip(m)&&i<notes.length*2){ i++; m=this.arpPick(notes,i); }
+      this.shot(m,t,step*.85); this.arpIdx=i+1;
       next=this.arpDiv?this.gridNext():t+step;
       if(next-t<step*.5)next+=step;                   // don't double up when the press lands just before a grid step
     }
