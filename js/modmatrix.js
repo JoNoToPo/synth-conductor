@@ -9,7 +9,7 @@ const MOD_SRC=[
 const MOD_BIPOLAR=new Set(['lfo1','lfo2','rand']);
 const MOD_RATES=[['4bar','4 bars',{bars:4}],['2bar','2 bars',{bars:2}],['1bar','1 bar',{bars:1}],['1/2','1/2 note',{beats:2}],['1/4','1/4 note',{beats:1}],
   ['1/8','1/8 note',{beats:.5}],['1/16','1/16 note',{beats:.25}],['0.1','0.1 Hz',{hz:.1}],['0.3','0.3 Hz',{hz:.3}],['1','1 Hz',{hz:1}],['3','3 Hz',{hz:3}],['7','7 Hz',{hz:7}]];
-const MOD_SHAPES=[['sine','Sine'],['tri','Triangle'],['square','Square'],['saw','Saw up'],['ramp','Saw down'],['sh','Random steps']];
+const MOD_SHAPES=[['sine','Sine'],['cos','Cosine'],['tri','Triangle'],['square','Square'],['saw','Saw up'],['ramp','Saw down'],['sh','Random steps']];
 // Knobs it can move, grouped the way the panels are. Arp rate restarts the arpeggio, so it stays out. Position re-voices
 // the chord, but limits itself to about 11 times a second, so it can move with the matrix
 const MOD_GROUPS=[['Key',['position']],['Amp & tone',['volume','velocity','bow','lowboost','drone','buzz','bass','mid','treble','attack','decay','sustain','release']],['Filter',['cutoff','resonance','highpass','vowel']],
@@ -39,7 +39,8 @@ const modNow=()=>audio.ctx&&audio.ctx.state==='running'?audio.ctx.currentTime-au
 const hash01=n=>{const x=Math.sin(n*12.9898+78.233)*43758.5453;return x-Math.floor(x)};
 function lfoVal(i,t){ const L=matrix.lfo[i], R=(MOD_RATES.find(x=>x[0]===L.rate)||MOD_RATES[2])[2];
   const cyc=R.hz?t*R.hz:t/(beatSec()*(R.beats??R.bars*meterOf().bar)), p=cyc-Math.floor(cyc);   // tempo rates follow the beat grid
-  switch(L.shape){ case 'tri':return 1-4*Math.abs(p-.5); case 'square':return p<.5?1:-1; case 'saw':return 2*p-1; case 'ramp':return 1-2*p;
+  switch(L.shape){ case 'cos':return Math.cos(p*2*Math.PI);   // a sine a quarter cycle ahead: it starts at the top
+    case 'tri':return 1-4*Math.abs(p-.5); case 'square':return p<.5?1:-1; case 'saw':return 2*p-1; case 'ramp':return 1-2*p;
     case 'sh':return hash01(Math.floor(cyc)+i*997)*2-1; default:return Math.sin(p*2*Math.PI); } }
 const modEnv={seq:-1,t0:0};
 function envVal(t){ if(st.chordSeq!==modEnv.seq){modEnv.seq=st.chordSeq;modEnv.t0=t}
