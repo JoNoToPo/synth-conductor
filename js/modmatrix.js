@@ -36,6 +36,9 @@ function matrixApply(m){ matrix=matrixClean(m); matrixSave(); matrixBuild(); mat
 
 /* Sources */
 const modNow=()=>audio.ctx&&audio.ctx.state==='running'?audio.ctx.currentTime-audio.t0:performance.now()/1000;   // the audio clock, so tempo rates sit on the beat grid
+// While the chord loop plays, the LFOs and Random run from the loop's own position: they restart with each pass,
+// so tempo-synced LFOs line up with the loop's bars and the same Random pattern comes round every time
+const loopT=t=>looper.playing&&audio.ctx?(looper.pos+Math.max(0,audio.ctx.currentTime-looper.lastT)/beatSec())%looper.len()*beatSec():t;
 const hash01=n=>{const x=Math.sin(n*12.9898+78.233)*43758.5453;return x-Math.floor(x)};
 function lfoVal(i,t){ const L=matrix.lfo[i], R=(MOD_RATES.find(x=>x[0]===L.rate)||MOD_RATES[2])[2];
   const cyc=R.hz?t*R.hz:t/(beatSec()*(R.beats??R.bars*meterOf().bar)), p=cyc-Math.floor(cyc);   // tempo rates follow the beat grid
@@ -47,8 +50,8 @@ function envVal(t){ if(st.chordSeq!==modEnv.seq){modEnv.seq=st.chordSeq;modEnv.t
   if(!st.sounding)return 0; const x=t-modEnv.t0, {a,d}=matrix.env;
   return x<a?x/Math.max(a,1e-3):Math.max(0,1-(x-a)/d); }
 function modSrcVal(src,t){
-  if(src==='lfo1')return lfoVal(0,t); if(src==='lfo2')return lfoVal(1,t);
-  if(src==='env')return envVal(t); if(src==='rand')return hash01(Math.floor(t/beatSec())+4242)*2-1;
+  if(src==='lfo1')return lfoVal(0,loopT(t)); if(src==='lfo2')return lfoVal(1,loopT(t));
+  if(src==='env')return envVal(t); if(src==='rand')return hash01(Math.floor(loopT(t)/beatSec())+4242)*2-1;
   if(src==='lspeed')return handSpeed01('L')??0;
   return st.inVals[src]??0; }
 
@@ -118,7 +121,7 @@ $('modAdd').addEventListener('click',()=>{ if(matrix.rows.length>=MOD_MAX_ROWS)r
   const last=$('modRows').lastElementChild; last&&last.querySelector('.msrc').focus(); });
 $('modClear').addEventListener('click',()=>{ matrix.rows=[]; matrixSave(); matrixBuild(); matrixRun(); });
 matrixBuild();
-matrixRun();   // rows saved last time start moving straight away
+document.addEventListener('DOMContentLoaded',()=>matrixRun());   // rows saved last time start moving once every script has run (a Position row re-voices, which needs the rest of the page)
 
 /* Instrument editor: the oscillators of the instrument that's playing. A built-in one becomes an edited copy
    ("… (edited)") the moment you change it, so the originals stay as they are; your own ones save as you go */
