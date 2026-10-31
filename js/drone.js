@@ -81,7 +81,7 @@ function droneSync(){
     dr.filt.frequency.value=T.cut; dr.filt.Q.value=T.q;
     droneBuzzBuild(c);
     // Low drone notes get the same lift as the chords' (the Low notes dial): louder, plus overtones small speakers can play
-    dr.voices=notes.map(m=>{ const f=440*Math.pow(2,(m-69)/12), lo=lowBelow(m), boost=effV('lowboost'), sum=T.osc.reduce((a,x)=>a+x[3],0), lift=lowGain(m);
+    dr.voices=notes.map(m=>{ const f=440*Math.pow(2,(m-69)/12), lo=lowBelow(m), boost=lowAmt(), sum=T.osc.reduce((a,x)=>a+x[3],0), lift=lowGain(m);
       const osc=lo>0&&boost>.01?[...T.osc,...LOW_OT.map(([r,k])=>['sine',0,r,boost*k*lo*sum])]:T.osc;
       return {oscs:osc.map(([w,det,ratio,lvl])=>{ const o=c.createOscillator(), g=c.createGain(); o.type=w; o.frequency.value=f*ratio; o.detune.value=det;
         o._ratio=ratio; g.gain.value=lvl*lift; o.connect(g); g.connect(dr.filt); if(audio.wobble)audio.wobble.connect(o.detune); o.start(); return o; })}; });

@@ -369,6 +369,12 @@
     <div class="module m-amp" data-panel="amp" data-panel-min>
       <h3>Amp</h3>
       <div class="knobs" id="m-amp"></div>
+      <div class="lcds"><label for="spkSel" class="wide" title="Laptop speakers can barely play low notes, so the Low notes knob lifts them a lot. Headphones and full-range speakers get a third of that lift">Playing through<select id="spkSel">
+          <option value="auto">Auto</option>
+          <option value="laptop">Laptop speakers</option>
+          <option value="full">Headphones or full-range speakers</option>
+        </select></label>
+        <p class="hint wide" id="spkNote"></p></div>
     </div>
     <div class="module m-mod" data-panel="mod">
       <h3>Modulation</h3>
@@ -751,6 +757,7 @@
 <script src="js/lofi.js"></script>
 <script src="js/bow.js"></script>
 <script src="js/perc.js"></script>
+<script src="js/output.js"></script>
 <script src="js/hands.js"></script>
 <script src="js/guides.js"></script>
 <script src="js/boot.js"></script>

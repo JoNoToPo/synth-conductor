@@ -188,7 +188,7 @@ const audio={
     const ctx=this.ctx,p=SOUNDS[st.sound],f=440*Math.pow(2,(m-69)/12);
     const g=ctx.createGain(); g.gain.value=0; g.connect(this.voiceBus);
     // Low notes get an octave-up overtone: small speakers can't play a low fundamental, and the ear rebuilds it from this
-    const lo=lowBelow(m), boost=effV('lowboost'), sum=p.osc.reduce((a,x)=>a+x[3],0), fade=p.osc[0][4];
+    const lo=lowBelow(m), boost=lowAmt(), sum=p.osc.reduce((a,x)=>a+x[3],0), fade=p.osc[0][4];
     const osc=lo>0&&boost>.01?[...p.osc,...LOW_OT.map(([r,k])=>['sine',0,r,boost*k*lo*sum,fade])]:p.osc;
     let live=osc.length;
     const oscs=osc.map(([type,det,ratio,lvl,fade],i)=>{const o=ctx.createOscillator(),og=ctx.createGain();o.type=type;o.frequency.value=f*ratio;

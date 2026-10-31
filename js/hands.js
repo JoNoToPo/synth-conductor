@@ -20,6 +20,7 @@ $('camBtn').addEventListener('click',async()=>{
     camMsg('The camera isn’t available in this view. Open this page as its own file in Chrome (or host it on a site) and allow camera access. The pads and keyboard work here in the meantime.');
     return;
   }
+  if(typeof spkDetect==='function')spkDetect();   // with camera access the browser names the sound output too
   video.srcObject=cam.stream;await video.play();cam.on=true;status();
   fitView(); video.addEventListener('resize',fitView);
   btn.textContent='Loading hand tracking…';

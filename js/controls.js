@@ -15,7 +15,7 @@ const TARGETS={
   drone:    {label:'Drone level', base:.5, apply:()=>{ if(typeof droneLevel==='function')droneLevel(); }, noCtx:true},
   bow:      {label:'Bow: left of the middle is an up bow (soft start that swells), right a down bow (bright bite); crossing re-strikes', base:.5,
              apply:()=>{ if(typeof bowMoved==='function')bowMoved(); }, noCtx:true, fmt:v=>v<.45?'↑ up bow':v>.55?'↓ down bow':'Plain'},
-  lowboost: {label:'Low notes: lifts notes below C4, more the lower they go, and adds overtones so small speakers can play them. 100% evens them out on laptop speakers', base:.7,
+  lowboost: {label:'Low notes: lifts notes below C4, more the lower they go, and adds overtones so small speakers can play them. 100% evens them out on laptop speakers. Headphones get less of it (Playing through, below)', base:.7,
              apply:()=>{}, noCtx:true, fmt:v=>v<.02?'Off':Math.round(v*100)+'%'},
   volume:   {label:'Volume',         base:.75, apply:v=>audio.ramp(audio.master.gain,.04+v*.76)},
   pedal:    {label:'Pedal ring length (with a hand assigned, the pedal stays down)', base:()=>expInv(4,PEDAL_RING), apply:v=>audio.setRing(expMap(v,PEDAL_RING)), noCtx:true, fmt:v=>fmtSec(expMap(v,PEDAL_RING))},
@@ -131,7 +131,10 @@ const effV=k=>clamp01(st.ctrl[k].v+(modOff[k]||0));
 // Low notes: a level lift and the 2nd, 3rd and 4th overtones, like a piano's bass strings. Tuned by measuring loudness as the ear
 // hears it through a laptop speaker (which loses most below ~300 Hz): at 100% every instrument sits within ~1 dB from C2 to C6
 const LOW_LIFT=2.2, LOW_OT=[[2,.55],[3,.35],[4,.2]];
-const lowBelow=m=>Math.max(0,Math.min(1.4,(60-m)/24)), lowGain=m=>1+effV('lowboost')*LOW_LIFT*lowBelow(m);
+// The lift is tuned for laptop speakers. Headphones and full-range speakers play low notes on their own, so they get a third of it (js/output.js)
+let spkFull=false;
+const lowAmt=()=>effV('lowboost')*(spkFull?.35:1);
+const lowBelow=m=>Math.max(0,Math.min(1.4,(60-m)/24)), lowGain=m=>1+lowAmt()*LOW_LIFT*lowBelow(m);
 function applyCtrl(k){ const t=TARGETS[k], v=effV(k); midiOut.ctrl(k,v); if(!audio.ctx&&!t.noCtx)return; t.apply(v); }
 function applyAllRoutes(){ for(const k in TARGETS)applyCtrl(k); }
 // Called every camera frame with the right hand's smoothed inputs
