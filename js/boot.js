@@ -67,13 +67,13 @@ const SOUND_BOOLS=['s7','bass','vl','pure'], HAND_BOOLS=['rh','rightOnly','handI
 // Built-in hand setups (sound presets above keep only their musical settings now)
 const BUILTIN_HANDS={
   "Default":{rhMap:["close","open","sus2","sus4","six"],left67:"chinese",leftTwist:"flip",palmShift:"flat",leanColor:true,rh:true,rightOnly:false,handInv:true,fast:false,
-    holds:{...HOLD_DEFAULT},holdKeys:false,posV:.444,src:{volume:{src:"y",inv:false},cutoff:{src:"x",inv:false},reverb:{src:"dist",inv:false},position:{src:"lx",inv:false}}},
+    holds:{...HOLD_DEFAULT},holdKeys:false,posV:.54,src:{volume:{src:"y",inv:false},cutoff:{src:"x",inv:false},reverb:{src:"dist",inv:false},position:{src:"lx",inv:false}}},
   // Homage to Eric Wei's Gesture Synth: twist for major ↔ minor, right-hand twist for maj7 ↔ 7, horns / ILY for 6 / 7
   "Eric Wei":{rhMap:["close","close","open","drop2","dim"],left67:"horns",leftTwist:"dir",palmShift:"off",leanColor:true,rh:true,rightOnly:false,handInv:false,fast:false,
     pure:true,sevMode:"twistE",
-    holds:{...HOLD_DEFAULT},holdKeys:false,posV:.444,src:{volume:{src:"y",inv:false},cutoff:{src:"x",inv:false},reverb:{src:"dist",inv:false},position:{src:"lx",inv:false}}},
+    holds:{...HOLD_DEFAULT},holdKeys:false,posV:.54,src:{volume:{src:"y",inv:false},cutoff:{src:"x",inv:false},reverb:{src:"dist",inv:false},position:{src:"lx",inv:false}}},
   "Keys + right hand":{rhMap:["close","open","sus2","sus4","six"],left67:"chinese",leftTwist:"flip",palmShift:"off",leanColor:true,rh:true,rightOnly:true,handInv:false,fast:false,
-    holds:{...HOLD_DEFAULT},holdKeys:false,posV:.444,src:{volume:{src:"y",inv:false},cutoff:{src:"x",inv:false},reverb:{src:"dist",inv:false},position:{src:"lean",inv:false}}}
+    holds:{...HOLD_DEFAULT},holdKeys:false,posV:.54,src:{volume:{src:"y",inv:false},cutoff:{src:"x",inv:false},reverb:{src:"dist",inv:false},position:{src:"lean",inv:false}}}
 };
 function loadBank(key){try{return JSON.parse(localStorage.getItem(key)||'{}')||{}}catch(e){return {}}}
 function storeBank(key,p){try{localStorage.setItem(key,JSON.stringify(p));return true}catch(e){return false}}
@@ -305,7 +305,7 @@ $('optHandInv').checked=st.handInv;
 $('optHandInv').addEventListener('change',e=>{st.handInv=e.target.checked;try{localStorage.setItem('vh-handinv',st.handInv?'1':'0')}catch(err){}
   if(!st.handInv){stab.L.zone=undefined;stab.L.zoneCand=undefined;setInvSource('hand',null)}});
 $('optPos').addEventListener('change',e=>{audio.init();const c=st.ctrl.position;
-  if(e.target.checked){const [src,inv]=(st.posSrcMem||'lx').split(':');c.src=src;c.inv=inv==='i';if(c.v<.03)c.v=.444}
+  if(e.target.checked){const [src,inv]=(st.posSrcMem||'lx').split(':');c.src=src;c.inv=inv==='i';if(c.v<.03)c.v=.54}
   else{if(c.src!=='none')st.posSrcMem=c.src+(c.inv?':i':'');c.src='none';c.inv=false;c.v=0}
   applyCtrl('position');showRouteVals();saveRoutes();});
 $('optLeanColor').addEventListener('change',e=>{st.leanColor=e.target.checked;

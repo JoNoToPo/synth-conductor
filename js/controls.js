@@ -54,7 +54,7 @@ const TARGETS={
   bend:     {label:'Pitch bend (centre = in tune)', base:.5, apply:v=>audio.ramp(audio.bend.offset,bendAmt(v)*midiOut.bendRange*100,.02),
              fmt:v=>{const b=bendAmt(v)*midiOut.bendRange;return Math.abs(b)<.05?'In tune':(b>0?'+':'−')+Math.abs(b).toFixed(1)+' st'}},
   strum:    {label:'Strum',          base:0, apply:v=>{audio.strum=v*.12}, noCtx:true, fmt:v=>v<.01?'Off':Math.round(v*120)+' ms'},
-  position: {label:'Chord position', base:.444, apply:v=>setPosition(v), noCtx:true, fmt:v=>v<.03?'Off':'around '+midiName(Math.round(48+v*36))},
+  position: {label:'Chord position', base:.54, apply:v=>setPosition(v), noCtx:true, fmt:v=>v<.03?'Off':'around '+midiName(Math.round(36+v*52))},
   arp:      {label:'Arpeggio',       base:0, apply:v=>setArp(v), noCtx:true, fmt:()=>st.arpLabel},
 };
 const CTRL_SRC_DEFAULT={cutoff:'x',volume:'y',reverb:'dist',position:'lx',buzz:'speed'};

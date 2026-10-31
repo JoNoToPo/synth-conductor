@@ -23,7 +23,8 @@ function realize(d){
   const rootPc=rootPcOf(d), base=48+rootPc, P=posTarget();
   const cands=[];
   // With Position on, allow a wider range so the chord can travel up and down the keyboard
-  const lo=P===null?47:36, hi=P===null?86:98, kr=P===null?2:3;
+  // With Position on, the chord can use the whole keyboard (E1–C7); with a bass note it stays at E2 or above so the bass fits below
+  const lo=P===null?47:st.bass?40:28, hi=P===null?86:99, kr=P===null?2:4;
   shapes.forEach((sh,si)=>{for(let k=-kr;k<=kr;k++){const notes=sh.map(i=>base+i+12*k);
     if(notes[0]<lo||notes[notes.length-1]>hi)continue;cands.push({notes,si})}});
   if(!cands.length)cands.push({notes:shapes[0].map(i=>base+i),si:0});
@@ -67,10 +68,10 @@ function realize(d){
   }
   return {upper:pick.notes, bass, rootPc};
 }
-// Chord position: knob 0 = off (old automatic placement); otherwise the chord centres between C3 and C6
+// Chord position: knob 0 = off (old automatic placement); otherwise the chord centres between C2 and E6
 // Where the chord sits, as a MIDI note. Off when the knob itself is all the way down; the mod matrix can move it
 // around but never switch it off
-const posTarget=()=>{const v=st.ctrl?.position?.v??0;if(v<.03)return null;const e=typeof effV==='function'?Math.max(.03,effV('position')):v;return 48+e*36};
+const posTarget=()=>{const v=st.ctrl?.position?.v??0;if(v<.03)return null;const e=typeof effV==='function'?Math.max(.03,effV('position')):v;return 36+e*52};
 let posTimer=null,posLastApplied=null,posLastTime=0;
 function setPosition(v){
   const c=st.ctrl.position;
