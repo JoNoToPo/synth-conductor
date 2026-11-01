@@ -118,6 +118,11 @@ const LESSONS=[
    init:()=>({last:st.s7,flips:0}), done:b=>{ if(rightSeen()&&st.s7!==b.last){b.last=st.s7;b.flips++} return b.flips>=2; }},
   {t:'Move to shape the sound', d:'Slide your right hand slowly from one side to the other: by default it opens and closes the filter (watch the track along the bottom of the picture). Up and down sets the volume.',
    init:()=>({lo:1,hi:0}), done:b=>{ if(rightSeen()){b.lo=Math.min(b.lo,st.inVals.x);b.hi=Math.max(b.hi,st.inVals.x)} return b.hi-b.lo>.55; }},
+  {t:'Choose what your hands control', d:'Every knob has a ✋ menu under it that picks which hand movement plays it. Position, in the Key panel, slides the chord up and down the keyboard, and to start it follows your left hand across. Open its menu (it says “Left ✋ ↔”) and pick ✋ ↑: now raising your right hand climbs the keyboard. Any knob works the same way, and “✋ off” leaves it to your mouse.',
+   act:{label:'Show me the menu',run:()=>{ const s=$('cs-position'); s.scrollIntoView({block:'center',behavior:'smooth'}); s.focus({preventScroll:true});
+     s.classList.remove('lpoint'); void s.offsetWidth; s.classList.add('lpoint'); }},
+   init:()=>({was:srcVal(st.ctrl.position)}), done:b=>{ const c=st.ctrl.position; return srcVal(c)!==b.was&&!['none','lx','lspeed'].includes(c.src); },
+   fix:{when:()=>!$('optPos').checked,text:'“Hand position” is off in the Key panel, so Position isn’t moving the chord.',btn:'Turn it on',run:()=>$('optPos').click()}},
   {t:'Make it yours', d:'That’s the core. Next: press C to record a 4-bar chord loop and play voicings over it, try other Sound choices, or open Panels at the top to add the sound knobs, MIDI out and presets. The Hand guide below has every gesture.',
    act:{label:'Show every panel',run:()=>setAllPanels(true)}, final:true},
 ];

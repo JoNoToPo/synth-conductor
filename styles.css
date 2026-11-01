@@ -631,3 +631,6 @@ body.full #loopCard{display:none}
 /* Camera view controls in What your hands do */
 .handopts label output{font-family:var(--font-mono);color:var(--patina);text-transform:none;letter-spacing:0;margin-left:4px}
 .handopts input[type=range]{width:100%;margin:6px 0 2px;accent-color:var(--brass)}
+/* Learn: the control a step points at pulses a few times */
+.lpoint{animation:lpoint .7s ease-in-out 4;outline:2px solid transparent;outline-offset:2px}
+@keyframes lpoint{50%{outline-color:var(--patina);box-shadow:0 0 0 6px rgba(131,185,169,.25)}}
