@@ -99,7 +99,7 @@ panelsApply();
 const rightSeen=()=>!!(cam.on&&cam.R), leftByHand=()=>cam.on&&handOwnsChord&&st.sounding&&st.degree!==null;
 const LESSONS=[
   {t:'Play a chord', d:'Tap any pad under the camera, or press a number key from 1 to 7. Each number is a chord built on that step of the key: 1 is home.',
-   init:()=>({n:st.history.length}), done:b=>st.history.length>b.n},
+   init:()=>({n:st.chordSeq||0}), done:b=>(st.chordSeq||0)>b.n},   // chordSeq counts every chord played; the history list stops growing at 6
   {t:'Play ii – V – I', d:'Press 2, then 5, then 1 (or tap ii, V, I). It’s the most used chord move in jazz and pop: tension, then home.',
    init:()=>({seq:[]}), done:b=>{ const d=st.sounding?st.degree:null; if(d!==null&&b.seq[b.seq.length-1]!==d)b.seq.push(d); return b.seq.slice(-3).join()==='1,4,0'; }},
   {t:'Turn on the camera', d:'Sit back so both hands fit in the picture. The video stays on your computer: the hand tracking runs inside the browser.',
