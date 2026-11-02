@@ -145,6 +145,10 @@ const VOICINGS=[
   shapes:c=>[[0,c.t,11,14],[0,c.t,c.f,11,14],[0,11,c.t+12,14]]},   // always the major 7th, whatever the key's 7th
  {id:'alt',name:'Altered',key:'/',blurb:'Tension for the V chord, before going home to I: a dominant 7 with a bent 5th or 9th. Thumb in: augmented (C E G♯). Thumb out: 7♯5. Twist right: 7♯9, the Hendrix chord. Twist left: 7♭9. Always a major 3rd, so ii becomes a D7 that pulls to V.',
   shapes:(c,s7)=>!s7?inversions([0,4,8]):st.alt7?[[0,4,10,15],[0,10,16,27]]:st.sevForce==='other'?[[0,4,10,13],[0,10,16,25]]:[[0,4,8,10],[0,10,16,20]]},   // its own 3rd and 7th, whatever the key's
+ {id:'cluster',name:'Cluster',key:'-',blurb:'Notes a step apart, crunched together: root, 2nd and 3rd. Tense or dreamy depending on the sound, from film scores and ambient music. With 7ths the 7th joins the bunch from below.',
+  shapes:(c,s7)=>s7?[[c.s-12,0,c.n-12,c.t],[0,c.n-12,c.t,c.s]]:[[0,c.n-12,c.t],[0,c.n-12,c.t,c.f]]},
+ {id:'add11',name:'Add 11',key:'\\',blurb:'The chord plus the 4th, keeping the 3rd (a sus4 drops it). Open and folky, from indie and singer-songwriter guitar; especially pretty on minor chords: Am(add11) is A C D E. With 7ths: a 7(11) chord.',
+  shapes:(c,s7)=>s7?[[0,c.t,c.s,17],[0,c.s,c.t+12,17]]:[[0,c.t,5,c.f],[0,c.f,c.t+12,17],[0,c.t,c.f,17]]},   // always the perfect 4th
  {id:'sowhat',name:'So What',key:'B',blurb:'Three stacked 4ths with a 3rd on top, from Kind of Blue. Minor chords sound as m11, major chords as 13.',
   shapes:(c,s7,d)=>{const minor=c.t===3;
     if(st.flip)return [minor?[0,5,10,15,19]:[c.t,c.t+5,c.t+10,c.t+15,c.t+19]];
@@ -156,6 +160,12 @@ const VOICINGS=[
  {id:'upper',name:'Upper structure',key:'N',blurb:'A second triad stacked above the chord. Major chords get the shimmering ♯11 Lydian sound, minor chords a lush m11.',
   shapes:(c,s7)=>c.t===4?[[0,c.t,...(s7?[c.s]:[]),14,18,21]]:[[0,c.t,10,14,17]]},
 ];
+// How the voicings are grouped in the Voicing panel and the menus. One not listed here lands in "More"
+const VOICING_GROUPS=(()=>{ const g=[['Basic',['close','open','shell','power','guitar']],['Added notes',['six','flat6','two','add9','add11','maj9','cluster']],
+    ['Suspended',['sus2','sus4','ninesus','quartal']],['Jazz',['drop2','drop3','rootless','sowhat','upper']],['Tension',['dim','flat5','alt']]];
+  const seen=new Set(g.flatMap(x=>x[1])), rest=VOICINGS.filter(v=>!seen.has(v.id)).map(v=>v.id); if(rest.length)g.push(['More',rest]);
+  return g.map(([name,ids])=>[name,ids.map(id=>VOICINGS.find(v=>v.id===id)).filter(Boolean)]); })();
+const voicingOptsHTML=()=>VOICING_GROUPS.map(([g,vs])=>`<optgroup label="${g}">${vs.map(v=>`<option value="${v.id}">${v.name}</option>`).join('')}</optgroup>`).join('');
 const RH_DEFAULT=['close','open','sus2','sus4','six']; // index = fingers up (0–4, thumb not counted)
 
 function chordName(d,rel){
@@ -171,7 +181,7 @@ function chordName(d,rel){
     if(h9){ if(n9===2){q=q.replace('7',h6?'13':'9')} else q+='(♭9)'; }
   } else {
     q=aug?'+':minor?(dim?'°':'m'):'';
-    if(h6&&h9) q+='6/9'; else if(h9) q+=q?'(add9)':'add9';
+    if(h6&&h9) q+='6/9'; else if(h9) q+=n9===1?'(add♭9)':q?'(add9)':'add9';
   }
   return root+q;
 }

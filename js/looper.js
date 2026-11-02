@@ -182,7 +182,7 @@ function loopChordUI(){
   const deg=$('lcDeg'); if(document.activeElement!==deg){
     deg.innerHTML=[0,1,2,3,4,5,6].map(d=>{const n=loopChordName({...e,deg:d});return `<option value="${d}">${n.roman} · ${n.name}</option>`}).join('')+'<option value="rest">Rest (silence)</option>';
     deg.value=rest?'rest':String(e.deg); }
-  const vs=$('lcVoicing'); if(!vs.options.length)vs.innerHTML='<option value="">Live: whatever your hand picks</option>'+VOICINGS.map(v=>`<option value="${v.id}">${v.name}</option>`).join('');
+  const vs=$('lcVoicing'); if(!vs.options.length)vs.innerHTML='<option value="">Live: whatever your hand picks</option>'+voicingOptsHTML();
   vs.value=e.voicing||''; $('lcSeven').value=lcSevenOf(e); $('lcShift').value=String(e.shift||0); $('lcInv').value=String(e.inv||0); $('lcFlip').checked=!!e.flip;
   for(const id of ['lcSeven','lcShift','lcInv','lcVoicing','lcFlip','lcHear'])$(id).disabled=rest;
   $('lcHear').disabled=rest||looper.state!=='idle';

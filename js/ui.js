@@ -30,7 +30,11 @@ function showVinfo(){
 }
 function buildVoicings(){
   vEl.innerHTML='';
-  VOICINGS.forEach(v=>{
+  VOICING_GROUPS.forEach(([name,vs])=>{
+  const grp=document.createElement('div'); grp.className='vgroup'; grp.setAttribute('role','group'); grp.setAttribute('aria-label',name);
+  const lab=document.createElement('div'); lab.className='vglabel'; lab.textContent=name; const grid=document.createElement('div'); grid.className='vgrid';
+  grp.append(lab,grid); vEl.appendChild(grp);
+  vs.forEach(v=>{
     const b=document.createElement('button');b.type='button';b.className='vchip';b.dataset.id=v.id;b.setAttribute('role','radio');
     b.title=`${v.name} (key ${v.key}): ${v.blurb}`;
     b.innerHTML=`<span class="vk">${v.key}</span><span class="vn">${v.name}</span><span class="vh"></span>`;
@@ -39,8 +43,8 @@ function buildVoicings(){
     b.addEventListener('mouseleave',()=>{vHover=null;showVinfo()});
     b.addEventListener('focus',()=>{vHover=v.id;showVinfo()});
     b.addEventListener('blur',()=>{vHover=null;showVinfo()});
-    vEl.appendChild(b);
-  });
+    grid.appendChild(b);
+  }); });
 }
 // Instrument menu: held and struck built-ins, then the ones you made
 function fillSoundSel(){ const ss=$('soundSel'); ss.innerHTML='';
@@ -68,7 +72,7 @@ function buildSlots(){
   st.rhMap.forEach((id,i)=>{
     const l=document.createElement('label');l.htmlFor='rh'+i;l.textContent=i===0?'✊ 0':`✋ ${i}`;l.title=i===0?'Closed hand (fist)':`${i} finger${i>1?'s':''} up`;
     const s=document.createElement('select');s.id='rh'+i;
-    VOICINGS.forEach(v=>{const o=document.createElement('option');o.value=v.id;o.textContent=v.name;s.appendChild(o)});
+    s.innerHTML=voicingOptsHTML();
     s.value=id;
     s.addEventListener('change',()=>{st.rhMap[i]=s.value;try{localStorage.setItem('vh-rhmap',JSON.stringify(st.rhMap))}catch(e){}render()});
     l.appendChild(s);wrap.appendChild(l);
@@ -131,7 +135,7 @@ function render(){
     b.classList.toggle('on',st.sounding&&st.degree===d);
     b.classList.toggle('queued',chordQ.timer!==null&&chordQ.d===d);
   });
-  [...vEl.children].forEach(b=>{const on=b.dataset.id===st.voicing;b.classList.toggle('on',on);b.setAttribute('aria-checked',on);b.classList.toggle('queued',voiceQ.timer!==null&&voiceQ.id===b.dataset.id);
+  vEl.querySelectorAll('.vchip').forEach(b=>{const on=b.dataset.id===st.voicing;b.classList.toggle('on',on);b.setAttribute('aria-checked',on);b.classList.toggle('queued',voiceQ.timer!==null&&voiceQ.id===b.dataset.id);
     const slots=st.rhMap.map((id,i)=>id===b.dataset.id?String(i):null).filter(x=>x!==null);
     b.querySelector('.vh').textContent=slots.length?'✋ '+slots.join(' · '):'';
     b.classList.toggle('spare',!slots.length&&!on);}); // no finger plays it: tucked away unless Voicing is open
