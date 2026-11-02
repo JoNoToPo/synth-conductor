@@ -96,6 +96,7 @@ function loopUI(){
     s.title=`${e.deg===null?'Rest':e.name} · ${loopWhere(e.beat)}`; const r=document.createElement('b'); r.textContent=e.deg===null?'—':e.roman; const n=document.createElement('span'); n.textContent=e.deg===null?'rest':e.name;
     s.append(r,n); tl.insertBefore(s,document.getElementById('loopHead')); });
   const ed=loopEditable(); $('loopEdit').hidden=!loopSel||!ed;
+  $('loopSplit').disabled=!loopSel||loopSplitAt(loopSel)===null;   // too short to cut on the Snap grid
   if(loopSel)$('loopSelName').textContent=`${loopSel.deg===null?'Rest':loopSel.name} · ${loopWhere(loopSel.beat)}`;
   $('loopUndo').disabled=!loopUndo.length||!ed;
   const st0=looper.state, rec=$('loopRec'), pl=$('loopPlay');
@@ -141,6 +142,13 @@ function loopMove(e,b){ const ev=looper.events,i=ev.indexOf(e),g=looper.snap||.2
   const lo=i>0?ev[i-1].beat+g:0, hi=i+1<ev.length?ev[i+1].beat-g:looper.len()-g; if(hi<lo)return false;
   b=Math.round(Math.max(lo,Math.min(hi,b))*1e4)/1e4; if(Math.abs(b-e.beat)<1e-6)return false; e.beat=b; return true; }
 function loopNudge(dir){ if(!loopSel||!loopEditable())return; loopPush(); if(loopMove(loopSel,loopSel.beat+dir*(looper.snap||.25))){saveLoop();loopUI()} else loopUndo.pop(); }
+// Split: the selected chord becomes two, cut at its middle (on the Snap grid). The second half plays the same chord again
+// (it re-strikes) and is selected, so Edit chord can turn it into another chord
+const loopSpan=e=>{ const ev=looper.events,i=ev.indexOf(e); return [e.beat,i+1<ev.length?ev[i+1].beat:looper.len()]; };
+function loopSplitAt(e){ const g=looper.snap||.25, [a,b]=loopSpan(e); if(b-a<2*g-1e-6)return null;
+  return Math.round(Math.max(a+g,Math.min(b-g,Math.round((a+b)/2/g)*g))*1e4)/1e4; }
+function loopSplit(){ if(!loopSel||!loopEditable())return; const m=loopSplitAt(loopSel); if(m===null)return;
+  loopPush(); const n={...loopSel,beat:m}; looper.events.push(n); looper.events.sort((x,y)=>x.beat-y.beat); loopSel=n; saveLoop(); loopUI(); }
 function loopDelete(){ if(!loopSel||!loopEditable())return; loopPush(); looper.events.splice(looper.events.indexOf(loopSel),1); loopSel=null; loopEditing=false; saveLoop(); loopUI(); }
 const loopTl=$('loopTl');
 loopTl.addEventListener('pointerdown',ev=>{ if(ev.button>0||!loopEditable())return; const seg=ev.target.closest('.lseg');
@@ -160,6 +168,7 @@ loopTl.addEventListener('keydown',e=>{
 $('loopEarlier').addEventListener('click',()=>loopNudge(-1));
 $('loopLater').addEventListener('click',()=>loopNudge(1));
 $('loopDel').addEventListener('click',loopDelete);
+$('loopSplit').addEventListener('click',loopSplit);
 $('loopUndo').addEventListener('click',()=>{ if(!loopUndo.length||!loopEditable())return;
   try{looper.events=JSON.parse(loopUndo.pop()).filter(x=>x.beat<looper.len())}catch(e){} loopSel=null; loopEditing=false; saveLoop(); loopUI(); });
 /* Editing one chord: only through Edit chord, never by tapping, so a chord can't change by accident.
