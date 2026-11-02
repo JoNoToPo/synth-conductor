@@ -28,6 +28,13 @@ const shiftAmt=()=>st.loopOv?st.loopOv.shift:(st.shiftKey??st.shiftPalm??0);
 const rootPcOf=d=>((KEYS[st.key][0]+SCALE[d]+shiftAmt())%12+12)%12;
 // "Twist picks 7th": right-hand twist left = maj7, twist right = 7 (thumb out). Upright = the usual 7th.
 function force7(c){
+  // Build: twist right adds the 9th (a major 9th, so iii gives m9, not m7♭9); twist left with the thumb out gives
+  // the other 7th on major chords (maj7 ↔ 7) and °7 on minor and diminished ones
+  if(st.sevMode==='build'){
+    if(st.alt7)c.n=14;
+    if(st.s7&&st.sevForce==='other'){ if(c.t===3){c.f=6;c.s=9} else c.s=c.s===11?10:11; }
+    return c;
+  }
   // Eric style, minor chords: upright / twist left = m7, twist right = °7 (Color also gives °7)
   if(st.sevMode==='twistE'&&st.s7&&c.t===3&&c.f===7){
     const dim=st.sevForce?st.sevForce==='dom':c.s===11;
@@ -43,7 +50,7 @@ function tonesOf(d,flip=st.flip,alt7=st.alt7){
   if(st.pure){
     // Pure major/minor: every degree is a plain major chord; flip makes it minor. No diminished chords.
     c={t:flip?3:4,f:7,s:flip?10:11,n:14,six:9};
-    if(st.s7&&alt7) c.s = c.s===11?10:11;   // color swaps to the other 7th (maj7 ↔ 7, m7 ↔ m(maj7))
+    if(st.s7&&alt7&&st.sevMode!=='build') c.s = c.s===11?10:11;   // color swaps to the other 7th (maj7 ↔ 7, m7 ↔ m(maj7)); in Build it adds the 9th
     return force7(c);
   }
   if(sh&&st.shiftQual==='common'){
@@ -51,7 +58,7 @@ function tonesOf(d,flip=st.flip,alt7=st.alt7){
     //               sharp → passing diminished chords (♯i°7, ♯iv°7 …)
     if(sh<0) c=flip?{t:3,f:7,s:10,n:14,six:9}:{t:4,f:7,s:d===6?10:11,n:14,six:9};
     else     c=flip?{t:3,f:7,s:10,n:14,six:9}:{t:3,f:6,s:9,n:14,six:8};
-    if(st.s7&&alt7) c.s = c.s===9?10:c.s===11?10:11;   // color swaps to the other 7th
+    if(st.s7&&alt7&&st.sevMode!=='build') c.s = c.s===9?10:c.s===11?10:11;   // color swaps to the other 7th
     return force7(c);
   }
   if(flip){ const toMajor=c.t===3&&c.f===7; c={t:toMajor?4:3,f:7,s:10,n:14,six:9}; }
@@ -62,6 +69,7 @@ function tonesOf(d,flip=st.flip,alt7=st.alt7){
       c.s = c.t===4&&c.f===7 ? 11 : 10;
       if(alt7) c.s = c.s===11?10:11;              // Color (A key) still swaps it
     }
+    else if(st.sevMode==='build'){}               // the key's own 7th; Color adds the 9th (realize)
     else if(majMode()) c.s = alt7?10:11;          // thumb = maj7, lean + thumb = ♭7
     else if(alt7) c.s = c.s===11?10:11;           // diatonic 7th, lean swaps it
   }
@@ -70,7 +78,7 @@ function tonesOf(d,flip=st.flip,alt7=st.alt7){
 const has7=()=>st.s7;
 // "Major 7th everywhere" only makes sense while lean can reach the ♭7; with the lean switch off, 7ths follow the key
 const majMode=()=>st.sevMode==='maj'&&st.leanColor!==false;
-const addNine=()=>st.alt7&&!st.s7;
+const addNine=()=>st.alt7&&(!st.s7||st.sevMode==='build');   // Build adds it on top of the 7th too
 // Roman numeral from the chord's real quality, with ♭/♯ relative to the major scale (Phrygian ♭II, etc.)
 const NUMS=['I','II','III','IV','V','VI','VII'];
 const voicingNow=()=>st.loopOv?.voicing||st.voicing;   // a loop chord can carry its own voicing
@@ -88,7 +96,7 @@ const names=()=>{ if(st.shiftKey??st.shiftPalm){return (st.shiftKey??st.shiftPal
   // Diminished chords stack minor 3rds, so they read best in flats (B D F A♭) unless the root itself is a black key
   // ♭5 chords read best in flats too (C E G♭), unless the root is a black key
   if(st.voicing==='flat5'&&st.degree!==null&&![1,3,6,8,10].includes((KEYS[st.key][0]+SCALE[st.degree])%12))return FLAT;
-  if(st.degree!==null&&(st.voicing==='dim'||tonesOf(st.degree).f===6)&&![1,3,6,8,10].includes((KEYS[st.key][0]+SCALE[st.degree])%12)&&st.sevMode==='twistE'&&st.s7||st.voicing==='dim'&&st.degree!==null&&![1,3,6,8,10].includes((KEYS[st.key][0]+SCALE[st.degree])%12))return FLAT;
+  if(st.degree!==null&&(st.voicing==='dim'||tonesOf(st.degree).f===6)&&![1,3,6,8,10].includes((KEYS[st.key][0]+SCALE[st.degree])%12)&&(st.sevMode==='twistE'||st.sevMode==='build')&&st.s7||st.voicing==='dim'&&st.degree!==null&&![1,3,6,8,10].includes((KEYS[st.key][0]+SCALE[st.degree])%12))return FLAT;
   const rel=(KEYS[st.key][0]-MODES[st.mode].rel+12)%12;return [1,3,5,8,10].includes(rel)?FLAT:SHARP};
 const pcName=pc=>names()[((pc%12)+12)%12];
 const midiName=m=>pcName(m)+(Math.floor(m/12)-1);
@@ -129,6 +137,8 @@ const VOICINGS=[
   shapes:c=>[[0,c.f,12],[0,c.f,12,c.f+12]]},
  {id:'ninesus',name:'9sus4',key:'J',blurb:'Root, 4th, 7th and 9th. The warm suspended sound of neo-soul and modern R&B.',
   shapes:c=>[[0,5,c.s,c.n],[0,c.s,c.n,17]]},
+ {id:'maj9',name:'Maj 9',key:"'",blurb:'Root, 3rd, major 7th and 9th, with or without the 5th. Lush and dreamy, the neo-soul and bossa nova chord. Minor chords play m(maj9), dark and mysterious.',
+  shapes:c=>[[0,c.t,11,14],[0,c.t,c.f,11,14],[0,11,c.t+12,14]]},   // always the major 7th, whatever the key's 7th
  {id:'sowhat',name:'So What',key:'B',blurb:'Three stacked 4ths with a 3rd on top, from Kind of Blue. Minor chords sound as m11, major chords as 13.',
   shapes:(c,s7,d)=>{const minor=c.t===3;
     if(st.flip)return [minor?[0,5,10,15,19]:[c.t,c.t+5,c.t+10,c.t+15,c.t+19]];

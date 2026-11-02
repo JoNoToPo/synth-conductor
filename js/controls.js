@@ -157,6 +157,12 @@ function driveCtrls(only){
     if(f!==st.sevForce)setSevForce(f);
     return;
   }
+  if(st.sevMode==='build'){ // twist right: add the 9th. Twist left: the other 7th (°7 on minor chords) while the thumb is out
+    const a=st.leanColor?st.leanDeg:0; let r=st.alt7, l=st.sevForce==='other';
+    if(a>TURN){r=true;l=false} else if(a<-TURN){l=true;r=false} else if(Math.abs(a)<10){r=false;l=false}
+    if(r!==st.alt7)setAlt7(r); const f=l?'other':null; if(f!==st.sevForce)setSevForce(f);
+    return;
+  }
   if(st.sevForce)setSevForce(null);
   if(st.leanColor){ // hysteresis: on past TURN degrees of lean, off below ~10°
     const v=st.inVals.lean; let want=st.alt7; if(!st.alt7&&v>TURN/45)want=true; else if(st.alt7&&v<.22)want=false;

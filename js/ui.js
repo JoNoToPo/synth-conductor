@@ -117,7 +117,7 @@ $('optRightOnly').addEventListener('change',e=>{
 $('optAlt7').addEventListener('change',e=>setAlt7(e.target.checked));
 $('invSel').addEventListener('change',e=>setInvSource('base',+e.target.value));
 $('sevSel').value=st.sevMode;
-$('sevSel').addEventListener('change',e=>{st.sevMode=e.target.value;if(!(st.sevMode==='twist'||st.sevMode==='twistE')&&st.sevForce)st.sevForce=null;syncSevUI();try{localStorage.setItem('vh-sevmode',st.sevMode)}catch(err){}refreshAfterChange();render()});
+$('sevSel').addEventListener('change',e=>{st.sevMode=e.target.value;if(!['twist','twistE','build'].includes(st.sevMode)&&st.sevForce)st.sevForce=null;syncSevUI();try{localStorage.setItem('vh-sevmode',st.sevMode)}catch(err){}refreshAfterChange();render()});
 
 function render(){
   const key=KEYS[st.key];

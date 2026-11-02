@@ -1,7 +1,7 @@
 /* ---------- State ---------- */
-const st={pedalHand:'off',key:0,degree:1,voicing:'drop2',s7:true,bass:true,vl:true,rh:true,flip:false,alt7:false,pure:false,fast:false,leftTwist:'flip',sevForce:null,leanDeg:0,left67:'chinese',handInv:true,shiftKey:null,shiftPalm:null,palmShift:'flat',shiftQual:'common',posMove:false,posSrcMem:'lx',sevMode:'maj',mode:'ionian',rightOnly:true,invBase:0,invKey:null,invHand:null,sound:'pad',
+const st={pedalHand:'off',key:0,degree:1,voicing:'drop2',s7:true,bass:true,vl:true,rh:true,flip:false,alt7:false,pure:false,fast:false,leftTwist:'flip',sevForce:null,leanDeg:0,left67:'chinese',handInv:true,shiftKey:null,shiftPalm:null,palmShift:'flat',shiftQual:'common',posMove:false,posSrcMem:'lx',sevMode:'build',mode:'ionian',rightOnly:true,invBase:0,invKey:null,invHand:null,sound:'pad',
   rhMap:RH_DEFAULT.slice(),upper:[],bassNote:null,moved:null,history:[],sounding:false};
-try{const m=localStorage.getItem('vh-sevmode');if(['maj','diatonic','twist','twistE'].includes(m))st.sevMode=m}catch(e){}
+try{const m=localStorage.getItem('vh-sevmode');if(['maj','diatonic','twist','twistE','build'].includes(m))st.sevMode=m}catch(e){}
 try{const m=localStorage.getItem('vh-mode');if(MODES[m])st.mode=m;
   const r=localStorage.getItem('vh-rightonly');if(r!==null)st.rightOnly=r==='1';}catch(e){}
 SCALE=MODES[st.mode].steps;
@@ -172,6 +172,7 @@ function baseName(){
       if(minor)return root+(h7?(s===10?'m7♭5':s===9?'°7':'m(maj7)♭5'):'°');
       return root+(h7?(s===11?'maj7♭5':'7♭5'):'(♭5)');}
     if(voicingNow()==='ninesus')return root+(s===11?'maj9sus4':'9sus4');
+    if(voicingNow()==='maj9')return root+(minor?(c.f===6?'m(maj9)♭5':'m(maj9)'):c.f===8?'maj9♯5':'maj9');
     if(voicingNow()==='sowhat')return root+(minor?'m11':rel.has(11)?'maj13':rel.has(10)?'13':'6/9');
     if(voicingNow()==='upper')return root+(minor?'m11':rel.has(s)?(s===11?'maj13♯11':'13♯11'):'6/9♯11');}
   if(voicingNow()==='six'||voicingNow()==='flat6'){

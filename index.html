@@ -251,7 +251,7 @@
       <h3>Chord</h3>
       <div class="leds">
         <label class="led" title="Add a 7th to every chord (the right thumb does this too)"><input type="checkbox" id="opt7" checked><span>7ths</span></label>
-        <label class="led" title="With 7ths: swap to the other 7th. Without: add a 9th"><input type="checkbox" id="optAlt7"><span>Color</span></label>
+        <label class="led" title="Without 7ths: add a 9th. With 7ths: swap to the other 7th (7th type Build: add the 9th, making a 9 chord)"><input type="checkbox" id="optAlt7"><span>Color</span></label>
         <label class="led" title="Swap major and minor (hold Shift for the same thing)"><input type="checkbox" id="optFlip"><span>Flip maj/min</span></label>
         <label class="led" title="On: every degree plays a plain major chord and Flip makes it minor (no diminished chords). Off: chords follow the key"><input type="checkbox" id="optPure"><span>Pure maj/min</span></label>
         <label class="led" title="Move as few notes as possible between chords"><input type="checkbox" id="optVL" checked><span>Voice leading</span></label>
@@ -262,6 +262,7 @@
       <div class="lcds">
         <label for="sevSel">7th type
           <select id="sevSel">
+            <option value="build" title="Thumb out: the key's own 7th. Twist right: add the 9th (with the thumb: a 9 chord, maj9 or m9). Twist left with the thumb: the other 7th on major chords, °7 on minor">Build: twist right 9 · left other 7th</option>
             <option value="maj">Major 7th (lean for ♭7)</option>
             <option value="diatonic">From the key</option>
             <option value="twist">Twist: left maj7 · right 7</option>
@@ -731,7 +732,9 @@
           <dt>fist / away</dt><dd>Stop (or hold the sustain pedal, if Left fist is set to Holds the pedal)</dd>
           <h4>Right hand · how it sounds</h4>
           <dt class="r">0–4 fingers</dt><dd>The five voicings you assigned (thumb not counted)</dd>
-          <dt class="r">thumb out</dt><dd>Major 7th on every chord (thumb in removes it)</dd>
+          <dt class="r">thumb out</dt><dd>The 7th (thumb in removes it). 7th type Build: the key's own, Cmaj7, Dm7, G7</dd>
+          <dt class="r">twist right</dt><dd>Add the 9th: Cadd9. With the thumb out, a 9 chord: Cmaj9, Dm9, G9 (7th type Build)</dd>
+          <dt class="r">twist left, thumb out</dt><dd>The other 7th: Cmaj7 → C7, G7 → Gmaj7, and °7 on minor chords (7th type Build)</dd>
           <dt class="r">left ↔ right, height, lean, distance, palm roll</dt><dd>Any knob or fader whose hand menu is set to it. Defaults: cutoff, volume, color switch, reverb</dd>
           <dt class="r">color switch, thumb out</dt><dd>Flat 7th: IVmaj7 → IV7</dd>
           <dt class="r">twist left / right, thumb out</dt><dd>maj7 / 7 (7th type: Twist). Upright gives maj7 on major chords, m7 on minor</dd>

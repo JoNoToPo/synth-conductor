@@ -12,7 +12,7 @@ const loopNow=()=>({bars:looper.bars,snap:looper.snap,meter:st.meter,bpm:st.bpm,
 function loopCleanEvents(list){
   return (Array.isArray(list)?list:[]).filter(e=>e&&typeof e.beat==='number'&&(e.deg===null||(Number.isInteger(e.deg)&&e.deg>=0&&e.deg<7)))
     .map(e=>({beat:Math.max(0,e.beat),deg:e.deg,flip:!!e.flip,alt7:!!e.alt7,s7:e.s7===null||e.s7===undefined?null:!!e.s7,
-      sevForce:['maj','dom'].includes(e.sevForce)?e.sevForce:null,shift:[-1,0,1].includes(e.shift)?e.shift:0,
+      sevForce:['maj','dom','other'].includes(e.sevForce)?e.sevForce:null,shift:[-1,0,1].includes(e.shift)?e.shift:0,
       inv:Number.isInteger(e.inv)&&e.inv>=0&&e.inv<4?e.inv:0,roman:String(e.roman||'').slice(0,12),name:String(e.name||'').slice(0,24),voicing:VOICINGS.some(v=>v.id===e.voicing)?e.voicing:null}))
     .sort((a,b)=>a.beat-b.beat);
 }
