@@ -15,11 +15,11 @@ try{let saved=JSON.parse(localStorage.getItem('vh-rhmap')||'null');
 function realize(d){
   const c=tonesOf(d), v=VOICINGS.find(x=>x.id===voicingNow());
   let shapes=v.shapes(c,has7(),d);
-  if(addNine()) shapes=shapes.map(sh=>{
-    if(sh.some(i=>((i-c.n)%12+12)%12===0))return sh;      // already has a 9th/2nd
-    let x=c.n%12; while(x<sh[sh.length-1])x+=12;           // put the 9th on top
-    return [...sh,x];
-  });
+  // Add a note on top of each shape, unless the shape already has it: the 9th (Color), or the 6th (Build, twist left)
+  const addTop=iv=>{ shapes=shapes.map(sh=>{ if(sh.some(i=>((i-iv)%12+12)%12===0))return sh;
+    let x=iv%12; while(x<sh[sh.length-1])x+=12; return [...sh,x]; }); };
+  if(addNine())addTop(c.n);
+  if(addSix())addTop(c.six);
   const rootPc=rootPcOf(d), base=48+rootPc, P=posTarget();
   const cands=[];
   // With Position on, allow a wider range so the chord can travel up and down the keyboard
@@ -168,6 +168,7 @@ function baseName(){
   const rel=new Set([...st.upper,...(st.bassNote!==null?[st.bassNote]:[])].map(m=>((m-rootPc)%12+12)%12));
   {const c=tonesOf(st.degree),root=pcName(rootPc),minor=c.t===3,s=c.s%12;
     if(voicingNow()==='power')return root+'5';
+    if(addSix())return root+(minor?(c.f===6?'°7':'m6'):c.f===8?'+6':'6');   // a diminished triad plus the major 6th is a °7
     if(voicingNow()==='flat5'){const h7=rel.has(s);
       if(minor)return root+(h7?(s===10?'m7♭5':s===9?'°7':'m(maj7)♭5'):'°');
       return root+(h7?(s===11?'maj7♭5':'7♭5'):'(♭5)');}

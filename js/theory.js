@@ -29,9 +29,9 @@ const rootPcOf=d=>((KEYS[st.key][0]+SCALE[d]+shiftAmt())%12+12)%12;
 // "Twist picks 7th": right-hand twist left = maj7, twist right = 7 (thumb out). Upright = the usual 7th.
 function force7(c){
   // Build: twist right adds the 9th (a major 9th, so iii gives m9, not m7♭9); twist left with the thumb out gives
-  // the other 7th on major chords (maj7 ↔ 7) and °7 on minor and diminished ones
+  // the other 7th on major chords (maj7 ↔ 7) and °7 on minor and diminished ones, and with the thumb in the major 6th
   if(st.sevMode==='build'){
-    if(st.alt7)c.n=14;
+    if(st.alt7)c.n=14; if(st.sevForce==='other'&&!st.s7)c.six=9;
     if(st.s7&&st.sevForce==='other'){ if(c.t===3){c.f=6;c.s=9} else c.s=c.s===11?10:11; }
     return c;
   }
@@ -79,6 +79,9 @@ const has7=()=>st.s7;
 // "Major 7th everywhere" only makes sense while lean can reach the ♭7; with the lean switch off, 7ths follow the key
 const majMode=()=>st.sevMode==='maj'&&st.leanColor!==false;
 const addNine=()=>st.alt7&&(!st.s7||st.sevMode==='build');   // Build adds it on top of the 7th too
+// Build, twist left with the thumb in: add the major 6th (C6, Dm6). With the thumb out the same twist swaps the 7th instead,
+// so going thumb in and out moves one note: C7 ↔ C6, D°7 ↔ Dm6
+const addSix=()=>st.sevMode==='build'&&st.sevForce==='other'&&!st.s7;
 // Roman numeral from the chord's real quality, with ♭/♯ relative to the major scale (Phrygian ♭II, etc.)
 const NUMS=['I','II','III','IV','V','VI','VII'];
 const voicingNow=()=>st.loopOv?.voicing||st.voicing;   // a loop chord can carry its own voicing

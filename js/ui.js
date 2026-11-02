@@ -81,7 +81,7 @@ function setShift(src,val){
   if(st.sounding&&st.degree!==null)play(st.degree,{refresh:true}); else preview();
 }
 function twistTag(){ if(!st.sevForce||st.degree===null)return '';
-  const c=tonesOf(st.degree); return c.f===6&&c.s===9?'°7':c.s===11?'maj7':c.t===3?'m7':'7'; }
+  const c=tonesOf(st.degree); if(addSix())return c.t===3?(c.f===6?'°7':'m6'):'6'; return c.f===6&&c.s===9?'°7':c.s===11?'maj7':c.t===3?'m7':'7'; }
 function setSevForce(f){
   st.sevForce=f;
   if(st.sounding&&st.degree!==null)play(st.degree,{fromVoicingChange:true}); else preview();
