@@ -81,6 +81,7 @@ function setShift(src,val){
   if(st.sounding&&st.degree!==null)play(st.degree,{refresh:true}); else preview();
 }
 function twistTag(){ if(!st.sevForce||st.degree===null)return '';
+  if(voicingNow()==='alt')return '';   // its name already says ♯9 or ♭9
   const c=tonesOf(st.degree); if(addSix())return c.t===3?(c.f===6?'°7':'m6'):'6'; return c.f===6&&c.s===9?'°7':c.s===11?'maj7':c.t===3?'m7':'7'; }
 function setSevForce(f){
   st.sevForce=f;
@@ -143,7 +144,7 @@ function render(){
     $('stack').innerHTML='';$('meta').innerHTML=`<span>Voicing <b>${v.name}</b></span>`;
   } else {
     const rootPc=rootPcOf(st.degree);
-    $('roman').textContent=`${romanOf(st.degree)}${st.flip&&!st.pure?' (flipped)':''}${st.sevForce?` · ${twistTag()} (twist)`:st.alt7?(st.s7?(majMode()?' · ♭7':' · other 7th'):' · add9'):''} · ${modeLabel()}${st.sounding?'':' · preview'}`;
+    $('roman').textContent=`${romanOf(st.degree)}${st.flip&&!st.pure?' (flipped)':''}${voicingNow()==='alt'?'':st.sevForce?` · ${twistTag()} (twist)`:st.alt7?(st.s7?(majMode()?' · ♭7':' · other 7th'):' · add9'):''} · ${modeLabel()}${st.sounding?'':' · preview'}`;
     $('chordName').textContent=currentName();$('chordName').className='chordname';
     const notes=(st.bassNote!==null?[{m:st.bassNote,b:1}]:[]).concat(st.upper.map(m=>({m})));
     $('stack').innerHTML=notes.map(({m,b})=>`<span class="n${b?' bass':''}"><span class="f">${FN[((m-rootPc)%12+12)%12]}</span><span class="nm">${midiName(m)}</span></span>`).join('');
@@ -292,5 +293,5 @@ document.addEventListener('keydown',e=>{
   if(k==='s'){setSevenths(!st.s7);return}
   if(k==='a'){setAlt7(!st.alt7);return}
   if(k==='['||k===']'){st.key=(st.key+(k===']'?1:11))%12;st.upper=[];refreshAfterChange();return}
-  const v=VOICINGS.find(x=>x.key.toLowerCase()===k); if(v){audio.init();setVoicing(v.id)}
+  const v=VOICINGS.find(x=>x.key.toLowerCase()===k); if(v){e.preventDefault();audio.init();setVoicing(v.id)}   // ' and / would otherwise open Firefox's quick find
 });

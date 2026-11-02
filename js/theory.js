@@ -90,6 +90,7 @@ function romanOf(d){
   const acc=off<0?'♭'.repeat(-off):off>0?'♯'.repeat(off):'';
   const n=NUMS[d];
   if(voicingNow()==='dim') return acc+n.toLowerCase()+'°';
+  if(voicingNow()==='alt') return acc+n+(st.s7?'7':'+');
   if(c.t===4) return acc+n+(c.f===8?'+':'');
   return acc+n.toLowerCase()+(c.f===6?'°':'');
 }
@@ -142,6 +143,8 @@ const VOICINGS=[
   shapes:c=>[[0,5,c.s,c.n],[0,c.s,c.n,17]]},
  {id:'maj9',name:'Maj 9',key:"'",blurb:'Root, 3rd, major 7th and 9th, with or without the 5th. Lush and dreamy, the neo-soul and bossa nova chord. Minor chords play m(maj9), dark and mysterious.',
   shapes:c=>[[0,c.t,11,14],[0,c.t,c.f,11,14],[0,11,c.t+12,14]]},   // always the major 7th, whatever the key's 7th
+ {id:'alt',name:'Altered',key:'/',blurb:'Tension for the V chord, before going home to I: a dominant 7 with a bent 5th or 9th. Thumb in: augmented (C E G♯). Thumb out: 7♯5. Twist right: 7♯9, the Hendrix chord. Twist left: 7♭9. Always a major 3rd, so ii becomes a D7 that pulls to V.',
+  shapes:(c,s7)=>!s7?inversions([0,4,8]):st.alt7?[[0,4,10,15],[0,10,16,27]]:st.sevForce==='other'?[[0,4,10,13],[0,10,16,25]]:[[0,4,8,10],[0,10,16,20]]},   // its own 3rd and 7th, whatever the key's
  {id:'sowhat',name:'So What',key:'B',blurb:'Three stacked 4ths with a 3rd on top, from Kind of Blue. Minor chords sound as m11, major chords as 13.',
   shapes:(c,s7,d)=>{const minor=c.t===3;
     if(st.flip)return [minor?[0,5,10,15,19]:[c.t,c.t+5,c.t+10,c.t+15,c.t+19]];
