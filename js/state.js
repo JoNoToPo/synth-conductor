@@ -28,7 +28,7 @@ function realize(d){
     if(notes[0]<lo||notes[notes.length-1]>hi)continue;cands.push({notes,si})}});
   if(!cands.length)cands.push({notes:shapes[0].map(i=>base+i),si:0});
   // Inversion: which chord tone is lowest
-  const bassIv=bassInterval(d,c), bassPc=(rootPc+bassIv)%12;
+  const bassIv=typeof bassNoteIv==='function'?bassNoteIv(d,c):bassInterval(d,c), bassPc=(rootPc+bassIv)%12;
   if(!st.bass&&bassIv!==0){
     const inv=cands.filter(cd=>((cd.notes[0]%12)+12)%12===bassPc);
     if(inv.length){cands.length=0;cands.push(...inv)}

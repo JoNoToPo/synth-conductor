@@ -17,6 +17,7 @@ const PANELS=[   // in the order they appear on the page
   ['camera','Camera','View shape, zoom, and where left/right and up/down are measured'],
   ['amp','Amp & tone','Bass, mid and treble. Volume always shows'],
   ['mod','Modulation','Bend, detune, vibrato, tremolo, auto-pan and rotary'],
+  ['bass','Bass','The bass note: root, 5th or 3rd, held or in a pattern on the beat, with its own sound'],
   ['drone','Drone','Notes held under everything, like bagpipes, with a hurdy-gurdy buzz'],
   ['filter','Filter','Resonance, high-pass and the vowel filter. Cutoff always shows'],
   ['fx','Effects','Drive, phaser, flanger and the reverb type. Reverb, chorus and pedal ring always show'],
@@ -58,6 +59,7 @@ function panelsApply(){
   $('panelList').querySelectorAll('input').forEach(i=>i.checked=panelShown(i.value));
   try{localStorage.setItem('vh-panels',JSON.stringify(panels))}catch(e){}
   if(typeof droneSync==='function')droneSync();   // a hidden Drone (or Percussion) panel is a silent one
+  if(typeof bassPanelChanged==='function')bassPanelChanged();   // folding Bass hands the bass back to the chord
   dispatchEvent(new Event('resize'));
 }
 function setPanel(k,on){ panels[k]=on; panelsApply(); }

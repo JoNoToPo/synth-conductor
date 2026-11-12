@@ -256,8 +256,6 @@
         <label class="led" title="Swap major and minor (hold Shift for the same thing)"><input type="checkbox" id="optFlip"><span>Flip maj/min</span></label>
         <label class="led" title="On: every degree plays a plain major chord and Flip makes it minor (no diminished chords). Off: chords follow the key"><input type="checkbox" id="optPure"><span>Pure maj/min</span></label>
         <label class="led" title="Move as few notes as possible between chords"><input type="checkbox" id="optVL" checked><span>Voice leading</span></label>
-        <label class="led" title="Play the bass note an octave or two below the voicing"><input type="checkbox" id="optBass" checked><span>Bass note</span></label>
-        <label class="led" title="Play the bass note an octave higher, for laptop and phone speakers that can't make deep notes. It always stays below the chord"><input type="checkbox" id="optBassHigh"><span>Higher bass</span></label>
         <label class="led wide" title="When the chord, voicing or position changes, only notes that actually change are struck again: the rest keep ringing (struck sounds like keys and marimba re-strike everything otherwise), and the arpeggio carries on instead of starting over"><input type="checkbox" id="optKeep"><span>Re-strike only changed notes</span></label>
       </div>
       <div class="lcds">
@@ -404,6 +402,37 @@
           <option value="1/16">1/16 note</option>
           <option value="1/16T">1/16 triplet</option>
         </select></label></div>
+    </div>
+    <div class="module m-bass" data-panel="bass" data-panel-min>
+      <h3>Bass</h3>
+      <div class="ledknob">
+        <div class="leds">
+          <label class="led" title="Play the bass note an octave or two below the voicing"><input type="checkbox" id="optBass" checked><span>Bass note</span></label>
+          <label class="led" title="Play the bass note an octave higher, for laptop and phone speakers that can't make deep notes. It always stays below the chord"><input type="checkbox" id="optBassHigh"><span>Higher bass</span></label>
+        </div>
+        <div class="knobs pa" id="m-bass"></div>
+      </div>
+      <div class="lcds pa">
+        <label for="bassNoteSel" title="Which chord note is in the bass. Follows Inversion: the Inversion setting (or the left hand's height) picks it">Note<select id="bassNoteSel">
+          <option value="inv">Follows Inversion</option>
+          <option value="root">Root</option>
+          <option value="fifth">5th</option>
+          <option value="third">3rd</option>
+        </select></label>
+        <label for="bassPattern" title="Held: one note per chord. The others play on the beat grid, in time with the tempo">Pattern<select id="bassPattern">
+          <option value="held">Held</option>
+          <option value="beat">Every beat</option>
+          <option value="rootfifth">Root – 5th (boom-chick)</option>
+          <option value="octave">Octave bounce</option>
+        </select></label>
+        <label for="bassSound" class="wide">Sound<select id="bassSound">
+          <option value="same">Same as Instrument</option>
+          <option value="sub">Sub</option>
+          <option value="pluck">Plucked</option>
+          <option value="synth">Synth bass</option>
+        </select></label>
+      </div>
+      <p class="hint pa">Folded to Less, the bass is the chord's own lowest note, as before. Open, this panel plays it.</p>
     </div>
     <div class="module m-drone" data-panel="drone">
       <h3>Drone</h3>
@@ -762,6 +791,7 @@
 <script src="js/lofi.js"></script>
 <script src="js/bow.js"></script>
 <script src="js/perc.js"></script>
+<script src="js/bass.js"></script>
 <script src="js/output.js"></script>
 <script src="js/hands.js"></script>
 <script src="js/guides.js"></script>

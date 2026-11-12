@@ -48,6 +48,7 @@ const TARGETS={
   feedback: {label:'Delay feedback', base:.35, apply:v=>audio.setFeedback(v)},
   tempo:    {label:'Tempo push and pull (centre = your BPM)', base:.5, apply:()=>{ if(typeof setArp==='function')tempoNudged(); }, noCtx:true,
              fmt:v=>{ const d=tempoOff(v); return Math.abs(d)<.5?'Set BPM':`${d>0?'+':'−'}${Math.round(Math.abs(d))} · ${Math.round(Math.max(40,Math.min(240,st.bpm+d)))}`; }},
+  basslvl:  {label:'Bass level: how loud the Bass panel plays the bass (the middle is the usual level)', base:.5, apply:()=>{}, noCtx:true},
   perc:     {label:'Percussion level', base:.6, apply:()=>{}, noCtx:true},
   pump:     {label:'Pump',    base:0, apply:v=>audio.setPump(v), fmt:v=>v<.02?'Off':Math.round(v*100)+'%'},
   vibrato:  {label:'Vibrato depth (MIDI mod wheel)', base:0, apply:v=>audio.ramp(audio.vibDepth.gain,v*35)},
@@ -175,10 +176,10 @@ function saveRoutes(){clearTimeout(saveTimer);saveTimer=setTimeout(()=>{try{
 // Which module each control lives in, and its short panel name
 const MODULE_OF={amp:['volume','velocity','bow','lowboost','bass','mid','treble'],env:['attack','decay','sustain','release'],
   filter:['cutoff','resonance','highpass','vowel'],fx:['reverb','chorus','pedal','drive','phaser','flanger'],mod:['bend','detune','vibrato','tremolo','autopan','rotary'],
-  pump:['pump','tempo'],perc:['perc'],drone:['drone','buzz'],lofi:['crush','rate','wobble','noise'],delay:['delay','feedback'],arp:['arp','strum'],chordpos:['position']};
+  pump:['pump','tempo'],perc:['perc'],bass:['basslvl'],drone:['drone','buzz'],lofi:['crush','rate','wobble','noise'],delay:['delay','feedback'],arp:['arp','strum'],chordpos:['position']};
 // The finer knobs: hidden when their panel is switched to just the basics
-const CTRL_ADV=new Set(['bass','mid','treble','resonance','highpass','vowel','drive','phaser','flanger']);
-const KSHORT={lowboost:'Low notes',buzz:'Buzz',perc:'Percussion',bow:'Bow',tempo:'Tempo',crush:'Crush',rate:'Rate',wobble:'Wobble',noise:'Noise',drone:'Drone',velocity:'Velocity',bass:'Bass',mid:'Mid',treble:'Treble',pedal:'Pedal ring',volume:'Volume',cutoff:'Cutoff',resonance:'Reso',highpass:'Hi-pass',vowel:'Vowel',reverb:'Reverb',chorus:'Chorus',
+const CTRL_ADV=new Set(['basslvl','bass','mid','treble','resonance','highpass','vowel','drive','phaser','flanger']);
+const KSHORT={basslvl:'Bass level',lowboost:'Low notes',buzz:'Buzz',perc:'Percussion',bow:'Bow',tempo:'Tempo',crush:'Crush',rate:'Rate',wobble:'Wobble',noise:'Noise',drone:'Drone',velocity:'Velocity',bass:'Bass',mid:'Mid',treble:'Treble',pedal:'Pedal ring',volume:'Volume',cutoff:'Cutoff',resonance:'Reso',highpass:'Hi-pass',vowel:'Vowel',reverb:'Reverb',chorus:'Chorus',
   drive:'Drive',detune:'Detune',vibrato:'Vibrato',strum:'Strum',arp:'Arp rate',phaser:'Phaser',flanger:'Flanger',tremolo:'Tremolo',autopan:'Auto-pan',rotary:'Rotary',delay:'Delay',feedback:'Feedback',pump:'Pump',position:'Position',bend:'Bend',attack:'A',decay:'D',sustain:'S',release:'R'};
 // Hand menu: source + direction in one choice
 const SRC_OPTS=[['none','✋ off'],['x','✋ →'],['x:i','✋ ←'],['y','✋ ↑'],['y:i','✋ ↓'],['lean','Lean'],['lean:i','Lean inv'],['tilt','Tilt'],['tilt:i','Tilt inv'],['dist','Push'],['dist:i','Pull'],['roll','Palm'],['roll:i','Back'],['speed','Speed'],['speed:i','Speed inv']];

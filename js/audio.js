@@ -326,6 +326,7 @@ const audio={
   setNotes(list,{retrigger=false}={}){
     this.chord=list.slice();
     if(!this.ctx)return;
+    if(typeof bassOwn==='function'&&bassOwn())list=list.filter(m=>m!==st.bassNote);   // the Bass panel plays the bass itself
     // Pressing the same chord again plays it again: the old notes fade out quickly and the attack restarts
     if(retrigger){ for(const m of [...this.voices.keys()]){const v=this.voices.get(m);this.noteOff(m);
       const now=this.ctx.currentTime; v.g.gain.cancelScheduledValues(now); v.g.gain.setValueAtTime(v.g.gain.value,now); v.g.gain.setTargetAtTime(0,now,.025);} }

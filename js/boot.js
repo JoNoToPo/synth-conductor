@@ -85,7 +85,7 @@ function captureSound(){
   const vals={}; for(const k in TARGETS)if(k!=='position'&&k!=='bend')vals[k]={v:st.ctrl[k].v};
   return {key:st.key,mode:st.mode,sound:st.sound,voicing:st.voicing,s7:st.s7,bass:st.bass,vl:st.vl,pure:st.pure,
     sevMode:st.sevMode,invBase:st.invBase,shiftQual:st.shiftQual,ctrl:vals,
-    arpPattern:audio.arpPattern,strumDir:audio.strumDir,bendRange:midiOut.bendRange,bpm:st.bpm,meter:st.meter,sync:st.sync,vibDiv:st.vibDiv,fx:{...st.fx},matrix:matrixCapture(),drone:droneCapture(),perc:percCapture(),
+    arpPattern:audio.arpPattern,strumDir:audio.strumDir,bendRange:midiOut.bendRange,bpm:st.bpm,meter:st.meter,sync:st.sync,vibDiv:st.vibDiv,fx:{...st.fx},matrix:matrixCapture(),drone:droneCapture(),perc:percCapture(),bass:bassCapture(),
     instrument:SOUNDS[st.sound].mine||SOUNDS[st.sound].draft?instrClean(SOUNDS[st.sound]):undefined,   // your own instrument travels with the preset
     saved:Date.now()};
 }
@@ -112,6 +112,7 @@ function applySound(c){
   if(c.fx&&typeof c.fx==='object'){Object.assign(st.fx,c.fx);saveFx();syncFxUI();audio.setReverbType(st.fx.reverbType);setTimeFx()}
   if(c.matrix)matrixApply(c.matrix);
   if(c.drone)droneApply(c.drone);
+  if(c.bass)bassApply(c.bass);
   if(c.perc)percApply(c.perc);   // presets saved before the mod matrix leave yours as it is
   SCALE=MODES[st.mode].steps;
   $('keySel').value=st.key;$('modeSel').value=st.mode;$('soundSel').value=st.sound;
