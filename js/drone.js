@@ -85,9 +85,13 @@ function droneSync(){
   if(sig!==dr.sig){ droneKill();   // a new sound or number of notes: build them fresh
     dr.filt.frequency.value=T.cut; dr.filt.Q.value=T.q;
     droneBuzzBuild(c);
-    // Low drone notes get the same lift as the chords' (the Low notes dial): louder, plus overtones small speakers can play
-    dr.voices=notes.map(m=>{ const f=440*Math.pow(2,(m-69)/12), lo=lowBelow(m), boost=lowAmt(), sum=T.osc.reduce((a,x)=>a+x[3],0), lift=lowGain(m);
-      const osc=lo>0&&boost>.01?[...T.osc,...LOW_OT.map(([r,k])=>['sine',0,r,boost*k*lo*sum])]:T.osc;
+    // Low drone notes get the same lift as the chords' (the Low notes dial): louder, plus overtones small speakers can play.
+    // Past two notes each one is turned down, so a big custom drone stays as loud as a small one: summed at full level,
+    // a dozen notes drove the mix compressor hard enough to push the chords almost out. With many notes the overtones are
+    // left out too: the notes already fill those frequencies, and it halves the work for the audio thread
+    const spread=notes.length>2?Math.sqrt(2/notes.length):1, ot=notes.length<=8;
+    dr.voices=notes.map(m=>{ const f=440*Math.pow(2,(m-69)/12), lo=lowBelow(m), boost=lowAmt(), sum=T.osc.reduce((a,x)=>a+x[3],0), lift=lowGain(m)*spread;
+      const osc=ot&&lo>0&&boost>.01?[...T.osc,...LOW_OT.map(([r,k])=>['sine',0,r,boost*k*lo*sum])]:T.osc;
       return {oscs:osc.map(([w,det,ratio,lvl])=>{ const o=c.createOscillator(), g=c.createGain(); o.type=w; o.frequency.value=f*ratio; o.detune.value=det;
         o._ratio=ratio; g.gain.value=lvl*lift; o.connect(g); g.connect(dr.filt); if(audio.wobble)audio.wobble.connect(o.detune); o.start(); return o; })}; });
     dr.sig=sig; dr.notes=key; if(droneHeard())dr.out.gain.setTargetAtTime(droneGain(),now,.35); return; }
