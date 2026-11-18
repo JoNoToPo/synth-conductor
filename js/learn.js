@@ -4,9 +4,9 @@
 // A Ko-fi, GitHub Sponsors, PayPal.me or similar page.
 const SUPPORT_URL='https://paypal.me/JonathanEngelhard/5';   // /5 fills in a suggested amount of 5; donors can change it
 
-/* Panels: every part of the page past the camera and pads can be shown or hidden, from the Panels menu or a
-   panel's own ✕. New visitors start with just the essentials. "Voicing" (key details) also holds the finer settings
-   (everything marked adv-only: the finger slots) and the voicings no finger plays; with it off the page is in Simple view. */
+/* Panels: the controls past the camera and pads, sorted into tabs (layout.js), each folding shut to its name.
+   Some also fold to their main knobs (More / Less). "Voicing" folded that way is Simple view: just the voicings
+   your fingers play, without the finger slots (adv-only). New visitors start with them folded. */
 const PANELS=[   // in the order they appear on the page
   ['presets','Presets','Save and load sounds and hand setups'],
   ['piano','Keyboard','The notes that are sounding, with the chord path'],
@@ -31,69 +31,35 @@ const PANELS=[   // in the order they appear on the page
   ['midi','MIDI out','Play other synths or a DAW, or record a .mid file'],
 ];
 const PANELS_ESSENTIAL=['piano','loop'];
-// Panels that keep time: while any of them shows, Tempo shows too
-const NEEDS_TEMPO={quant:'Chord changes on the beat',loop:'Chord loop',arp:'Arp & strum',delay:'Delay',mod:'Modulation'};
-// Older saves had one switch for all the sound panels and one for arp, tempo and delay
-const PANELS_WAS={amp:'sound',mod:'sound',filter:'sound',fx:'sound',tempo:'rhythm',arp:'rhythm',delay:'rhythm'};
+// Panels with finer knobs fold down to their main ones (More / Less); nothing is hidden any more: each tab's panels fold shut instead.
+// Voicing's "−" is Simple view (just the voicings your fingers play). panels[k] is true when a foldable panel shows everything
+const PANELS_MIN=[...document.querySelectorAll('[data-panel-min]')].map(el=>el.dataset.panel);
 let panels={};
 { let saved=null; try{saved=JSON.parse(localStorage.getItem('vh-panels')||'null')}catch(e){}
   let simple=firstVisit; try{const v=localStorage.getItem('vh-simple');if(v!==null)simple=v==='1'}catch(e){}   // carried over from Simple view
-    const was=k=>saved&&(typeof saved[k]==='boolean'?saved[k]:typeof saved[PANELS_WAS[k]]==='boolean'?saved[PANELS_WAS[k]]:undefined);
-  PANELS.forEach(([k])=>{const w=was(k); panels[k]=w!==undefined?w:simple?PANELS_ESSENTIAL.includes(k):true}); }
-const tempoNeededBy=()=>[...Object.keys(NEEDS_TEMPO).filter(k=>panels[k]),...(st.quant>0?['quant']:[])];
-const panelShown=k=>panels[k]||(k==='tempo'&&tempoNeededBy().length>0);
+  PANELS.forEach(([k])=>{ const w=saved&&saved[k]; panels[k]=!PANELS_MIN.includes(k)||(typeof w==='boolean'?w:!simple); }); }
+const panelShown=k=>!!panels[k];
 function panelsApply(){
-  document.querySelectorAll('[data-panel]').forEach(el=>{ const on=panelShown(el.dataset.panel);
-    if(el.hasAttribute('data-panel-min')){ el.classList.toggle('panel-min',!on); const b=el.querySelector(':scope>.phide');
-      const sign=el.hasAttribute('data-panel-sign'); b.textContent=sign?(on?'−':'+'):on?'Less':'More';
-      b.title=sign?(on?'Show just the voicings your fingers play':'Show every voicing and the finger slots'):on?'Show just the main knobs':'Show every knob';
-      b.setAttribute('aria-label',b.title); b.setAttribute('aria-expanded',on); b.classList.toggle('psign',sign); }
-    else el.classList.toggle('panel-off',!on); });
-  document.querySelectorAll('.padd').forEach(b=>b.hidden=panelShown(b.dataset.for));
+  document.querySelectorAll('[data-panel-min]').forEach(el=>{ const on=panelShown(el.dataset.panel);
+    el.classList.toggle('panel-min',!on); const b=el.querySelector(':scope>.phide'); if(!b)return;
+    const sign=el.hasAttribute('data-panel-sign'); b.textContent=sign?(on?'−':'+'):on?'Less':'More';
+    b.title=sign?(on?'Show just the voicings your fingers play':'Show every voicing and the finger slots'):on?'Show just the main knobs':'Show every knob';
+    b.setAttribute('aria-label',b.title); b.setAttribute('aria-expanded',on); b.classList.toggle('psign',sign); });
   document.body.classList.toggle('simple',!panels.details);
-  // Tempo can't be hidden while something uses it: its box is ticked and greyed, and its ✕ is gone
-  const need=tempoNeededBy(), tb=$('panelList').querySelector('input[value=tempo]');
-  tb.disabled=need.length>0; tb.closest('.pmitem').querySelector('small').textContent=need.length?`Shown while ${need.map(k=>NEEDS_TEMPO[k]).join(', ')} ${need.length>1?'are':'is'} on`:PANELS.find(p=>p[0]==='tempo')[2];
-  document.querySelector('.m-tempo>.phide').hidden=need.length>0;
-  const on=PANELS.filter(([k])=>panelShown(k)).length; $('panelsCount').textContent=`${on}/${PANELS.length}`;
-  $('panelList').querySelectorAll('input').forEach(i=>i.checked=panelShown(i.value));
   try{localStorage.setItem('vh-panels',JSON.stringify(panels))}catch(e){}
-  if(typeof droneSync==='function')droneSync();   // a hidden Drone (or Percussion) panel is a silent one
+  if(typeof droneSync==='function')droneSync();
   if(typeof bassPanelChanged==='function')bassPanelChanged();   // folding Bass hands the bass back to the chord
   dispatchEvent(new Event('resize'));
 }
-function setPanel(k,on){ panels[k]=on; panelsApply(); }
-function setAllPanels(list){ PANELS.forEach(([k])=>panels[k]=list===true||list.includes(k)); panelsApply(); }
-PANELS.forEach(([k,name,desc])=>{
-  const l=document.createElement('label'); l.className='pmitem';
-  l.innerHTML=`<input type="checkbox" value="${k}"><b>${name}</b><small>${desc}</small>`;
-  l.querySelector('input').addEventListener('change',e=>setPanel(k,e.target.checked)); $('panelList').appendChild(l);
+// on: show it (and for a foldable panel, all of it). Asking for a panel also brings its tab up, once the tabs exist
+function setPanel(k,on){ if(PANELS_MIN.includes(k))panels[k]=on; panelsApply(); if(on&&typeof revealPanel==='function')revealPanel(k); }
+function setAllPanels(list){ PANELS_MIN.forEach(k=>panels[k]=list===true||list.includes(k)); panelsApply(); }
+// More / Less (or + / −) in the corner of each foldable panel
+document.querySelectorAll('[data-panel-min]').forEach(el=>{
+  const k=el.dataset.panel, b=document.createElement('button'); b.type='button'; b.className='phide pmore';
+  b.addEventListener('click',e=>{ e.preventDefault(); e.stopPropagation(); panels[k]=!panels[k]; panelsApply(); });
+  el.appendChild(b);
 });
-// A ✕ in each panel's corner; on a collapsible section it sits in the title bar so it shows when closed too
-document.querySelectorAll('[data-panel]').forEach(el=>{
-  const k=el.dataset.panel, name=(PANELS.find(p=>p[0]===k)||[])[1]; if(!name||el.classList.contains('panelhint'))return;
-  const b=document.createElement('button'); b.type='button'; b.className='phide';
-  // A panel with main knobs that always stay folds down to them (More/Less); any other one hides (✕)
-  if(el.hasAttribute('data-panel-min')){ b.classList.add('pmore'); b.addEventListener('click',e=>{ e.preventDefault(); e.stopPropagation(); setPanel(k,!panels[k]); }); }
-  else{ b.textContent='✕'; b.title=`Hide ${name}. Bring it back from Panels at the top`; b.setAttribute('aria-label',`Hide ${name}`);
-    b.addEventListener('click',e=>{ e.preventDefault(); e.stopPropagation(); setPanel(k,false); });
-    // A hidden panel leaves a + in its place to bring it back right there
-    const add=document.createElement('button'); add.type='button'; add.className='padd'; add.dataset.for=k; add.hidden=true;
-    add.innerHTML=`<span aria-hidden="true">+</span> ${name}`; add.title=`Show ${name} here again`;
-    add.addEventListener('click',()=>{ setPanel(k,true); el.querySelector(':scope>.phide,:scope>summary>.phide')?.focus(); }); el.after(add); }
-  const sum=el.tagName==='DETAILS'&&el.querySelector(':scope>summary'); (sum||el).appendChild(b);
-});
-{ const btn=$('panelsBtn'), menu=$('panelMenu');
-  // Opens under the button, kept inside the screen
-  const place=()=>{ const r=btn.getBoundingClientRect(), w=menu.offsetWidth;
-    menu.style.top=Math.round(r.bottom+8)+'px'; menu.style.left=Math.round(Math.max(16,Math.min(r.left,innerWidth-w-16)))+'px'; };
-  const show=on=>{ menu.hidden=!on; btn.setAttribute('aria-expanded',on); if(on)place(); };
-  addEventListener('resize',()=>{ if(!menu.hidden)place(); }); addEventListener('scroll',()=>{ if(!menu.hidden)show(false); },{passive:true});
-  btn.addEventListener('click',e=>{ e.stopPropagation(); show(menu.hidden); });
-  document.addEventListener('pointerdown',e=>{ if(!menu.hidden&&!menu.contains(e.target)&&e.target!==btn&&!btn.contains(e.target))show(false); });
-  document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&!menu.hidden){show(false);btn.focus()} });
-  $('panelsEssentials').addEventListener('click',()=>setAllPanels(PANELS_ESSENTIAL));
-  $('panelsAll').addEventListener('click',()=>setAllPanels(true)); }
 panelsApply();
 
 /* Walkthrough. Each step finishes itself when you actually do the thing; Skip is always there.
@@ -120,13 +86,13 @@ const LESSONS=[
    init:()=>({last:st.s7,flips:0}), done:b=>{ if(rightSeen()&&st.s7!==b.last){b.last=st.s7;b.flips++} return b.flips>=2; }},
   {t:'Move to shape the sound', d:'Slide your right hand slowly from one side to the other: by default it opens and closes the filter (watch the track along the bottom of the picture). Up and down sets the volume.',
    init:()=>({lo:1,hi:0}), done:b=>{ if(rightSeen()){b.lo=Math.min(b.lo,st.inVals.x);b.hi=Math.max(b.hi,st.inVals.x)} return b.hi-b.lo>.55; }},
-  {t:'Choose what your hands control', d:'Every knob has a ✋ menu under it that picks which hand movement plays it. Position, in the Key panel, slides the chord up and down the keyboard, and to start it follows your left hand across. Open its menu (it says “Left ✋ ↔”) and pick ✋ ↑: now raising your right hand climbs the keyboard. Any knob works the same way, and “✋ off” leaves it to your mouse.',
-   act:{label:'Show me the menu',run:()=>{ const s=$('cs-position'); s.scrollIntoView({block:'center',behavior:'smooth'}); s.focus({preventScroll:true});
+  {t:'Choose what your hands control', d:'Every knob has a ✋ menu under it that picks which hand movement plays it. Position, in the Hands tab, slides the chord up and down the keyboard, and to start it follows your left hand across. Open its menu (it says “Left ✋ ↔”) and pick ✋ ↑: now raising your right hand climbs the keyboard. Any knob works the same way, and “✋ off” leaves it to your mouse.',
+   act:{label:'Show me the menu',run:()=>{ const s=$('cs-position'); if(typeof revealEl==='function')revealEl(s); s.scrollIntoView({block:'center',behavior:'smooth'}); s.focus({preventScroll:true});
      s.classList.remove('lpoint'); void s.offsetWidth; s.classList.add('lpoint'); }},
    init:()=>({was:srcVal(st.ctrl.position)}), done:b=>{ const c=st.ctrl.position; return srcVal(c)!==b.was&&!['none','lx','lspeed'].includes(c.src); },
-   fix:{when:()=>!$('optPos').checked,text:'“Hand position” is off in the Key panel, so Position isn’t moving the chord.',btn:'Turn it on',run:()=>$('optPos').click()}},
-  {t:'Make it yours', d:'That’s the core. Next: press C to record a 4-bar chord loop and play voicings over it, try other Sound choices, or open Panels at the top to add the sound knobs, MIDI out and presets. The Hand guide below has every gesture.',
-   act:{label:'Show every panel',run:()=>setAllPanels(true)}, final:true},
+   fix:{when:()=>!$('optPos').checked,text:'Position is turned all the way down, so it isn’t moving the chord.',btn:'Turn it up',run:()=>$('optPos').click()}},
+  {t:'Make it yours', d:'That’s the core. Next: press C to record a 4-bar chord loop and play voicings over it, try other Sound choices, or look through the tabs: Chords, Hands, Sound, Backing and Mod. Each panel opens when you tap its name. Presets, MIDI and the Hand guide (every gesture) are at the top.',
+   act:{label:'Show me the tabs',run:()=>{ const t=$('tabsarea'); t.scrollIntoView({block:'start',behavior:'smooth'}); t.querySelector('.tabbar').classList.remove('lpoint'); void t.offsetWidth; t.querySelector('.tabbar').classList.add('lpoint'); }}, final:true},
 ];
 const lesson={i:0,b:{},okAt:0,timer:null};
 function lessonSave(fin){ try{localStorage.setItem('vh-lesson',JSON.stringify({i:lesson.i,finished:!!fin}))}catch(e){} }

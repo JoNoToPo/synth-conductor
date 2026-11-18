@@ -151,7 +151,7 @@ function driveCtrls(only){
     if(lastDriven[k]!==undefined&&Math.abs(v-lastDriven[k])<.004)continue; // skip changes too small to hear
     lastDriven[k]=v; applyCtrl(k);}
   if(only)return;
-  if((st.sevMode==='twist'||st.sevMode==='twistE')&&st.s7){ // 7th type "Twist": thumb out, twist left = maj7, right = 7, upright = natural 7th (with hysteresis)
+  if((st.sevMode==='twist'||st.sevMode==='twistE')&&st.s7&&st.leanColor){   // twist Off in Chord options: no twist at all // 7th type "Twist": thumb out, twist left = maj7, right = 7, upright = natural 7th (with hysteresis)
     const a=st.leanDeg; let f=st.sevForce;
     if(a>TURN)f='dom'; else if(a<-TURN)f='maj'; else if(Math.abs(a)<10)f=null;
     if(st.alt7)setAlt7(false);

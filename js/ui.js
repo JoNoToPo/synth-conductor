@@ -88,7 +88,7 @@ function twistTag(){ if(!st.sevForce||st.degree===null)return '';
   if(voicingNow()==='alt')return '';   // its name already says ♯9 or ♭9
   const c=tonesOf(st.degree); if(addSix())return c.t===3?(c.f===6?'°7':'m6'):'6'; return c.f===6&&c.s===9?'°7':c.s===11?'maj7':c.t===3?'m7':'7'; }
 function setSevForce(f){
-  st.sevForce=f;
+  st.sevForce=f; if(looper.mine)looper.mine.sevForce=f;   // while the loop plays, your hand's 7ths are remembered for its live chords
   if(st.sounding&&st.degree!==null)play(st.degree,{fromVoicingChange:true}); else preview();
 }
 function setFlip(on){
@@ -96,11 +96,11 @@ function setFlip(on){
   if(st.sounding&&st.degree!==null)play(st.degree,{refresh:true}); else preview();
 }
 function setAlt7(on){
-  if(st.alt7===on)return; st.alt7=on; $('optAlt7').checked=on;
+  if(looper.mine)looper.mine.alt7=on; if(st.alt7===on)return; st.alt7=on; $('optAlt7').checked=on;
   if(st.sounding&&st.degree!==null)play(st.degree,{refresh:true}); else preview();
 }
 function setSevenths(on){
-  if(st.s7===on)return; st.s7=on; $('opt7').checked=on; refreshAfterChange();
+  if(looper.mine)looper.mine.s7=on; if(st.s7===on)return; st.s7=on; $('opt7').checked=on; refreshAfterChange();
 }
 function refreshAfterChange(){ if(st.sounding&&st.degree!==null) play(st.degree,{fromVoicingChange:true}); else preview(); }
 [['optVL','vl'],['opt7','s7'],['optBass','bass'],['optRH','rh']].forEach(([id,k])=>{

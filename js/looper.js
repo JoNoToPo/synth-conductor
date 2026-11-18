@@ -1,6 +1,6 @@
 /* ---------- Chord loop: record a progression against the beat, then it repeats while you play over it ----------
-   It records harmony only (chord, major/minor flip, 7th, color, flat/sharp, inversion). Voicing, knobs and sound
-   stay live, so the right hand keeps shaping the loop as it plays. Positions are kept in beats, so changing
+   It records harmony only (chord, major/minor flip, flat/sharp, inversion). Voicing, 7ths and twists, knobs and sound
+   stay live, so the right hand keeps shaping the loop as it plays; Edit chord can fix a chord's 7th instead. Positions are kept in beats, so changing
    the BPM speeds the loop up or slows it down. Beats here are always quarter notes; the meter sets how many make a bar. */
 const looper={
   bars:4, snap:.5, events:[], state:'idle',   // idle · count (waiting for the downbeat) · rec · play
@@ -8,7 +8,7 @@ const looper={
   pos:0, lastT:0, startAt:0, timer:null, clickWas:false, lastSnap:null,
   len(){ return this.bars*meterOf().bar; },
   snapshot(){ const on=st.sounding&&st.degree!==null;
-    return {deg:on?st.degree:null,flip:st.flip,alt7:st.alt7,s7:st.s7,sevForce:st.sevForce,shift:shiftAmt(),inv:effInv(),
+    return {deg:on?st.degree:null,flip:st.flip,alt7:null,s7:null,sevForce:null,   // s7 null: the 7th is live, your hand'sshift:shiftAmt(),inv:effInv(),
       roman:on?romanOf(st.degree):'',name:on?currentName():''}; },
   same(a,b){ return a&&b&&['deg','flip','alt7','s7','sevForce','shift','inv'].every(k=>a[k]===b[k]); },
   // Called after every chord change you play. While recording, it lands on the nearest snap step, but never past
@@ -19,8 +19,8 @@ const looper={
     this.events=this.events.filter(e=>Math.abs(e.beat-b)>1e-4); this.events.push({beat:b,...s}); this.events.sort((x,y)=>x.beat-y.beat);
     loopUI(); },
   apply(e){
-    st.loopOv={shift:e.shift,inv:e.inv,voicing:e.voicing||null}; st.flip=e.flip; st.alt7=e.alt7; st.s7=e.s7; st.sevForce=e.sevForce;
-    $('optFlip').checked=e.flip; $('optAlt7').checked=e.alt7; $('opt7').checked=e.s7;
+    st.loopOv={shift:e.shift,inv:e.inv,voicing:e.voicing||null}; st.flip=e.flip; loopSet7(e,this.mine);
+    $('optFlip').checked=e.flip; $('optAlt7').checked=st.alt7; $('opt7').checked=st.s7;
     if(e.deg===null)play(null,{fromLoop:true}); else play(e.deg,{fromLoop:true,retrigger:st.degree===e.deg&&st.sounding});
   },
   // Next beat (or bar) on the same grid as the arpeggio, click and MIDI clock
@@ -50,7 +50,8 @@ const looper={
     loopHead();
   },
   fire(a,b){ for(const e of this.events) if(e.beat>a&&e.beat<=b+1e-9) this.apply(e); },
-  // The loop sets flip, 7ths and color as it plays; yours come back when it stops
+  // The loop sets flip (and any fixed 7ths) as it plays; yours come back when it stops. Your hand's 7ths are kept
+  // up to date in mine while it plays, so a live chord after a fixed one gets what your hand is doing now
   keep(){ this.mine={flip:st.flip,alt7:st.alt7,s7:st.s7,sevForce:st.sevForce}; },
   restore(){ const m=this.mine; if(!m)return; this.mine=null; Object.assign(st,m); $('optFlip').checked=m.flip; $('optAlt7').checked=m.alt7; $('opt7').checked=m.s7; },
 };
@@ -64,7 +65,7 @@ function loopMidi(times=1){
     for(let r=0;r<times;r++) ev.forEach((e,i)=>{ if(e.deg===null)return;
       // rings until the next change; the last one carries into the next time round, as it does when playing
       const end=i+1<ev.length?ev[i+1].beat+r*L:r<times-1?(r+1)*L+ev[0].beat:times*L;
-      st.loopOv={shift:e.shift,inv:e.inv,voicing:e.voicing||null}; st.flip=e.flip; st.alt7=e.alt7; st.s7=e.s7; st.sevForce=e.sevForce;
+      st.loopOv={shift:e.shift,inv:e.inv,voicing:e.voicing||null}; st.flip=e.flip; loopSet7(e,keep);
       const n=realize(e.deg); st.upper=n.upper; st.bassNote=n.bass; st.degree=e.deg;   // so voice leading follows on
       const notes=[...(n.bass!==null?[[bch,n.bass]]:[]),...n.upper.map(m=>[ch,m])];
       const t0=Math.round((e.beat+r*L)*tpq), t1=Math.round(end*tpq);
@@ -173,14 +174,18 @@ $('loopUndo').addEventListener('click',()=>{ if(!loopUndo.length||!loopEditable(
   try{looper.events=JSON.parse(loopUndo.pop()).filter(x=>x.beat<looper.len())}catch(e){} loopSel=null; loopEditing=false; saveLoop(); loopUI(); });
 /* Editing one chord: only through Edit chord, never by tapping, so a chord can't change by accident.
    Done, Esc, the ✕, tapping the chord again or tapping empty timeline all close it */
+// A chord's 7th: fixed (s7 true/false, with its twist), or live (s7 null), which takes the 7ths from mine: your hand's
+function loopSet7(e,mine){ if(e.s7!==null&&e.s7!==undefined){ st.s7=!!e.s7; st.alt7=!!e.alt7; st.sevForce=e.sevForce??null; }
+  else if(mine){ st.s7=mine.s7; st.alt7=mine.alt7; st.sevForce=mine.sevForce; } }
+const loopLive7=e=>e.s7===null||e.s7===undefined;
 function loopDeselect(){ loopSel=null; loopEditing=false; }
 // What a loop chord is called, worked out with that chord's own settings
 function loopChordName(e){ if(e.deg===null)return {roman:'',name:''};
   const keep={flip:st.flip,alt7:st.alt7,s7:st.s7,sevForce:st.sevForce,loopOv:st.loopOv,upper:st.upper.slice(),bassNote:st.bassNote,degree:st.degree};
-  try{ st.loopOv={shift:e.shift,inv:e.inv,voicing:e.voicing||null}; st.flip=!!e.flip; st.alt7=!!e.alt7; st.s7=e.s7??keep.s7; st.sevForce=e.sevForce; st.degree=e.deg;
+  try{ st.loopOv={shift:e.shift,inv:e.inv,voicing:e.voicing||null}; st.flip=!!e.flip; loopSet7(e,keep); st.degree=e.deg;
     const r=realize(e.deg); st.upper=r.upper; st.bassNote=r.bass; return {roman:romanOf(e.deg),name:currentName()}; }
   finally{ Object.assign(st,keep); } }
-function lcSevenOf(e){ const s7=e.s7??st.s7; return s7?(e.alt7?"7c":"7"):(e.alt7?"add9":"tri"); }
+function lcSevenOf(e){ return loopLive7(e)?'live':e.s7?(e.alt7?"7c":"7"):(e.alt7?"add9":"tri"); }
 function loopChordUI(){
   const p=$('loopChord'), e=loopSel, show=!!e&&loopEditing&&loopEditable(); p.hidden=!show;
   $('loopEditChord').textContent=loopEditing?'Editing…':'Edit chord'; $('loopEditChord').disabled=loopEditing;
@@ -202,7 +207,8 @@ $('loopEditChord').addEventListener('click',()=>{ if(!loopSel||!loopEditable())r
 $('loopDeselect').addEventListener('click',()=>{ loopDeselect(); loopUI(); });
 $('lcDone').addEventListener('click',()=>{ loopDeselect(); loopUI(); $('loopTl').focus(); });
 $('lcDeg').addEventListener('change',ev=>lcChange(e=>{ const v=ev.target.value; e.deg=v==='rest'?null:+v; }));
-$('lcSeven').addEventListener('change',ev=>lcChange(e=>{ const v=ev.target.value; e.s7=v==='7'||v==='7c'; e.alt7=v==='add9'||v==='7c'; }));
+$('lcSeven').addEventListener('change',ev=>lcChange(e=>{ const v=ev.target.value;
+  if(v==='live'){ e.s7=null; e.alt7=null; e.sevForce=null; } else { e.s7=v==='7'||v==='7c'; e.alt7=v==='add9'||v==='7c'; e.sevForce=null; } }));
 $('lcShift').addEventListener('change',ev=>lcChange(e=>{ e.shift=+ev.target.value; }));
 $('lcInv').addEventListener('change',ev=>lcChange(e=>{ e.inv=+ev.target.value; }));
 $('lcVoicing').addEventListener('change',ev=>lcChange(e=>{ e.voicing=ev.target.value||null; }));

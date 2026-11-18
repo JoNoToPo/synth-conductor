@@ -414,10 +414,11 @@ function handleHands(L,R){
     // Twist: lean right past TURN degrees flips major/minor; back under ~10° returns to normal
     const a=lean(L);
     let want=st.flip;
-    if(st.leftTwist==='dir'){ if(a<-15)want=true; else if(a>15)want=false; }   // right = major, left = minor; upright keeps the last choice
+    if(st.leftTwist==='off'){}   // Chord options: Flip is yours to tap
+    else if(st.leftTwist==='dir'){ if(a<-15)want=true; else if(a>15)want=false; }   // right = major, left = minor; upright keeps the last choice
     else { if(!st.flip&&a>TURN)want=true; else if(st.flip&&a<10)want=false; }   // lean right flips, upright returns
     if(want===sL.flipCand)sL.flipN++;else{sL.flipCand=want;sL.flipN=1}
-    if(sL.flipN>=nF(4)&&want!==st.flip)setFlip(want);
+    if(st.leftTwist!=='off'&&sL.flipN>=nF(4)&&want!==st.flip)setFlip(want);
     // Left/right across the left half of the frame (mirrored) → Position input
     st.inVals.lx=euro('lx',clamp01((fvx(1-L[0].x)-.05)/.45),now); driveCtrls(['lx']); showRouteVals();
     // Height zones for the bass note, with a dead band so it doesn't flicker between zones
@@ -470,8 +471,8 @@ function handleHands(L,R){
     if(st.rh){
       sR.cand=n; if(steady(sR,'v',n,nF(5)))setVoicing(st.rhMap[n]); sR.prog=Math.min(1,sR.vN/nF(5));
       label=` → ${VOICINGS.find(v=>v.id===st.rhMap[n]).name}`;
-      if(steady(sR,'s7',thumb,nF(5)))setSevenths(thumb);
     }
+    if(st.thumb7!==false&&steady(sR,'s7',thumb,nF(5)))setSevenths(thumb);   // Chord options: 7th played by the right thumb
     label+=` · lean ${Math.round(a)}°${st.sevForce?` (${twistTag()})`:st.alt7?(st.s7?' (♭7)':' (add9)'):''}`;
     $('hudR').textContent=`Right · ${n} up${label} · thumb ${thumb?(majMode()?'out (maj7)':'out (key 7th)'):'in'}`;
   } else { $('hudR').textContent='Right hand · voicing';

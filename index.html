@@ -41,12 +41,9 @@
     </div>
     <div class="hdrtools">
       <button class="btn" id="learnBtn" type="button">Learn the basics</button>
-      <button class="btn" id="panelsBtn" type="button" aria-expanded="false" aria-controls="panelMenu">Panels <span class="pcount" id="panelsCount"></span></button>
-      <div class="panelmenu" id="panelMenu" role="dialog" aria-label="Choose which panels to show" hidden>
-        <p class="hint">Show only what you use. Panels have a ✕ to hide them, or More and Less to show or tuck away the finer knobs. Turn them back on here.</p>
-        <div class="pmlist" id="panelList"></div>
-        <div class="row"><button class="btn" id="panelsEssentials" type="button">Just the essentials</button><button class="btn" id="panelsAll" type="button">Show everything</button></div>
-      </div>
+      <button class="btn" type="button" data-dlg="dlgPresets">Presets</button>
+      <button class="btn" type="button" data-dlg="dlgMidi">MIDI</button>
+      <button class="btn" type="button" data-dlg="dlgHelp">Help</button>
     </div>
     <div class="status"><span class="dot" id="audioDot"></span><span id="statusText">Sound off · tap a chord to start</span><span class="lat" id="latency" title="Audio: the browser's output delay. Camera: frames per second. Tracking: time to find your hands in each frame"></span></div>
   </header>
@@ -63,39 +60,7 @@
     <p class="hint" id="shareNote"></p>
   </section>
 
-  <section class="progbar" aria-label="Presets" data-panel="presets">
-    <h3 title="Key, sound, voicing, chord style, knob and fader values, effects, arpeggio and tempo">Sound</h3>
-    <div class="plist" id="presetList"></div>
-    <form class="psave" id="presetForm">
-      <label class="sr" for="presetName">Sound preset name</label>
-      <input type="text" id="presetName" placeholder="Name this sound" maxlength="40" autocomplete="off">
-      <button class="btn primary" type="submit">Save</button>
-    </form>
-    <h3 title="Finger slots, left-hand shapes, gestures, which hand movement drives each knob, and keyboard hold keys">Hands</h3>
-    <div class="plist" id="handList"></div>
-    <form class="psave" id="handForm">
-      <label class="sr" for="handName">Hand setup name</label>
-      <input type="text" id="handName" placeholder="Name this hand setup" maxlength="40" autocomplete="off">
-      <button class="btn primary" type="submit">Save</button>
-    </form>
-    <div class="progfoot"><p class="hint" id="presetMsg">Sound presets and hand setups save separately, so you can mix any sound with any way of playing. Both are kept in this browser.</p><details class="pio">
-            <summary>Share or back up presets and hand setups</summary>
-            <div class="piobody">
-              <button class="btn" id="presetExport" type="button">Copy all presets &amp; hand setups</button>
-              <label class="sr" for="presetJson">Presets as text</label>
-              <textarea id="presetJson" rows="4" spellcheck="false" placeholder="Paste presets here, then press Import"></textarea>
-              <button class="btn" id="presetImport" type="button">Import pasted presets</button>
-            </div>
-          </details></div>
-  </section>
 
-  <section class="pianowrap" data-panel="piano">
-    <div class="pianohead">
-      <span>Sounding notes · <span style="color:var(--patina)">bass</span>, <span style="color:var(--brass)">voicing</span><span id="droneLegend" hidden> and <span style="color:var(--drone)">drone</span></span></span>
-      <span class="path" id="path"></span>
-    </div>
-    <div class="pianoscroll" id="piano"></div>
-  </section>
 
   <div class="main">
     <section class="stage">
@@ -120,6 +85,13 @@
         <div class="meta" id="meta"></div>
       </div>
 
+      <div class="gbar" id="gbar">
+        <button class="chip" id="keyChip" type="button" title="Key and mode: opens the Key panel"></button>
+        <label class="chip bpmchip" title="Tempo in beats per minute: the chord loop, arpeggio, delay, LFOs and anything on the beat follow it"><input type="number" id="bpmQuick" min="40" max="240" step="1" inputmode="numeric" aria-label="BPM"><span>BPM</span></label>
+        <button class="chip" id="tapQuick" type="button" title="Tap the beat a few times to set the tempo">Tap</button>
+        <button class="chip" id="clickQuick" type="button" aria-pressed="false" title="Metronome click">Click</button>
+        <button class="chip" id="videoBtn" type="button" aria-pressed="false" title="Hide the camera picture to make room. Your hands are still tracked">Hide video</button>
+      </div>
       <div class="pads" id="pads"></div>
 
       <div class="row">
@@ -134,7 +106,79 @@
         <button class="btn fs-keep" id="fullBtn" type="button" aria-pressed="false" title="Just the camera, the chord and the pads, filling the screen. Esc to leave">Full screen</button>
       </div>
       <p class="msg" id="camMsg" hidden></p>
-      <section class="module m-loop g-arp" id="loopCard" data-panel="loop" aria-label="Chord loop">
+    </section>
+    <section class="tabsarea" id="tabsarea" aria-label="Controls">
+      <nav class="tabbar" role="tablist" aria-label="Controls">
+        <button class="tabbtn" type="button" role="tab" id="tb-favs" data-tab="favs" aria-controls="tab-favs" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/></svg><span>Favorites</span></button>
+        <button class="tabbtn" type="button" role="tab" id="tb-chords" data-tab="chords" aria-controls="tab-chords" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></svg><span>Chords</span></button>
+        <button class="tabbtn" type="button" role="tab" id="tb-hands" data-tab="hands" aria-controls="tab-hands" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 13V5.5a1.5 1.5 0 0 1 3 0V12"/><path d="M11 11.5v-7a1.5 1.5 0 0 1 3 0V12"/><path d="M14 5.5a1.5 1.5 0 0 1 3 0V12"/><path d="M17 7.5a1.5 1.5 0 0 1 3 0V16a6 6 0 0 1-6 6h-2a6 6 0 0 1-5.2-3L4.3 14.6a1.6 1.6 0 0 1 2.6-1.8L8 14"/></svg><span>Hands</span></button>
+        <button class="tabbtn" type="button" role="tab" id="tb-sound" data-tab="sound" aria-controls="tab-sound" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12c2-6 4-6 6 0s4 6 6 0 4-6 6 0"/></svg><span>Sound</span></button>
+        <button class="tabbtn" type="button" role="tab" id="tb-backing" data-tab="backing" aria-controls="tab-backing" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4h6l3.5 16h-13z"/><path d="M12 15l5-9"/></svg><span>Backing</span></button>
+        <button class="tabbtn" type="button" role="tab" id="tb-mod" data-tab="mod" aria-controls="tab-mod" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h8M16 6h4M4 12h2M10 12h10M4 18h10M18 18h2"/><circle cx="14" cy="6" r="2"/><circle cx="8" cy="12" r="2"/><circle cx="16" cy="18" r="2"/></svg><span>Mod</span></button>
+      </nav>
+      <div class="tabpane g-amp" id="tab-favs" data-tab="favs" role="tabpanel" aria-labelledby="tb-favs" hidden>
+        <p class="hint favempty" id="favEmpty">Tap the star on any panel to keep it here, at hand while you play or record.</p>
+      </div>
+      <div class="tabpane g-amp" id="tab-chords" data-tab="chords" role="tabpanel" aria-labelledby="tb-chords" hidden>
+    <div class="module m-chord" data-panel="chord">
+      <h3>Key and chords</h3>
+      <div class="lcds">
+        <label for="keySel">Tonic<select id="keySel"></select></label>
+        <label for="modeSel">Mode<select id="modeSel"></select></label>
+      </div>
+      <div class="swrow" id="swrow" role="group" aria-label="Chord switches"><span class="swlab">Switches</span></div>
+      <p class="hint swhint" id="swhint"></p>
+      <div class="leds">
+        <label class="led legacy" title="Add a 7th to every chord (the right thumb does this too)"><input type="checkbox" id="opt7" checked><span>7ths</span></label>
+        <label class="led legacy" title="Without 7ths: add a 9th. With 7ths: swap to the other 7th (7th type Build: add the 9th, making a 9 chord)"><input type="checkbox" id="optAlt7"><span>Color</span></label>
+        <label class="led legacy" title="Swap major and minor (hold Shift for the same thing)"><input type="checkbox" id="optFlip"><span>Flip maj/min</span></label>
+        <label class="led" title="On: every degree plays a plain major chord and Flip makes it minor (no diminished chords). Off: chords follow the key"><input type="checkbox" id="optPure"><span>Pure maj/min</span></label>
+        <label class="led" title="Move as few notes as possible between chords"><input type="checkbox" id="optVL" checked><span>Voice leading</span></label>
+        <label class="led wide" title="When the chord, voicing or position changes, only notes that actually change are struck again: the rest keep ringing (struck sounds like keys and marimba re-strike everything otherwise), and the arpeggio carries on instead of starting over"><input type="checkbox" id="optKeep"><span>Re-strike only changed notes</span></label>
+      </div>
+      <div class="lcds">
+        <label class="legacy" for="sevSel">7th type
+          <select id="sevSel">
+            <option value="build" title="Thumb out: the key's own 7th. Twist right: add the 9th (with the thumb: a 9 chord, maj9 or m9). Twist left with the thumb: the other 7th on major chords, °7 on minor. Twist left, thumb in: add the 6th">Build: twist right 9 · left 6 or other 7th</option>
+            <option value="maj">Major 7th (lean for ♭7)</option>
+            <option value="diatonic">From the key</option>
+            <option value="twist">Twist: left maj7 · right 7</option>
+            <option value="twistE">Twist, Eric style: minor right = °7</option>
+          </select></label>
+        <label for="invSel" id="invLab" title="Which chord note is lowest, while the left hand's Height plays nothing">Inversion
+          <select id="invSel">
+            <option value="0">Root</option>
+            <option value="1">3rd · 1st inversion</option>
+            <option value="2">5th · 2nd inversion</option>
+            <option value="3">7th · 3rd inversion</option>
+          </select></label>
+        <p class="hint wide" id="sevNote" hidden>Major 7th follows the key while Lean color is off.</p>
+        <label for="quantSel" title="Right away: chords change the moment you play them. Otherwise a new chord waits for the next step of the beat, like the chord loop's snap, so you can play a little early and it still lands on time">Chord changes
+          <select id="quantSel">
+            <option value="0">Right away</option>
+            <option value="0.25">On the next 1/16</option>
+            <option value="0.5">On the next 1/8</option>
+            <option value="1">On the next beat</option>
+            <option value="2">On the next half bar</option>
+            <option value="4">On the next bar</option>
+          </select></label>
+        <div class="leds wide" id="quantMore" hidden>
+          <label class="led" title="A new voicing (from your right hand or the voicing buttons) also waits for the beat"><input type="checkbox" id="optQuantVoicing"><span>Voicing waits too</span></label>
+          <label class="led" title="Moving the chord up or down the keyboard also waits for the beat; it goes to wherever Position is when the beat comes"><input type="checkbox" id="optQuantPos"><span>Position waits too</span></label>
+        </div>
+        <label for="shiftQualSel" title="What a ♭ or ♯ chord becomes">Shifted chords
+          <select id="shiftQualSel">
+            <option value="common">Common usage</option>
+            <option value="keep">Keep quality</option>
+          </select></label>
+      </div>
+    </div>
+        <div class="sq-voicing" data-panel="details" data-panel-min data-panel-sign>
+        <div class="cardhead"><h3>Voicing</h3><span class="hint">Hover a voicing for details</span></div>
+        <div class="vgroups" id="voicings" role="radiogroup" aria-label="Voicing"></div>
+        <p class="vinfo" id="vinfo" aria-live="polite"></p>
+        </div>
+      <section class="module m-loop" id="loopCard" data-panel="loop" aria-label="Chord loop">
       <h3>Chord loop</h3>
       <div class="looptl" id="loopTl" tabindex="0" aria-label="Recorded chords. Drag a chord to move it; arrow keys nudge the selected one, Delete removes it"><div class="loophead" id="loopHead" hidden></div></div>
       <div class="row loopedit" id="loopEdit" hidden>
@@ -151,6 +195,7 @@
         <div class="lcds">
           <label for="lcDeg">Chord<select id="lcDeg"></select></label>
           <label for="lcSeven">7th<select id="lcSeven">
+            <option value="live">Live: whatever your hand plays</option>
             <option value="tri">Triad</option>
             <option value="add9">Triad + 9th</option>
             <option value="7">7th</option>
@@ -229,113 +274,66 @@
       <p class="hint" id="loopBankMsg" aria-live="polite"></p>
       </details>
       </section>
-    </section>
-
-    <aside class="panel">
-      <section class="square">
-        <div class="sq-top">
-    <div class="module m-key">
-      <h3>Key</h3>
-      <div class="lcds">
-        <label for="keySel">Tonic<select id="keySel"></select></label>
-        <label for="modeSel">Mode<select id="modeSel"></select></label>
-        <label for="soundSel" class="wide" title="The instrument that plays your chords. Build your own in the Instrument panel">Instrument<select id="soundSel"></select></label>
-      </div>
-      <div class="ledknob">
-        <div class="leds">
-          <label class="led" title="A hand movement slides the chord up and down the keyboard. Off = the old automatic placement"><input type="checkbox" id="optPos" checked><span>Hand position</span></label>
-        </div>
-        <div class="knobs posknob" id="m-chordpos"></div>
-      </div>
+  <section class="pianowrap" data-panel="piano">
+    <h3>Keyboard</h3>
+    <div class="pianohead">
+      <span>Sounding notes · <span style="color:var(--patina)">bass</span>, <span style="color:var(--brass)">voicing</span><span id="droneLegend" hidden> and <span style="color:var(--drone)">drone</span></span></span>
+      <span class="path" id="path"></span>
     </div>
-    <div class="module m-chord" data-panel="chord">
-      <h3>Chord</h3>
-      <div class="leds">
-        <label class="led" title="Add a 7th to every chord (the right thumb does this too)"><input type="checkbox" id="opt7" checked><span>7ths</span></label>
-        <label class="led" title="Without 7ths: add a 9th. With 7ths: swap to the other 7th (7th type Build: add the 9th, making a 9 chord)"><input type="checkbox" id="optAlt7"><span>Color</span></label>
-        <label class="led" title="Swap major and minor (hold Shift for the same thing)"><input type="checkbox" id="optFlip"><span>Flip maj/min</span></label>
-        <label class="led" title="On: every degree plays a plain major chord and Flip makes it minor (no diminished chords). Off: chords follow the key"><input type="checkbox" id="optPure"><span>Pure maj/min</span></label>
-        <label class="led" title="Move as few notes as possible between chords"><input type="checkbox" id="optVL" checked><span>Voice leading</span></label>
-        <label class="led wide" title="When the chord, voicing or position changes, only notes that actually change are struck again: the rest keep ringing (struck sounds like keys and marimba re-strike everything otherwise), and the arpeggio carries on instead of starting over"><input type="checkbox" id="optKeep"><span>Re-strike only changed notes</span></label>
+    <div class="pianoscroll" id="piano"></div>
+  </section>
       </div>
-      <div class="lcds">
-        <label for="sevSel">7th type
-          <select id="sevSel">
-            <option value="build" title="Thumb out: the key's own 7th. Twist right: add the 9th (with the thumb: a 9 chord, maj9 or m9). Twist left with the thumb: the other 7th on major chords, °7 on minor. Twist left, thumb in: add the 6th">Build: twist right 9 · left 6 or other 7th</option>
-            <option value="maj">Major 7th (lean for ♭7)</option>
-            <option value="diatonic">From the key</option>
-            <option value="twist">Twist: left maj7 · right 7</option>
-            <option value="twistE">Twist, Eric style: minor right = °7</option>
-          </select></label>
-        <label for="invSel" title="Which chord note is lowest: the left hand's height can pick this too">Inversion
-          <select id="invSel">
-            <option value="0">Root</option>
-            <option value="1">3rd · 1st inversion</option>
-            <option value="2">5th · 2nd inversion</option>
-            <option value="3">7th · 3rd inversion</option>
-          </select></label>
-        <p class="hint wide" id="sevNote" hidden>Major 7th follows the key while Lean color is off.</p>
-        <label for="quantSel" title="Right away: chords change the moment you play them. Otherwise a new chord waits for the next step of the beat, like the chord loop's snap, so you can play a little early and it still lands on time">Chord changes
-          <select id="quantSel">
-            <option value="0">Right away</option>
-            <option value="0.25">On the next 1/16</option>
-            <option value="0.5">On the next 1/8</option>
-            <option value="1">On the next beat</option>
-            <option value="2">On the next half bar</option>
-            <option value="4">On the next bar</option>
-          </select></label>
-        <div class="leds wide" id="quantMore" hidden>
-          <label class="led" title="A new voicing (from your right hand or the voicing buttons) also waits for the beat"><input type="checkbox" id="optQuantVoicing"><span>Voicing waits too</span></label>
-          <label class="led" title="Moving the chord up or down the keyboard also waits for the beat; it goes to wherever Position is when the beat comes"><input type="checkbox" id="optQuantPos"><span>Position waits too</span></label>
-        </div>
-        <label for="shiftQualSel" title="What a ♭ or ♯ chord becomes">Shifted chords
-          <select id="shiftQualSel">
-            <option value="common">Common usage</option>
-            <option value="keep">Keep quality</option>
-          </select></label>
-      </div>
-    </div>
-        </div>
-        <div class="sq-voicing" data-panel="details" data-panel-min data-panel-sign>
-        <div class="cardhead"><h3>Voicing</h3><span class="hint">Hover a voicing for details</span></div>
-        <div class="vgroups" id="voicings" role="radiogroup" aria-label="Voicing"></div>
-        <p class="vinfo" id="vinfo" aria-live="polite"></p>
-        <div class="cardhead sub"><h3>Right hand</h3><span class="hint">fingers, not counting the thumb</span></div>
-        <div class="leds">
-          <label class="led" title="Right-hand finger count picks the voicing; the thumb adds 7ths"><input type="checkbox" id="optRH" checked><span>Hand picks voicing</span></label>
-          <label class="led" title="Leaning your right hand turns Color on and off"><input type="checkbox" id="optLeanColor"><span>Lean color</span></label>
-        </div>
-        <div class="fslots adv-only" id="rhSlots"></div>
-        </div>
+      <div class="tabpane g-midi" id="tab-hands" data-tab="hands" role="tabpanel" aria-labelledby="tb-hands" hidden>
         <div class="sq-voicing sq-hands" data-panel="hands">
-        <div class="cardhead"><h3>Left hand</h3></div>
-        <div class="leds">
-          <label class="led" title="Left-hand height picks root, 1st or 2nd inversion"><input type="checkbox" id="optHandInv" checked><span>Height inversions</span></label>
-        </div>
-        <div class="lcds handopts">
-          <label for="left67Sel" title="Which left-hand shapes play chords 6 and 7">Left hand 6 / 7
-            <select id="left67Sel">
+        <div class="cardhead"><h3>Left hand</h3><span class="hint">picks the chord</span></div>
+        <div class="mvrows">
+          <div class="mvrow"><span class="mvname">Fingers</span><span class="mvfix">1 to 5 fingers play I to V</span></div>
+          <label class="mvrow" for="left67Sel"><span class="mvname">6 and 7</span><select id="left67Sel">
               <option value="chinese">Chinese · 🤙 / L</option>
               <option value="horns">Horns / ILY · 🤘 / 🤟</option>
               <option value="asl">ASL · thumb to pinky / ring</option>
             </select></label>
-          <label for="leftTwistSel" title="How a left-hand twist changes major and minor">Left twist
-            <select id="leftTwistSel">
-              <option value="flip">Lean right flips</option>
-              <option value="dir">Right major · left minor</option>
-            </select></label>
-          <label for="pedalHandSel" title="Make a fist with your left hand to hold the sustain pedal">Left fist
-            <select id="pedalHandSel">
+          <label class="mvrow" for="pedalHandSel"><span class="mvname">Fist</span><select id="pedalHandSel">
               <option value="off">Stops the chord</option>
               <option value="fist">Holds the pedal</option>
             </select></label>
-          <label for="palmSel" title="Turn the back of your left hand toward the camera to shift the chord">Palm roll
-            <select id="palmSel">
-              <option value="flat">Flat ♭</option>
-              <option value="sharp">Sharp ♯</option>
-              <option value="off">Off</option>
-            </select></label>
+          <label class="mvrow" for="leftTwistSel"><span class="mvname">Lean</span><select id="leftTwistSel">
+              <option value="flip">Flips major / minor</option>
+              <option value="dir">Right major · left minor</option>
+              <option value="off">Nothing</option>
+            </select><span class="mvnow" id="nowFlip"></span></label>
+          <label class="mvrow" for="palmSel"><span class="mvname">Back of hand</span><select id="palmSel">
+              <option value="flat">Flat ♭ chord</option>
+              <option value="sharp">Sharp ♯ chord</option>
+              <option value="off">Nothing</option>
+            </select><span class="mvnow" id="nowShift"></span></label>
+          <label class="mvrow" for="heightSel"><span class="mvname">Height</span><select id="heightSel"><option value="on">Inversions</option><option value="off">Nothing</option></select><span class="mvnow" id="nowInv"></span></label>
         </div>
+        <div class="alsoplays" id="alsoL"></div>
+        <div class="legacy"><label class="led" title="Left-hand height picks root, 1st or 2nd inversion"><input type="checkbox" id="optHandInv" checked><span>Height inversions</span></label></div>
+        </div>
+        <div class="sq-voicing sq-hands sq-rh" data-panel="righthand">
+        <div class="cardhead"><h3>Right hand</h3><span class="hint">shapes it</span></div>
+        <div class="mvrows">
+          <label class="mvrow" for="rhSel"><span class="mvname">Fingers 0–4</span><select id="rhSel"><option value="on">Pick the voicing</option><option value="off">Nothing</option></select><span class="mvnow" id="nowVoicing"></span></label>
+        </div>
+        <div class="mvslots"><span class="hint">Which voicing each finger count plays, not counting the thumb</span>
+        <div class="fslots" id="rhSlots"></div>
+          </div>
+        <div class="mvrows">
+          <label class="mvrow" for="thumbSel"><span class="mvname">Thumb out</span><select id="thumbSel"><option value="on">Adds the 7th</option><option value="off">Nothing</option></select><span class="mvnow" id="now7"></span></label>
+          <label class="mvrow" for="twistSel"><span class="mvname">Twist</span><select id="twistSel"></select><span class="mvnow" id="nowTwist"></span></label>
+        </div>
+        <div class="alsoplays" id="alsoR"></div>
+        <div class="legacy"><label class="led" title="Right-hand finger count picks the voicing; the thumb adds 7ths"><input type="checkbox" id="optRH" checked><span>Hand picks voicing</span></label><label class="led legacy" title="Leaning your right hand turns Color on and off"><input type="checkbox" id="optLeanColor"><span>Lean color</span></label></div>
+        </div>
+        <div class="module m-pos" data-panel="position">
+          <h3>Position</h3>
+          <div class="ledknob">
+            <div class="knobs posknob" id="m-chordpos"></div>
+            <p class="hint">Where on the keyboard the chord sits. Turned all the way down it's off, and chords sit where voice leading puts them. The hand menu under it picks the movement that slides it (your left hand across, to start), and the Mod matrix can move it too.</p>
+          </div>
+          <div class="legacy"><label class="led" title="A hand movement slides the chord up and down the keyboard. Off = the old automatic placement"><input type="checkbox" id="optPos" checked><span>Hand position</span></label></div>
         </div>
         <div class="sq-voicing sq-cam" data-panel="camera">
         <div class="cardhead"><h3>Camera</h3><span class="hint">view and ranges</span></div>
@@ -359,13 +357,29 @@
             <input type="range" id="ySpanB" min="0.15" max="1" step="0.01"></label>
         </div>
         </div>
-      </section>
-
-    </aside>
-  </div>
-
-  <section class="synth" id="synth" aria-label="Sound panel">
-    <div class="bank g-amp">
+      </div>
+      <div class="tabpane g-filter" id="tab-sound" data-tab="sound" role="tabpanel" aria-labelledby="tb-sound" hidden>
+    <div class="module m-inst" id="s-inst" data-panel="instrument">
+      <h3>Instrument</h3>
+      <div class="lcds">
+        <label for="soundSel" class="wide" title="The instrument that plays your chords. Build your own below">Instrument<select id="soundSel"></select></label>
+      </div>
+      <div class="minsthead"><span class="minstname" id="instName"></span><span class="hint" id="instState"></span></div>
+      <div class="mhead ohead" aria-hidden="true"><span>Wave</span><span>Pitch</span><span>Detune</span><span>Level</span><span>Fade</span><span></span></div>
+      <div class="mrows" id="oscRows"></div>
+      <div class="row">
+        <button class="btn" id="oscAdd" type="button">+ Oscillator</button>
+        <label class="led" title="Struck: notes die away on their own, like a piano or bell. Held: they last while the chord does"><input type="checkbox" id="instStrike"><span>Struck</span></label>
+      </div>
+      <div class="minsenv"><span class="lsub">Envelope</span><div class="faders" id="m-env"></div></div>
+      <div class="plist lchips" id="instList" data-label="Yours" aria-label="Your instruments"></div>
+      <form class="psave" id="instForm">
+        <label class="sr" for="instNameIn">Instrument name</label>
+        <input type="text" id="instNameIn" placeholder="Name this instrument" maxlength="30" autocomplete="off">
+        <button class="btn primary" type="submit">Save instrument</button>
+      </form>
+      <p class="hint" id="instMsg">Changes play straight away. Saving also keeps the envelope and the Cutoff knob as the instrument’s own.</p>
+    </div>
     <div class="module m-amp" data-panel="amp" data-panel-min>
       <h3>Amp</h3>
       <div class="knobs" id="m-amp"></div>
@@ -376,32 +390,86 @@
         </select></label>
         <p class="hint wide" id="spkNote"></p></div>
     </div>
-    <div class="module m-mod" data-panel="mod">
-      <h3>Modulation</h3>
-      <div class="knobs" id="m-mod"></div>
-      <div class="lcds mmenus"><label for="midiBendRange" title="How far the Bend knob goes at either end. Also sent to a MIDI instrument, for synths that accept it">Bend range
-        <select id="midiBendRange">
-          <option value="1">±1 semitone</option>
-          <option value="2">±2 semitones</option>
-          <option value="7">±7 semitones</option>
-          <option value="12">±12 semitones</option>
-        </select></label>
-        <label for="tremDiv">Tremolo / pan rate
-        <select id="tremDiv">
-          <option value="1/4">1/4 note</option>
-          <option value="1/8">1/8 note</option>
-          <option value="1/8T">1/8 triplet</option>
-          <option value="1/16">1/16 note</option>
-        </select></label>
-        <label for="vibDiv">Vibrato rate
-        <select id="vibDiv">
-          <option value="free">Free · 5.5 Hz</option>
-          <option value="1/4">1/4 note</option>
-          <option value="1/8">1/8 note</option>
-          <option value="1/8T">1/8 triplet</option>
-          <option value="1/16">1/16 note</option>
-          <option value="1/16T">1/16 triplet</option>
+    <div class="module m-filter" data-panel="filter" data-panel-min>
+      <h3>Filter</h3>
+      <div class="knobs" id="m-filter"></div>
+    </div>
+    <div class="module m-fx" data-panel="fx" data-panel-min>
+      <h3>Effects</h3>
+      <div class="knobs" id="m-fx"></div>
+      <div class="lcds pa"><label for="verbType" class="wide">Reverb type
+        <select id="verbType">
+          <option value="room">Room</option>
+          <option value="hall">Hall</option>
+          <option value="plate">Plate</option>
+          <option value="spring">Spring</option>
+          <option value="cathedral">Cathedral</option>
         </select></label></div>
+    </div>
+    <div class="module m-delay" data-panel="delay">
+      <h3>Delay</h3>
+      <div class="knobs" id="m-delay"></div>
+      <div class="lcds"><label for="delayDiv" class="wide">Delay time
+        <select id="delayDiv">
+          <option value="1/4">1/4 note</option>
+          <option value="1/8d">Dotted 1/8</option>
+          <option value="1/8">1/8 note</option>
+          <option value="1/8T">1/8 triplet</option>
+          <option value="1/16">1/16 note</option>
+        </select></label></div>
+    </div>
+    <div class="module m-lofi" data-panel="lofi">
+      <h3>Lo-fi</h3>
+      <div class="knobs" id="m-lofi"></div>
+      <div class="lcds"><label for="noiseType" class="wide" title="What the Noise knob adds">Noise type
+        <select id="noiseType">
+          <option value="hiss">Tape hiss</option>
+          <option value="vinyl">Vinyl crackle</option>
+        </select></label></div>
+    </div>
+    <p class="panelhint">Drag a knob up or down, scroll on it, or use the arrow keys. Double-click resets it. The menu under each control lets a right-hand movement play it, and it turns green while your hand drives it. <b>Pedal ring:</b> giving it a hand holds the sustain pedal down the whole time, and the hand sets how long notes ring. <b>Bend:</b> try Tilt, where an upright hand is in tune and tilting either way bends; it springs back when your hand leaves the frame.</p>
+      </div>
+      <div class="tabpane g-parts" id="tab-backing" data-tab="backing" role="tabpanel" aria-labelledby="tb-backing" hidden>
+    <div class="module m-tempo" data-panel="tempo">
+      <h3>Tempo &amp; pump</h3>
+      <div class="tempo">
+            <label for="bpm" class="bpmlab">BPM<input type="number" id="bpm" min="40" max="240" step="1" inputmode="numeric"></label>
+            <input type="range" id="bpmSlider" min="40" max="240" step="1" aria-label="BPM">
+            <button class="btn" id="tapBtn" type="button">Tap</button>
+          </div>
+      <div class="ledknob">
+        <div class="leds">
+          <label class="led" title="Lock the arpeggio and vibrato to the BPM"><input type="checkbox" id="optSync"><span>Sync</span></label>
+          <label class="led" title="Metronome click, accent every 4 beats"><input type="checkbox" id="optClick"><span>Click</span></label>
+        </div>
+        <div class="knobs" id="m-pump"></div>
+      </div>
+      <div class="lcds"><label for="tempoRange" class="wide" title="How far the Tempo knob pushes or pulls the BPM at either end">Tempo knob range
+        <select id="tempoRange">
+          <option value="5">±5 BPM</option>
+          <option value="10">±10 BPM</option>
+          <option value="20">±20 BPM</option>
+          <option value="40">±40 BPM</option>
+        </select></label></div>
+    </div>
+    <div class="module m-arp" data-panel="arp">
+      <h3>Arp &amp; strum</h3>
+      <div class="knobs" id="m-arp"></div>
+      <div class="lcds">
+        <label for="arpPat">Pattern
+              <select id="arpPat">
+                <option value="up">Up</option>
+                <option value="down">Down</option>
+                <option value="updown">Up &amp; down</option>
+                <option value="random">Random</option>
+              </select></label>
+        <label for="strumDir" title="Which way the Strum knob sweeps through a chord. With Arp on too, each new chord is strummed first, then arpeggiated">Strum
+              <select id="strumDir">
+                <option value="up">Up (low to high)</option>
+                <option value="down">Down (high to low)</option>
+                <option value="alt">Down-up (alternates)</option>
+              </select></label>
+      </div>
     </div>
     <div class="module m-bass" data-panel="bass" data-panel-min>
       <h3>Bass</h3>
@@ -475,88 +543,6 @@
         </select></label>
       </div>
     </div>
-    </div>
-    <div class="bank g-filter">
-    <div class="module m-filter" data-panel="filter" data-panel-min>
-      <h3>Filter</h3>
-      <div class="knobs" id="m-filter"></div>
-    </div>
-    <div class="module m-fx" data-panel="fx" data-panel-min>
-      <h3>Effects</h3>
-      <div class="knobs" id="m-fx"></div>
-      <div class="lcds pa"><label for="verbType" class="wide">Reverb type
-        <select id="verbType">
-          <option value="room">Room</option>
-          <option value="hall">Hall</option>
-          <option value="plate">Plate</option>
-          <option value="spring">Spring</option>
-          <option value="cathedral">Cathedral</option>
-        </select></label></div>
-    </div>
-    <div class="module m-lofi" data-panel="lofi">
-      <h3>Lo-fi</h3>
-      <div class="knobs" id="m-lofi"></div>
-      <div class="lcds"><label for="noiseType" class="wide" title="What the Noise knob adds">Noise type
-        <select id="noiseType">
-          <option value="hiss">Tape hiss</option>
-          <option value="vinyl">Vinyl crackle</option>
-        </select></label></div>
-    </div>
-    </div>
-    <div class="bank g-arp" id="timeBank">
-    <div class="module m-tempo" data-panel="tempo">
-      <h3>Tempo &amp; pump</h3>
-      <div class="tempo">
-            <label for="bpm" class="bpmlab">BPM<input type="number" id="bpm" min="40" max="240" step="1" inputmode="numeric"></label>
-            <input type="range" id="bpmSlider" min="40" max="240" step="1" aria-label="BPM">
-            <button class="btn" id="tapBtn" type="button">Tap</button>
-          </div>
-      <div class="ledknob">
-        <div class="leds">
-          <label class="led" title="Lock the arpeggio and vibrato to the BPM"><input type="checkbox" id="optSync"><span>Sync</span></label>
-          <label class="led" title="Metronome click, accent every 4 beats"><input type="checkbox" id="optClick"><span>Click</span></label>
-        </div>
-        <div class="knobs" id="m-pump"></div>
-      </div>
-      <div class="lcds"><label for="tempoRange" class="wide" title="How far the Tempo knob pushes or pulls the BPM at either end">Tempo knob range
-        <select id="tempoRange">
-          <option value="5">±5 BPM</option>
-          <option value="10">±10 BPM</option>
-          <option value="20">±20 BPM</option>
-          <option value="40">±40 BPM</option>
-        </select></label></div>
-    </div>
-    <div class="module m-arp" data-panel="arp">
-      <h3>Arp &amp; strum</h3>
-      <div class="knobs" id="m-arp"></div>
-      <div class="lcds">
-        <label for="arpPat">Pattern
-              <select id="arpPat">
-                <option value="up">Up</option>
-                <option value="down">Down</option>
-                <option value="updown">Up &amp; down</option>
-                <option value="random">Random</option>
-              </select></label>
-        <label for="strumDir" title="Which way the Strum knob sweeps through a chord. With Arp on too, each new chord is strummed first, then arpeggiated">Strum
-              <select id="strumDir">
-                <option value="up">Up (low to high)</option>
-                <option value="down">Down (high to low)</option>
-                <option value="alt">Down-up (alternates)</option>
-              </select></label>
-      </div>
-    </div>
-    <div class="module m-delay" data-panel="delay">
-      <h3>Delay</h3>
-      <div class="knobs" id="m-delay"></div>
-      <div class="lcds"><label for="delayDiv" class="wide">Delay time
-        <select id="delayDiv">
-          <option value="1/4">1/4 note</option>
-          <option value="1/8d">Dotted 1/8</option>
-          <option value="1/8">1/8 note</option>
-          <option value="1/8T">1/8 triplet</option>
-          <option value="1/16">1/16 note</option>
-        </select></label></div>
-    </div>
     <div class="module m-perc" data-panel="perc">
       <h3>Percussion</h3>
       <div class="ledknob">
@@ -586,30 +572,36 @@
         </select></label>
       </div>
     </div>
-    </div>
-    <p class="panelhint">Drag a knob up or down, scroll on it, or use the arrow keys. Double-click resets it. The menu under each control lets a right-hand movement play it, and it turns green while your hand drives it. <b>Pedal ring:</b> giving it a hand holds the sustain pedal down the whole time, and the hand sets how long notes ring. <b>Bend:</b> try Tilt, where an upright hand is in tune and tilting either way bends; it springs back when your hand leaves the frame.</p>
-  </section>
-
-  <section class="synth midirow trio" aria-label="Instrument, mod matrix and MIDI out">
-    <div class="module m-inst g-amp" id="s-inst" data-panel="instrument">
-      <h3>Instrument</h3>
-      <div class="minsthead"><span class="minstname" id="instName"></span><span class="hint" id="instState"></span></div>
-      <div class="mhead ohead" aria-hidden="true"><span>Wave</span><span>Pitch</span><span>Detune</span><span>Level</span><span>Fade</span><span></span></div>
-      <div class="mrows" id="oscRows"></div>
-      <div class="row">
-        <button class="btn" id="oscAdd" type="button">+ Oscillator</button>
-        <label class="led" title="Struck: notes die away on their own, like a piano or bell. Held: they last while the chord does"><input type="checkbox" id="instStrike"><span>Struck</span></label>
       </div>
-      <div class="minsenv"><span class="lsub">Envelope</span><div class="faders" id="m-env"></div></div>
-      <div class="plist lchips" id="instList" data-label="Yours" aria-label="Your instruments"></div>
-      <form class="psave" id="instForm">
-        <label class="sr" for="instNameIn">Instrument name</label>
-        <input type="text" id="instNameIn" placeholder="Name this instrument" maxlength="30" autocomplete="off">
-        <button class="btn primary" type="submit">Save instrument</button>
-      </form>
-      <p class="hint" id="instMsg">Changes play straight away. Saving also keeps the envelope and the Cutoff knob as the instrument’s own.</p>
+      <div class="tabpane g-arp" id="tab-mod" data-tab="mod" role="tabpanel" aria-labelledby="tb-mod" hidden>
+    <div class="module m-mod" data-panel="mod">
+      <h3>Modulation</h3>
+      <div class="knobs" id="m-mod"></div>
+      <div class="lcds mmenus"><label for="midiBendRange" title="How far the Bend knob goes at either end. Also sent to a MIDI instrument, for synths that accept it">Bend range
+        <select id="midiBendRange">
+          <option value="1">±1 semitone</option>
+          <option value="2">±2 semitones</option>
+          <option value="7">±7 semitones</option>
+          <option value="12">±12 semitones</option>
+        </select></label>
+        <label for="tremDiv">Tremolo / pan rate
+        <select id="tremDiv">
+          <option value="1/4">1/4 note</option>
+          <option value="1/8">1/8 note</option>
+          <option value="1/8T">1/8 triplet</option>
+          <option value="1/16">1/16 note</option>
+        </select></label>
+        <label for="vibDiv">Vibrato rate
+        <select id="vibDiv">
+          <option value="free">Free · 5.5 Hz</option>
+          <option value="1/4">1/4 note</option>
+          <option value="1/8">1/8 note</option>
+          <option value="1/8T">1/8 triplet</option>
+          <option value="1/16">1/16 note</option>
+          <option value="1/16T">1/16 triplet</option>
+        </select></label></div>
     </div>
-    <div class="module m-matrix g-matrix" id="s-matrix" data-panel="matrix">
+    <div class="module m-matrix" id="s-matrix" data-panel="matrix">
       <h3>Mod matrix</h3>
       <p class="hint">Let a source move any knob. Each row pushes the knob up or down from where you set it; a dot on the knob shows where it really is. Hand movements need the camera on.</p>
       <div class="msources">
@@ -645,7 +637,46 @@
       </form>
       <p class="hint" id="matrixMsg" aria-live="polite">Saves the rows with both LFOs and the chord envelope. Sound presets keep their own copy too.</p>
     </div>
-    <div class="module m-midi g-midi" id="s-midi" data-panel="midi">
+      </div>
+    </section>
+  </div>
+
+
+
+  <dialog class="dlg" id="dlgPresets" aria-labelledby="dlgPresetsT">
+    <div class="dlghead"><h2 id="dlgPresetsT">Presets</h2><button class="dlgx" type="button" aria-label="Close">✕</button></div>
+    <div class="dlgbody">
+  <section class="progbar" aria-label="Presets" data-panel="presets">
+    <h3 title="Key, sound, voicing, chord style, knob and fader values, effects, arpeggio and tempo">Sound</h3>
+    <div class="plist" id="presetList"></div>
+    <form class="psave" id="presetForm">
+      <label class="sr" for="presetName">Sound preset name</label>
+      <input type="text" id="presetName" placeholder="Name this sound" maxlength="40" autocomplete="off">
+      <button class="btn primary" type="submit">Save</button>
+    </form>
+    <h3 title="Finger slots, left-hand shapes, gestures, which hand movement drives each knob, and keyboard hold keys">Hands</h3>
+    <div class="plist" id="handList"></div>
+    <form class="psave" id="handForm">
+      <label class="sr" for="handName">Hand setup name</label>
+      <input type="text" id="handName" placeholder="Name this hand setup" maxlength="40" autocomplete="off">
+      <button class="btn primary" type="submit">Save</button>
+    </form>
+    <div class="progfoot"><p class="hint" id="presetMsg">Sound presets and hand setups save separately, so you can mix any sound with any way of playing. Both are kept in this browser.</p><details class="pio">
+            <summary>Share or back up presets and hand setups</summary>
+            <div class="piobody">
+              <button class="btn" id="presetExport" type="button">Copy all presets &amp; hand setups</button>
+              <label class="sr" for="presetJson">Presets as text</label>
+              <textarea id="presetJson" rows="4" spellcheck="false" placeholder="Paste presets here, then press Import"></textarea>
+              <button class="btn" id="presetImport" type="button">Import pasted presets</button>
+            </div>
+          </details></div>
+  </section>
+    </div>
+  </dialog>
+  <dialog class="dlg g-midi" id="dlgMidi" aria-labelledby="dlgMidiT">
+    <div class="dlghead"><h2 id="dlgMidiT">MIDI out</h2><button class="dlgx" type="button" aria-label="Close">✕</button></div>
+    <div class="dlgbody">
+    <div class="module m-midi" id="s-midi" data-panel="midi">
       <h3>MIDI out</h3>
         <p class="hint">Send what you play to another synth, a DAW or a hardware instrument: notes, the sustain pedal, knob moves as controllers and the tempo clock. Or record it straight to a .mid file.</p>
         <div class="row">
@@ -677,10 +708,41 @@
         <p class="hint" id="midiCCMap"></p>
         <p class="hint">On Windows, to play into a DAW on this computer, make a virtual port with loopMIDI and pick it under Send to.</p>
     </div>
-  </section>
-
-  <div class="adv">
-
+    </div>
+  </dialog>
+  <dialog class="dlg" id="dlgHelp" aria-labelledby="dlgHelpT">
+    <div class="dlghead"><h2 id="dlgHelpT">Help</h2><button class="dlgx" type="button" aria-label="Close">✕</button></div>
+    <div class="dlgbody">
+    <details class="sect" id="s-guide">
+      <summary>Hand guide</summary>
+      <div class="sbody">
+        <dl class="legend">
+          <h4>Left hand · which chord (off when "right hand only" is on)</h4>
+          <dt>1–5 fingers</dt><dd>I, ii, iii, IV, V</dd>
+          <dt id="g6t">thumb + pinky 🤙</dt><dd>vi</dd>
+          <dt id="g7t">thumb + index (L)</dt><dd>vii°</dd>
+          <dt>lean right flips</dt><dd>Upright: normal chords. Lean right: flipped (with Pure maj/min: major / minor)</dd>
+          <dt>right major · left minor</dt><dd>Lean right: normal (major). Lean left: flipped (minor). Upright keeps your last choice</dd>
+          <dt>left ↔ right</dt><dd>Slides the chord up and down the keyboard (Hand position on)</dd>
+          <dt>middle of screen</dt><dd>Root in the bass (Height inversions on)</dd>
+          <dt>top of screen</dt><dd>1st inversion (3rd in the bass)</dd>
+          <dt>bottom of screen</dt><dd>2nd inversion (5th in the bass)</dd>
+          <dt>back of hand to camera</dt><dd>Flat ♭ chord, e.g. ♭VII (Palm roll; can be set to sharp or off)</dd>
+          <dt>fist / away</dt><dd>Stop (or hold the sustain pedal, if Left fist is set to Holds the pedal)</dd>
+          <h4>Right hand · how it sounds</h4>
+          <dt class="r">0–4 fingers</dt><dd>The five voicings you assigned (thumb not counted)</dd>
+          <dt class="r">thumb out</dt><dd>The 7th (thumb in removes it). with Twist on its first choice, the key's own: Cmaj7, Dm7, G7</dd>
+          <dt class="r">twist right</dt><dd>Add the 9th: Cadd9. With the thumb out, a 9 chord: Cmaj9, Dm9, G9 (Chord options › Twist, first choice)</dd>
+          <dt class="r">twist left, thumb out</dt><dd>The other 7th: Cmaj7 → C7, G7 → Gmaj7, and °7 on minor chords (Chord options › Twist, first choice)</dd>
+          <dt class="r">twist left, thumb in</dt><dd>Add the 6th: C6, Dm6. Thumb in and out slides one note: C7 ↔ C6, D°7 ↔ Dm6 (Chord options › Twist, first choice)</dd>
+          <dt class="r">left ↔ right, height, lean, distance, palm roll</dt><dd>Any knob or fader whose hand menu is set to it. Defaults: cutoff, volume, color switch, reverb</dd>
+          <dt class="r">color switch, thumb out</dt><dd>Flat 7th: IVmaj7 → IV7</dd>
+          <dt class="r">twist left / right, thumb out</dt><dd>maj7 / 7 (Chord options › Twist: left maj7 · right 7). Upright gives maj7 on major chords, m7 on minor</dd>
+          <dt class="r">color switch, thumb in</dt><dd>Add a 9th: IV → IVadd9</dd>
+        </dl>
+        <p class="hint">The <b>Eric Wei</b> hand setup is an homage to Eric Wei's Gesture Synth: lean your left hand right for major or left for minor, twist your right hand left for maj7 (m7 on minor chords) or right for 7 (°7 on minor chords), and use horns 🤘 / ILY 🤟 for 6 and 7.</p>
+      </div>
+    </details>
     <details class="sect" id="s-keys">
       <summary>Keyboard shortcuts</summary>
       <div class="sbody">
@@ -716,7 +778,14 @@
         <p class="hint">1–7 chords · hold <span id="holdHintKey">Shift</span> to flip · hold Z / X for inversions · hold , flat / . sharp · F flip · S 7ths · A color · voicing letters are shown on each voicing button · [ ] key · C chord loop (record, play, stop) · Space stops</p>
       </div>
     </details>
-
+    <details class="sect" id="s-about">
+      <summary>About &amp; support</summary>
+      <div class="sbody">
+        <p class="hint">Made with permission from Eric Wei, the creator of <a href="https://indecisiveeric.com/gesture-synth" target="_blank" rel="noopener" class="credit">Gesture Synth</a>.</p>
+        <p class="hint">Synth Conductor is free. No account, no ads, no tracking. The camera picture never leaves your computer: hand tracking runs inside the browser, and your settings are kept in this browser only.</p>
+        <p class="hint" id="supportLine" hidden>If it’s useful to you, you can <a id="supportLink" target="_blank" rel="noopener">chip in toward its development</a>. Entirely optional; nothing is locked.</p>
+      </div>
+    </details>
     <details class="sect" id="s-diag" hidden>
       <summary>Diagnostics</summary>
       <div class="sbody">
@@ -734,48 +803,9 @@
         <p class="hint">Counts stutters (the page pausing 100–250 ms) and records freezes (over 250 ms) and what was running. Copy the report to share it when something feels slow.</p>
       </div>
     </details>
-
-    <details class="sect" id="s-about">
-      <summary>About &amp; support</summary>
-      <div class="sbody">
-        <p class="hint">Made with permission from Eric Wei, the creator of <a href="https://indecisiveeric.com/gesture-synth" target="_blank" rel="noopener" class="credit">Gesture Synth</a>.</p>
-        <p class="hint">Synth Conductor is free. No account, no ads, no tracking. The camera picture never leaves your computer: hand tracking runs inside the browser, and your settings are kept in this browser only.</p>
-        <p class="hint" id="supportLine" hidden>If it’s useful to you, you can <a id="supportLink" target="_blank" rel="noopener">chip in toward its development</a>. Entirely optional; nothing is locked.</p>
-      </div>
-    </details>
-
-    <details class="sect" id="s-guide">
-      <summary>Hand guide</summary>
-      <div class="sbody">
-        <dl class="legend">
-          <h4>Left hand · which chord (off when "right hand only" is on)</h4>
-          <dt>1–5 fingers</dt><dd>I, ii, iii, IV, V</dd>
-          <dt id="g6t">thumb + pinky 🤙</dt><dd>vi</dd>
-          <dt id="g7t">thumb + index (L)</dt><dd>vii°</dd>
-          <dt>lean right flips</dt><dd>Upright: normal chords. Lean right: flipped (with Pure maj/min: major / minor)</dd>
-          <dt>right major · left minor</dt><dd>Lean right: normal (major). Lean left: flipped (minor). Upright keeps your last choice</dd>
-          <dt>left ↔ right</dt><dd>Slides the chord up and down the keyboard (Hand position on)</dd>
-          <dt>middle of screen</dt><dd>Root in the bass (Height inversions on)</dd>
-          <dt>top of screen</dt><dd>1st inversion (3rd in the bass)</dd>
-          <dt>bottom of screen</dt><dd>2nd inversion (5th in the bass)</dd>
-          <dt>back of hand to camera</dt><dd>Flat ♭ chord, e.g. ♭VII (Palm roll; can be set to sharp or off)</dd>
-          <dt>fist / away</dt><dd>Stop (or hold the sustain pedal, if Left fist is set to Holds the pedal)</dd>
-          <h4>Right hand · how it sounds</h4>
-          <dt class="r">0–4 fingers</dt><dd>The five voicings you assigned (thumb not counted)</dd>
-          <dt class="r">thumb out</dt><dd>The 7th (thumb in removes it). 7th type Build: the key's own, Cmaj7, Dm7, G7</dd>
-          <dt class="r">twist right</dt><dd>Add the 9th: Cadd9. With the thumb out, a 9 chord: Cmaj9, Dm9, G9 (7th type Build)</dd>
-          <dt class="r">twist left, thumb out</dt><dd>The other 7th: Cmaj7 → C7, G7 → Gmaj7, and °7 on minor chords (7th type Build)</dd>
-          <dt class="r">twist left, thumb in</dt><dd>Add the 6th: C6, Dm6. Thumb in and out slides one note: C7 ↔ C6, D°7 ↔ Dm6 (7th type Build)</dd>
-          <dt class="r">left ↔ right, height, lean, distance, palm roll</dt><dd>Any knob or fader whose hand menu is set to it. Defaults: cutoff, volume, color switch, reverb</dd>
-          <dt class="r">color switch, thumb out</dt><dd>Flat 7th: IVmaj7 → IV7</dd>
-          <dt class="r">twist left / right, thumb out</dt><dd>maj7 / 7 (7th type: Twist). Upright gives maj7 on major chords, m7 on minor</dd>
-          <dt class="r">color switch, thumb in</dt><dd>Add a 9th: IV → IVadd9</dd>
-        </dl>
-        <p class="hint">The <b>Eric Wei</b> hand setup is an homage to Eric Wei's Gesture Synth: lean your left hand right for major or left for minor, twist your right hand left for maj7 (m7 on minor chords) or right for 7 (°7 on minor chords), and use horns 🤘 / ILY 🤟 for 6 and 7.</p>
-      </div>
-    </details>
     <label class="devtoggle"><input type="checkbox" id="diagToggle"> Show diagnostics (speed readout and freeze log, for troubleshooting)</label>
-  </div>
+    </div>
+  </dialog>
 </div>
 
 <!-- Scripts share one global scope and run in this order; later files use what earlier ones define -->
@@ -799,5 +829,6 @@
 <script src="js/midi-panel.js"></script>
 <script src="js/share.js"></script>
 <script src="js/learn.js"></script>
+<script src="js/layout.js"></script>
 </body>
 </html>

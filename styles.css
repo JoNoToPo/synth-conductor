@@ -328,37 +328,24 @@ body.simple .vgroup:not(:has(.vchip:not(.spare))){display:none}   /* a group wit
 @keyframes padq{from{outline-color:rgba(214,171,82,.35)}to{outline-color:var(--brass)}}
 @media (prefers-reduced-motion:reduce){.pad.queued,.vchip.queued{animation:none}}
 @media (max-width:460px){.sq-top{grid-template-columns:minmax(0,1fr)}}
-/* Sound panel: three stacks, each with its own tint and accent */
-.synth{grid-template-columns:minmax(0,1.35fr) minmax(0,.8fr) minmax(0,.95fr)}   /* tone wide, filter & effects narrower, timing between */
-.synth>.bank{display:flex;flex-direction:column;gap:10px;padding:10px;border-radius:12px;background:var(--tint);border:1px solid var(--tline);min-width:0}
-.synth .module{grid-column:auto;background:rgba(15,11,9,.35);border-color:var(--tline)}
-.synth .module h3{color:var(--g);border-bottom-color:var(--tline)}
-/* Modules are as tall as what's in them; the column's tint fills any space below */
-.synth>.bank>.module{flex:none}
+/* Each tab has its own tint and accent */
 .g-amp{--g:#d6ab52;--tint:rgba(214,171,82,.07);--tline:rgba(214,171,82,.22)}
 .g-filter{--g:#8fb3d9;--tint:rgba(143,179,217,.07);--tline:rgba(143,179,217,.24)}
 .g-arp{--g:#d79aa9;--tint:rgba(215,154,169,.07);--tline:rgba(215,154,169,.24)}
+.g-parts{--g:#b9a3dc;--tint:rgba(185,163,220,.07);--tline:rgba(185,163,220,.24)}
 .g-midi{--g:#a9c49a;--tint:rgba(169,196,154,.06);--tline:rgba(169,196,154,.22)}
-.bank .kdial .arc,.m-midi .kdial .arc{stroke:var(--g)}
-.bank .fader input[type=range]{accent-color:var(--g)}
-.bank .led:has(input:checked)::before,.m-midi .led:has(input:checked)::before{background:var(--g);box-shadow:0 0 6px 1px var(--tline)}
-.bank .tempo input[type=range]{accent-color:var(--g)}
-.bank .knob.driven .kdial .arc,.bank .knob.driven .ptr{stroke:var(--patina)}
-.bank .fader.driven input[type=range]{accent-color:var(--patina)}
-@media (max-width:1100px){.synth{grid-template-columns:repeat(2,minmax(0,1fr))}.synth>.g-amp{grid-column:1/-1}}
-@media (max-width:620px){.synth{grid-template-columns:minmax(0,1fr)}}
+.tabpane .kdial .arc,.m-midi .kdial .arc{stroke:var(--g)}
+.tabpane .fader input[type=range]{accent-color:var(--g)}
+.tabpane .led:has(input:checked)::before,.m-midi .led:has(input:checked)::before{background:var(--g);box-shadow:0 0 6px 1px var(--tline)}
+.tabpane .tempo input[type=range]{accent-color:var(--g)}
+.tabpane .knob.driven .kdial .arc,.tabpane .knob.driven .ptr{stroke:var(--patina)}
+.tabpane .fader.driven input[type=range]{accent-color:var(--patina)}
 /* A panel switched to its basics keeps the main knobs and hides the finer ones */
 .panel-min .pa{display:none!important}
 /* Switches stacked with their knob to the left (Tempo: Pump; hands: Position) */
 .ledknob{display:grid;grid-template-columns:auto minmax(0,1fr);gap:14px;align-items:center}
 .ledknob>.knobs{grid-column:1;grid-row:1;padding-inline:10px 10px}
 .ledknob .leds{grid-template-columns:minmax(0,1fr)}
-/* MIDI out gets a row of its own, laid out across the width on bigger screens */
-.synth.midirow{display:block;margin-top:12px}
-.midirow .module{background:var(--tint);border-color:var(--tline)}
-.midirow .module h3{color:var(--g);border-bottom-color:var(--tline)}
-.adv{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;align-items:start}
-@media (max-width:720px){.adv{grid-template-columns:minmax(0,1fr)}}
 /* MIDI out */
 .lcds input[type=number]{background:#110d0b;border:1px solid #3a2e26;border-radius:6px;color:var(--patina);font:500 .82rem var(--font-mono);padding:6px 8px;min-width:0}
 .lcds [hidden]{display:none}
@@ -461,31 +448,7 @@ body.full:not(.rh-only) .pads,body.full:not(.rh-only) .stage>.row>.fs-rh{display
   body.full:not(.rh-only) #fullBtn{margin:auto 0 0}
 }
 
-/* Panels: each part of the page can be shown or hidden; the choice is kept in this browser */
-[data-panel].panel-off{display:none!important}
-.phide[hidden]{display:none}
-/* The + left where a hidden panel was */
-.padd{display:flex;align-items:center;justify-content:center;gap:6px;min-height:40px;height:stretch;padding:8px 12px;border:1px dashed var(--tline,var(--line));border-radius:10px;
-  background:none;color:var(--muted);font:500 .74rem var(--font-mono);letter-spacing:.1em;text-transform:uppercase;cursor:pointer}
-.padd span{font-size:1.05rem;line-height:1;color:var(--g,var(--brass))}
-.padd:hover,.padd:focus-visible{color:var(--ivory);border-style:solid;background:rgba(255,255,255,.03)}
-.padd[hidden],body.full .padd{display:none}
-/* A bigger box holding only a + stays light */
-.padd{width:100%}
-.midirow:not(:has(>.module:not(.panel-off))){padding:0;border:0;background:none;box-shadow:none}
-.hdrtools{position:relative}
-.pcount{font-family:var(--font-mono);font-size:.72rem;color:var(--muted);margin-left:4px}
-.panelmenu{position:fixed;z-index:30;max-height:calc(80vh - 24px);max-height:calc(80dvh - 24px);overflow:auto;width:min(360px,calc(100vw - 32px));display:flex;flex-direction:column;gap:10px;
-  padding:14px;border:1px solid var(--line);border-radius:14px;background:var(--surface);box-shadow:0 18px 40px rgba(0,0,0,.45)}
-.panelmenu[hidden]{display:none}
-.pmlist{display:flex;flex-direction:column;gap:2px}
-.pmitem{display:grid;grid-template-columns:auto minmax(0,1fr);gap:2px 10px;align-items:center;padding:7px 8px;border-radius:8px;cursor:pointer}
-.pmitem:hover{background:var(--surface-2)}
-.pmitem input{width:18px;height:18px;margin:0;accent-color:var(--brass);grid-row:1/3}
-.pmitem b{font-weight:600;font-size:.9rem}
-.pmitem small{color:var(--muted);font-size:.76rem;line-height:1.3}
-.panelmenu .row .btn{padding:6px 12px;font-size:.82rem}
-/* The ✕ in a panel's corner hides it */
+/* More / Less (or + / −) in a foldable panel's corner */
 [data-panel]{position:relative}
 .phide{position:absolute;top:6px;right:6px;z-index:2;width:26px;height:26px;display:grid;place-items:center;padding:0;border:0;border-radius:6px;
   background:none;color:var(--muted);font-size:.85rem;line-height:1;cursor:pointer;opacity:.65}
@@ -640,3 +603,155 @@ body.full #loopCard{display:none}
 /* Learn: the control a step points at pulses a few times */
 .lpoint{animation:lpoint .7s ease-in-out 4;outline:2px solid transparent;outline-offset:2px}
 @keyframes lpoint{50%{outline-color:var(--patina);box-shadow:0 0 0 6px rgba(131,185,169,.25)}}
+
+/* ---------- Layout: the play area, then five tabs of folding panels ---------- */
+.main{grid-template-columns:minmax(0,1.2fr) minmax(360px,1fr);gap:18px}
+.tabsarea{min-width:0;display:flex;flex-direction:column;gap:10px}
+/* Wide screens: the tabs sit beside the play area and scroll on their own, so the camera never scrolls away */
+@media (min-width:900px){
+  .tabsarea{position:sticky;top:12px;max-height:calc(100vh - 24px);max-height:calc(100dvh - 24px);overflow:auto;overscroll-behavior:contain;padding-right:2px}
+  .tabbar{position:sticky;top:0;z-index:5}
+}
+.tabbar{display:flex;gap:4px;padding:4px;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+.tabbtn{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 6px;border:0;border-radius:8px;background:none;color:var(--muted);
+  font:500 .74rem var(--font-mono);letter-spacing:.08em;text-transform:uppercase;cursor:pointer;min-width:0}
+.tabbtn svg{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.tabbtn span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tabbtn:hover{color:var(--ivory)}
+.tabbtn.on{color:var(--ivory);background:var(--surface-2);box-shadow:inset 0 -2px 0 var(--brass)}
+.tabbtn:focus-visible{outline:2px solid var(--brass);outline-offset:-2px}
+.tabpane{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,260px),1fr));gap:8px;align-items:start;padding:8px;border:1px solid var(--tline);border-radius:14px;background:var(--tint)}
+.tabpane[hidden]{display:none}
+.tabpane>*{grid-column:auto;min-width:0}
+.tabpane>.fold:not(.closed),.tabpane>.panelhint{grid-column:1/-1}
+.tabpane>.module,.tabpane>.sq-voicing,.tabpane>.pianowrap{background:rgba(15,11,9,.35);border:1px solid var(--tline);border-radius:10px;flex:none;height:auto}
+.tabpane .module h3,.tabpane .sq-voicing .cardhead h3,.tabpane .pianowrap>h3{color:var(--g);border-bottom-color:var(--tline)}
+.tabpane>.pianowrap>h3{margin:0;font-family:var(--font-mono);font-weight:500;font-size:.7rem;letter-spacing:.14em;text-transform:uppercase}
+.tabpane .lcds{grid-template-columns:repeat(auto-fill,minmax(min(100%,180px),1fr))}
+.tabpane .lcds label{grid-column:auto}.tabpane .lcds .wide{grid-column:1/-1}
+/* A folded panel is one line: its name and what it's set to */
+.fhead{display:flex;align-items:center;gap:8px;width:100%;min-width:0;padding:0;border:0;background:none;color:inherit;font:inherit;letter-spacing:inherit;text-transform:inherit;text-align:left;cursor:pointer}
+.fchev{width:7px;height:7px;flex:none;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(-45deg);transition:transform .15s;margin:0 2px}
+.fold:not(.closed) .fchev{transform:rotate(45deg) translate(-2px,-2px)}
+.ftitle{flex:none}
+.fsum{flex:1;min-width:0;text-align:right;font:400 .78rem var(--font-body);letter-spacing:0;text-transform:none;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fold:not(.closed) .fsum{display:none}
+.fold.closed{padding:0!important;gap:0}
+.fold.closed>:not(.fhold){display:none!important}
+.fold.closed>.fhold{border:0;padding:0;margin:0}
+.fold.closed>.fhold>:not(h3):not(.fhead){display:none}
+.fold.closed .fhead{padding:12px}
+.fold.closed:hover{border-color:var(--g)}
+.fhead:focus-visible{outline:2px solid var(--brass);outline-offset:2px;border-radius:6px}
+/* Chips under the chord: key, tempo, tap, click, and hiding the video */
+.gbar{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.chip{display:inline-flex;align-items:center;gap:6px;min-height:32px;padding:4px 12px;border:1px solid var(--line);border-radius:999px;background:var(--surface);
+  color:var(--ivory);font:500 .74rem var(--font-mono);letter-spacing:.04em;cursor:pointer;white-space:nowrap}
+.chip:hover{border-color:var(--brass)}
+.chip[aria-pressed=true]{border-color:var(--brass);color:var(--brass)}
+.bpmchip{cursor:text}
+.bpmchip input{width:3.1em;padding:0;border:0;background:none;color:var(--patina);font:inherit;text-align:right;-moz-appearance:textfield}
+.bpmchip input::-webkit-inner-spin-button,.bpmchip input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+.bpmchip span{color:var(--muted)}
+#videoBtn{margin-left:auto}
+body.novideo:not(.full) .stage>.view{display:none}
+body.full .gbar,body.full .tabsarea{display:none}
+/* Popups: Presets, MIDI out, Help */
+.dlg{width:min(980px,calc(100vw - 24px));max-height:calc(100vh - 24px);max-height:calc(100dvh - 24px);padding:0;border:1px solid var(--line);border-radius:16px;background:var(--bg);color:var(--ivory)}
+.dlg::backdrop{background:rgba(8,6,5,.72)}
+.dlghead{position:sticky;top:0;z-index:3;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 16px;background:var(--bg);border-bottom:1px solid var(--line)}
+.dlghead h2{margin:0;font:400 1.4rem var(--font-display)}
+.dlgx{width:34px;height:34px;border:0;border-radius:8px;background:none;color:var(--muted);font-size:1rem;cursor:pointer}
+.dlgx:hover,.dlgx:focus-visible{background:var(--surface-2);color:var(--ivory)}
+.dlgbody{display:flex;flex-direction:column;gap:12px;padding:14px 16px 18px}
+.dlg .module{background:var(--tint,var(--surface));border-color:var(--tline,var(--line))}
+.dlg .module h3{color:var(--g,var(--brass))}
+/* Phones: the tab bar is pinned to the bottom of the screen, like an app's */
+@media (max-width:899px){
+  .main{grid-template-columns:minmax(0,1fr)}
+  .app{padding-bottom:calc(84px + env(safe-area-inset-bottom,0px))}
+  .tabsarea{scroll-margin-top:8px}
+  .tabbar{position:fixed;left:0;right:0;bottom:0;z-index:35;border-radius:0;border-width:1px 0 0;padding:4px 4px calc(4px + env(safe-area-inset-bottom,0px));background:rgba(22,17,14,.97)}
+  .tabbtn{flex-direction:column;gap:2px;padding:6px 2px;font-size:.6rem;letter-spacing:.06em}
+  .tabbtn svg{width:20px;height:20px}
+  .tabbtn.on{background:none;box-shadow:none;color:var(--brass)}
+  .tabpane{padding:6px}
+}
+@media (max-width:620px){
+  .brand p{display:none}
+  .brand h1{font-size:1.7rem}
+  .hdrtools .btn{padding:6px 11px;font-size:.8rem}
+}
+.tabpane>#loopCard{background:rgba(15,11,9,.35);margin-top:0}
+/* A narrow tab column: icons above their names, as on a phone */
+@media (min-width:900px){.tabsarea{container-type:inline-size}}   /* not on phones: it would pin the fixed tab bar to the tabs instead of the screen */
+@container (max-width:520px){ .tabbtn{flex-direction:column;gap:2px;padding:6px 2px;font-size:.6rem;letter-spacing:.06em} }
+/* Chord options: each switch with what plays it */
+.legacy{display:none!important}
+.hsrc{display:flex;flex-direction:column;gap:6px}
+.hrow{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:8px;align-items:center}
+.hrow select{min-width:0;width:100%;padding:6px 8px;font-size:.8rem}
+.hled{display:flex;align-items:center;gap:8px;min-width:0;min-height:36px;padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:#110d0b;color:var(--ivory);
+  font:500 .72rem var(--font-mono);letter-spacing:.06em;text-transform:uppercase;text-align:left;cursor:pointer}
+.hled:hover{border-color:var(--g,var(--brass))}
+.hdot{width:8px;height:8px;flex:none;border-radius:50%;background:#3a2e26}
+.hled.on .hdot{background:var(--g,var(--brass));box-shadow:0 0 6px 1px var(--tline,rgba(214,171,82,.3))}
+.hname{flex:none}
+.hval{flex:1;min-width:0;color:var(--patina);text-transform:none;letter-spacing:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hico{display:none;width:15px;height:15px;flex:none;margin-left:auto;fill:none;stroke:var(--patina);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.hled.hand{border-style:dashed;cursor:default}
+.hled.hand .hico{display:block}
+.hled.hand:hover,.hled.fixed:hover{border-color:var(--line)}
+.hled.fixed{cursor:default;color:var(--muted)}
+.hsrchint{margin:0;font-size:.74rem}
+@media (max-width:400px){.hrow{grid-template-columns:minmax(0,1fr)}}
+/* Favorites: the star on each panel, and the line left in a pinned panel's home tab */
+.fhold h3,h3.fhold{display:flex;align-items:center;gap:6px}
+.fstar{flex:none;width:28px;height:28px;display:grid;place-items:center;margin:-6px 0;padding:0;border:0;border-radius:6px;background:none;color:var(--muted);cursor:pointer;opacity:.7}
+.fstar svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linejoin:round}
+.fstar:hover,.fstar:focus-visible{opacity:1;color:var(--ivory);background:var(--surface-2)}
+.fstar[aria-pressed=true]{opacity:1;color:var(--brass)}
+.fstar[aria-pressed=true] svg{fill:currentColor}
+.fold.closed .fstar{margin-right:6px}
+.fold:not(.closed):has(>.phide)>.fhold{padding-right:58px}
+.fold:not(.closed):has(>.phide.psign)>.fhold{padding-right:30px}
+.favslot{display:flex;align-items:center;gap:8px;min-width:0;padding:10px 12px;border:1px dashed var(--tline);border-radius:10px;background:none;color:var(--muted);
+  font:500 .7rem var(--font-mono);letter-spacing:.1em;text-transform:uppercase;text-align:left;cursor:pointer}
+.favslot svg{width:14px;height:14px;flex:none;fill:var(--brass);stroke:none}
+.favslot:hover{color:var(--ivory);border-color:var(--g)}
+.favslot[hidden]{display:none}
+.favempty{grid-column:1/-1;margin:6px 4px}
+.favempty[hidden]{display:none}
+.fhold .fhead{flex:1}
+/* Hands: one row per movement, what it does, and what it's doing now */
+.mvrows{display:flex;flex-direction:column}
+.mvrow{display:grid;grid-template-columns:7.5em minmax(0,1fr) minmax(0,5.5em);gap:8px;align-items:center;padding:6px 0;border-top:1px solid var(--tline)}
+.mvrows>.mvrow:first-child{border-top:0}
+.mvname{font:500 .68rem var(--font-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--ivory)}
+.mvrow select{min-width:0;width:100%;padding:6px 8px;font-size:.8rem}
+.mvfix{grid-column:2/-1;font-size:.82rem;color:var(--muted)}
+.mvnow{font:500 .74rem var(--font-mono);color:var(--patina);text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mvslots{display:flex;flex-direction:column;gap:6px;padding:4px 0 8px}
+.mvslots>.hint{margin:0;font-size:.74rem}
+.alsoplays{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding-top:8px;border-top:1px solid var(--tline)}
+.alsolab{font:500 .64rem var(--font-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-right:2px}
+.alsoplays .hint{margin:0;font-size:.74rem}
+.chip.also{min-height:28px;padding:3px 10px;font-size:.7rem}
+@media (max-width:420px){.mvrow{grid-template-columns:6.2em minmax(0,1fr)}.mvnow{grid-column:2;text-align:left}}
+/* Key and chords: the switches */
+.swrow{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.swlab{font:500 .64rem var(--font-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-right:4px}
+.swrow .hled{flex:none}
+.swhint{margin:0;font-size:.74rem}
+.swhint:empty{display:none}
+.hled.hand{cursor:pointer}
+#invLab.dim{opacity:.5}
+.m-pos .ledknob{grid-template-columns:auto minmax(0,1fr)}
+.m-pos .ledknob .hint{margin:0;font-size:.8rem}
+/* Hand guide: the gesture over its meaning on a phone */
+@media (max-width:620px){
+  .legend{display:block}
+  .legend dt{margin-top:10px;font-weight:600}
+  .legend dd{margin:2px 0 0}
+  .legend h4{margin:16px 0 4px}
+}

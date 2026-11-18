@@ -63,7 +63,7 @@ syncTempoUI();
 /* Presets: whole-setup snapshots kept in this browser */
 // Presets that ship with the page (shown to everyone; a user preset with the same name takes its place)
 const BUILTIN_PRESETS={"Default":{"key":0,"mode":"ionian","sound":"pad","voicing":"guitar","s7":false,"bass":true,"vl":true,"rh":true,"sevMode":"build","invBase":0,"rhMap":["close","open","sus2","sus4","six"],"ctrl":{"volume":{"v":0.38,"src":"y","inv":false},"attack":{"v":0.706,"src":"none","inv":false},"decay":{"v":0.642,"src":"none","inv":false},"sustain":{"v":0.8,"src":"none","inv":false},"release":{"v":0.756,"src":"none","inv":false},"cutoff":{"v":0.604,"src":"x","inv":false},"resonance":{"v":0,"src":"none","inv":false},"vowel":{"v":0,"src":"none","inv":false},"highpass":{"v":0,"src":"none","inv":false},"reverb":{"v":0.535,"src":"dist","inv":false},"chorus":{"v":0,"src":"none","inv":false},"drive":{"v":0,"src":"none","inv":false},"detune":{"v":0,"src":"none","inv":false},"vibrato":{"v":0,"src":"none","inv":false},"strum":{"v":0,"src":"none","inv":false},"arp":{"v":0,"src":"none","inv":false}},"leanColor":true,"arpPattern":"updown","bpm":117,"sync":true,"vibDiv":"free","holds":{"flip":"shift","inv1":"z","inv2":"x"},"holdKeys":false,"rightOnly":false},"Default_Arpediate":{"key":0,"mode":"ionian","sound":"pad","voicing":"guitar","s7":true,"bass":true,"vl":true,"rh":true,"sevMode":"diatonic","invBase":0,"rhMap":["close","open","sus2","sus4","six"],"ctrl":{"volume":{"v":0.449,"src":"y","inv":false},"attack":{"v":0.706,"src":"none","inv":false},"decay":{"v":0.642,"src":"none","inv":false},"sustain":{"v":0.8,"src":"none","inv":false},"release":{"v":0.756,"src":"none","inv":false},"cutoff":{"v":0.46,"src":"x","inv":false},"resonance":{"v":0,"src":"none","inv":false},"vowel":{"v":0,"src":"none","inv":false},"highpass":{"v":0,"src":"none","inv":false},"reverb":{"v":0.33,"src":"dist","inv":false},"chorus":{"v":0,"src":"none","inv":false},"drive":{"v":0,"src":"none","inv":false},"detune":{"v":0,"src":"none","inv":false},"vibrato":{"v":0,"src":"none","inv":false},"strum":{"v":0,"src":"none","inv":false},"arp":{"v":0.275,"src":"none","inv":false}},"leanColor":true,"arpPattern":"updown","bpm":117,"sync":true,"vibDiv":"free","holds":{"flip":"shift","inv1":"z","inv2":"x"},"holdKeys":false,"rightOnly":false}};
-const SOUND_BOOLS=['s7','bass','vl','pure'], HAND_BOOLS=['rh','rightOnly','handInv','fast'];
+const SOUND_BOOLS=['s7','bass','vl','pure'], HAND_BOOLS=['rh','rightOnly','handInv','fast','thumb7'];
 // Built-in hand setups (sound presets above keep only their musical settings now)
 const BUILTIN_HANDS={
   "Default":{rhMap:["close","open","sus2","sus4","six"],left67:"chinese",leftTwist:"flip",palmShift:"flat",leanColor:true,rh:true,rightOnly:false,handInv:true,fast:false,
@@ -132,12 +132,12 @@ const soundSummary=c=>[pcName(KEYS[c.key]?.[0]??0)+' '+(MODES[c.mode]?.name||'')
 function captureHands(){
   const src={}; for(const k in TARGETS)src[k]={src:st.ctrl[k].src,inv:st.ctrl[k].inv};
   return {pedalHand:st.pedalHand,rhMap:[...st.rhMap],left67:st.left67,leftTwist:st.leftTwist,palmShift:st.palmShift,leanColor:st.leanColor,rh:st.rh,rightOnly:st.rightOnly,
-    handInv:st.handInv,fast:st.fast,holds:{...holds},holdKeys,posV:st.ctrl.position.v,src,saved:Date.now()};
+    handInv:st.handInv,fast:st.fast,thumb7:st.thumb7!==false,holds:{...holds},holdKeys,posV:st.ctrl.position.v,src,saved:Date.now()};
 }
 function applyHands(h){
   if(Array.isArray(h.rhMap)&&h.rhMap.length===5&&h.rhMap.every(id=>VOICINGS.some(v=>v.id===id)))st.rhMap=[...h.rhMap];
   if(['chinese','horns','asl'].includes(h.left67))st.left67=h.left67;
-  if(h.leftTwist==='flip'||h.leftTwist==='dir')st.leftTwist=h.leftTwist;
+  if(['flip','dir','off'].includes(h.leftTwist))st.leftTwist=h.leftTwist;
   st.pedalHand=h.pedalHand==='fist'?'fist':'off'; if(st.pedalHand==='off')setPedal('hand',false);
   if(['flat','sharp','off'].includes(h.palmShift))st.palmShift=h.palmShift;
   if(typeof h.leanColor==='boolean')st.leanColor=h.leanColor;
@@ -157,7 +157,7 @@ function applyHands(h){
   $('optHoldKeys').checked=holdKeys;$('palmSel').value=st.palmShift;$('left67Sel').value=st.left67;$('leftTwistSel').value=st.leftTwist;$('pedalHandSel').value=st.pedalHand;
   showHold();buildSlots();buildRoutes();syncSevUI();syncLeftGuide();
   try{localStorage.setItem('vh-rhmap',JSON.stringify(st.rhMap));localStorage.setItem('vh-holds',JSON.stringify(holds));localStorage.setItem('vh-holdkeys',holdKeys?'1':'0');
-    localStorage.setItem('vh-rightonly',st.rightOnly?'1':'0');localStorage.setItem('vh-handinv',st.handInv?'1':'0');localStorage.setItem('vh-fast',st.fast?'1':'0');
+    localStorage.setItem('vh-rightonly',st.rightOnly?'1':'0');localStorage.setItem('vh-handinv',st.handInv?'1':'0');localStorage.setItem('vh-fast',st.fast?'1':'0');localStorage.setItem('vh-thumb7',st.thumb7!==false?'1':'0');
     localStorage.setItem('vh-palm',st.palmShift);localStorage.setItem('vh-left67',st.left67);localStorage.setItem('vh-lefttwist',st.leftTwist);localStorage.setItem('vh-pedalhand',st.pedalHand);saveRoutes();}catch(e){}
   applyCtrl('position');refreshAfterChange();render();ensureTrackerHands();
 }
@@ -210,7 +210,7 @@ function makeBank(o){
 // Left-hand 6/7 shape picker
 const L67GUIDE={chinese:['thumb + pinky 🤙','thumb + index (L)'],horns:['index + pinky 🤘 (horns)','index + pinky + thumb 🤟 (ILY)'],asl:['thumb touches pinky tip (3 up)','thumb touches ring tip (3 up)']};
 function syncLeftGuide(){const g=L67GUIDE[st.left67];$('g6t').textContent=g[0];$('g7t').textContent=g[1];}
-try{const v=localStorage.getItem('vh-left67');if(L67GUIDE[v])st.left67=v;const t=localStorage.getItem('vh-lefttwist');if(t==='flip'||t==='dir')st.leftTwist=t}catch(e){}
+try{const v=localStorage.getItem('vh-left67');if(L67GUIDE[v])st.left67=v;const t=localStorage.getItem('vh-lefttwist');if(['flip','dir','off'].includes(t))st.leftTwist=t;st.thumb7=localStorage.getItem('vh-thumb7')!=='0'}catch(e){}
 try{if(localStorage.getItem('vh-pedalhand')==='fist')st.pedalHand='fist'}catch(e){}
 $('pedalHandSel').value=st.pedalHand;
 $('pedalHandSel').addEventListener('change',e=>{st.pedalHand=e.target.value;if(st.pedalHand==='off')setPedal('hand',false);
