@@ -191,6 +191,7 @@ select{background:var(--surface);border:1px solid var(--line);border-radius:10px
 @media (max-width:620px){.pianohead .path{flex-basis:100%}}
 .pianoscroll{overflow-x:auto;padding-bottom:6px}
 .pianoscroll svg{display:block;min-width:950px;width:100%;height:auto}   /* E1–C7: keys stay the size they were at C2–E6 */
+@media (min-width:900px){.pianoscroll svg{min-width:0}}   /* desktop: the whole keyboard fits, scaled down */
 /* ===== Eric readability patch: synth front panel ===== */
 .card{border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:12px;display:flex;flex-direction:column;gap:10px}
 .cardhead{display:flex;justify-content:space-between;align-items:baseline;gap:10px}

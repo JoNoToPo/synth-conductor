@@ -176,7 +176,9 @@ function drawPiano(){
   const W=24,H=118,BW=14,BH=74;
   const xs={};let wi=0;
   for(let m=LO;m<=HI;m++){ if(!isBlack(m)){xs[m]=wi*W;wi++} else xs[m]=wi*W-BW/2 }
-  const width=wi*W, height=H+46;
+  const width=wi*W;
+  // Scaled down to fit (desktop shows the whole keyboard): the note names grow so they stay readable
+  const sv=$('piano').querySelector('svg'), sc=(sv?sv.getBoundingClientRect().width:$('piano').clientWidth)/width, fs=sc>0&&sc<.9?Math.min(18,9/sc):10, height=H+Math.round(fs*3.2+14);
   const rootPc=st.degree!==null?rootPcOf(st.degree):0;
   const active=new Map(); if(st.degree!==null){ st.upper.forEach(m=>active.set(m,'v')); if(st.bassNote!==null)active.set(st.bassNote,'b'); }
   const drn=new Set(typeof droneShown==='function'?droneShown():[]);   // drone notes: their own colour, a ring when a chord note shares the key
@@ -196,8 +198,8 @@ function drawPiano(){
   }
   const act=[...new Set([...active.keys(),...drn])].sort((a,b)=>a-b);
   act.forEach((m,i)=>{
-    const cx=xs[m]+(isBlack(m)?BW/2:W/2), y=H+16+(i%2)*16, a=active.get(m), col=a==='b'?'var(--patina)':a?'var(--brass)':'var(--drone)';
-    s+=`<text x="${cx}" y="${y}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="${col}">${a?FN[((m-rootPc)%12+12)%12]+' ':''}${pcName(m)}</text>`;
+    const cx=xs[m]+(isBlack(m)?BW/2:W/2), y=H+fs*1.5+(i%2)*fs*1.5, a=active.get(m), col=a==='b'?'var(--patina)':a?'var(--brass)':'var(--drone)';
+    s+=`<text x="${cx}" y="${y}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="${fs}" fill="${col}">${a?FN[((m-rootPc)%12+12)%12]+' ':''}${pcName(m)}</text>`;
   });
   s+='</svg>';
   $('piano').innerHTML=s;
@@ -206,6 +208,8 @@ function drawPiano(){
   { const l=document.getElementById('droneLegend'); if(l)l.hidden=!drn.size; }
   drawPiano.drone=[...drn].join();   // what was drawn, so the drone can ask for a redraw when it changes
 }
+// Redraw when the keyboard's width changes (panel opened, window resized), so the note names keep their size
+if(window.ResizeObserver){ let pw=0; new ResizeObserver(e=>{ const w=Math.round(e[0].contentRect.width); if(w&&w!==pw){ pw=w; drawPiano(); } }).observe($('piano')); }
 
 
 /* Assignable hold keys: flip major/minor, 1st inversion, 2nd inversion */
