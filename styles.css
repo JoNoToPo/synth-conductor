@@ -21,6 +21,9 @@ html,body{background:var(--bg);color:var(--ivory)}
 body{font-family:var(--font-body);font-size:15px;line-height:1.5}
 /* An instrument, not a document: pressing and holding plays instead of selecting text or opening the iPhone callout menu */
 body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+/* No double-tap zoom anywhere: quick taps on pads and keys (one-handed play in full screen especially) were zooming the page.
+   Children can only narrow this, so it covers the whole page; scrolling and pinch zoom still work */
+html,button,a,label,select,input,svg{touch-action:manipulation}   /* on the controls too: older iOS Safari only checks the tapped element */
 input,textarea{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
 *{box-sizing:border-box}
 button,select{font:inherit;color:inherit}
