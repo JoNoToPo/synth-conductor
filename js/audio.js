@@ -2,6 +2,11 @@
 const SOUNDS={
   pad:{label:'Warm pad',osc:[['sawtooth',-8,1,.5],['sawtooth',8,1,.5],['sine',0,.5,.6]],a:.14,d:.5,s:.75,r:1.0,cut:2600},
   keys:{label:'Electric keys',osc:[['sine',0,1,.8],['triangle',0,2,.18],['sine',3,4,.05]],a:.004,d:1.6,s:.22,r:.45,cut:6000,strike:true},
+  // Two strings a hair apart for the slow beating of a real unison, slightly stretched upper partials (stiff steel strings
+  // ring a little sharp), and brightness that dies away first, as it does after the hammer strikes
+  // The envelope drops quickly after the strike, then the strings' own long fades take over, the two-stage decay of a real piano
+  piano:{label:'Grand piano',osc:[['sine',-1.2,1,.42,12],['sine',1.2,1,.36,14],['sine',0,2.002,.26,5],['triangle',0,3.006,.11,2],['sine',0,4.012,.07,.9],['sine',0,5.02,.04,.4]],
+    a:.002,d:1.2,s:.35,r:.4,cut:5200,strike:true},
   organ:{label:'Drawbar organ',osc:[['sine',0,1,.5],['sine',0,2,.3],['sine',0,3,.18],['sine',0,.5,.3]],a:.015,d:.05,s:1,r:.12,cut:5000},
   strings:{label:'Soft strings',osc:[['sawtooth',-5,1,.4],['sawtooth',5,1,.4],['sawtooth',0,2,.08]],a:.35,d:.6,s:.8,r:1.3,cut:1800},
   // Each partial: [wave, detune in cents, frequency ratio, level, own fade time in seconds (struck sounds: upper partials die away first)]
