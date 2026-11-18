@@ -193,7 +193,7 @@ $('instForm').addEventListener('submit',e=>{ e.preventDefault(); const name=$('i
   if(!name){msg.textContent='Type a name for this instrument first.';$('instNameIn').focus();return}
   const c=st.ctrl, cur=SOUNDS[st.sound], all=loadInstruments();
   const own=(k,knob,fallback)=>c[k].src==='none'?knob:fallback;   // a hand-driven knob is wherever your hand is: keep the instrument's own value
-  const def=instrClean({label:name,osc:cur.osc,strike:cur.strike,a:own('attack',expMap(c.attack.v,ENV.a),cur.a),d:own('decay',expMap(c.decay.v,ENV.d),cur.d),
+  const def=instrClean({label:name,osc:cur.osc,strike:cur.strike,thump:cur.thump,a:own('attack',expMap(c.attack.v,ENV.a),cur.a),d:own('decay',expMap(c.decay.v,ENV.d),cur.d),
     s:own('sustain',c.sustain.v,cur.s),r:own('release',expMap(c.release.v,ENV.r),cur.r),cut:own('cutoff',250*Math.pow(2,c.cutoff.v*5.3),cur.cut)});
   const same=Object.keys(all).find(id=>all[id]&&all[id].label===name), id=same||'u_'+Date.now().toString(36);
   all[id]=def; try{localStorage.setItem('vh-instruments',JSON.stringify(all))}catch(err){msg.textContent='Couldn’t save here: this browser is blocking storage for the page.';return}

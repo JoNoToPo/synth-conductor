@@ -7,6 +7,9 @@ const SOUNDS={
   // The envelope drops quickly after the strike, then the strings' own long fades take over, the two-stage decay of a real piano
   piano:{label:'Grand piano',osc:[['sine',-1.2,1,.42,12],['sine',1.2,1,.36,14],['sine',0,2.002,.26,5],['triangle',0,3.006,.11,2],['sine',0,4.012,.07,.9],['sine',0,5.02,.04,.4]],
     a:.002,d:1.2,s:.35,r:.4,cut:5200,strike:true},
+  // The same piano with the hammer heard: a short felt knock and the key bottoming out at the start of each note
+  pianoh:{label:'Grand piano (hammer)',osc:[['sine',-1.2,1,.42,12],['sine',1.2,1,.36,14],['sine',0,2.002,.26,5],['triangle',0,3.006,.11,2],['sine',0,4.012,.07,.9],['sine',0,5.02,.04,.4]],
+    a:.002,d:1.2,s:.35,r:.4,cut:5200,strike:true,thump:.9},
   organ:{label:'Drawbar organ',osc:[['sine',0,1,.5],['sine',0,2,.3],['sine',0,3,.18],['sine',0,.5,.3]],a:.015,d:.05,s:1,r:.12,cut:5000},
   strings:{label:'Soft strings',osc:[['sawtooth',-5,1,.4],['sawtooth',5,1,.4],['sawtooth',0,2,.08]],a:.35,d:.6,s:.8,r:1.3,cut:1800},
   // Each partial: [wave, detune in cents, frequency ratio, level, own fade time in seconds (struck sounds: upper partials die away first)]
@@ -29,7 +32,7 @@ function instrClean(c){ if(!c||typeof c!=='object'||!Array.isArray(c.osc))return
     .map(o=>{const x=[o[0],n(o[1],-100,100,0),n(o[2],INSTR_RATIO[0],INSTR_RATIO[1],1),n(o[3],0,1,.5)]; const f=n(o[4],0,5,0); if(f>=.02)x.push(f); return x});
   if(!osc.length)return null;
   return {label:String(c.label||'My instrument').slice(0,30).trim()||'My instrument',osc,a:n(c.a,.001,3,.02),d:n(c.d,.02,4,.5),s:n(c.s,0,1,.7),
-    r:n(c.r,.02,5,.4),cut:n(c.cut,250,12000,3000),strike:!!c.strike}; }
+    r:n(c.r,.02,5,.4),cut:n(c.cut,250,12000,3000),strike:!!c.strike,...(n(c.thump,0,1,0)>0?{thump:n(c.thump,0,1,0)}:{})}; }
 const loadInstruments=()=>{try{return JSON.parse(localStorage.getItem('vh-instruments')||'{}')||{}}catch(e){return {}}};
 for(const [id,c] of Object.entries(loadInstruments())){ const x=instrClean(c); if(x&&/^u_[\w-]+$/.test(id))SOUNDS[id]={...x,mine:true}; }
 function rememberSound(){ try{localStorage.setItem('vh-sound',SOUNDS[st.sound]?.draft?SOUNDS[st.sound].from||'pad':st.sound)}catch(e){} }
@@ -203,7 +206,23 @@ const audio={
       o.onended=()=>{try{this.vibDepth.disconnect(o.detune)}catch(e){} try{this.bend.disconnect(o.detune)}catch(e){} try{this.wobble&&this.wobble.disconnect(o.detune)}catch(e){} try{o.disconnect();og.disconnect()}catch(e){}
         if(--live<=0){try{g.disconnect()}catch(e){}}};
       return o});
+    if(p.thump)this.thump(m,t,g,p.thump);
     return {g,oscs,p};
+  },
+  // Hammer thump: a burst of felt noise tuned near the note plus a low knock from the key and action, gone in about 50ms.
+  // It goes through the note's own gain, so velocity, the envelope and the Low notes lift shape it like the strings
+  thump(m,t,g,amt){
+    const c=this.ctx, f=440*Math.pow(2,(m-69)/12);
+    if(!this.thumpBuf){ const n=Math.round(c.sampleRate*.08), b=c.createBuffer(1,n,c.sampleRate), d=b.getChannelData(0); for(let i=0;i<n;i++)d[i]=Math.random()*2-1; this.thumpBuf=b; }
+    const s=c.createBufferSource(), bp=c.createBiquadFilter(), ng=c.createGain();
+    s.buffer=this.thumpBuf; s.playbackRate.value=.9+Math.random()*.2;
+    bp.type='bandpass'; bp.frequency.value=Math.min(2600,Math.max(250,f*2.5)); bp.Q.value=1.2;
+    ng.gain.setValueAtTime(amt*1.1,t); ng.gain.setTargetAtTime(0,t,.012);
+    s.connect(bp); bp.connect(ng); ng.connect(g); s.start(t); s.stop(t+.08);
+    const k=c.createOscillator(), kg=c.createGain(); k.type='sine'; k.frequency.setValueAtTime(140,t); k.frequency.exponentialRampToValueAtTime(70,t+.05);
+    kg.gain.setValueAtTime(amt*.7,t); kg.gain.setTargetAtTime(0,t,.018); k.connect(kg); kg.connect(g); k.start(t); k.stop(t+.12);
+    s.onended=()=>{ try{s.disconnect();bp.disconnect();ng.disconnect()}catch(e){} };
+    k.onended=()=>{ try{k.disconnect();kg.disconnect()}catch(e){} };
   },
   noteOn(m,delay=0){
     const t=this.ctx.currentTime+delay,{g,oscs}=this.build(m,t),e=env(),vel=midiOut.velocity();
