@@ -151,7 +151,7 @@ const HAND_ICO='<svg class="hico" viewBox="0 0 24 24" aria-hidden="true"><path d
 function pointAt(el){ if(!el)return; revealEl(el); el.scrollIntoView({block:'center',behavior:'smooth'}); el.classList.remove('lpoint'); void el.offsetWidth; el.classList.add('lpoint'); setTimeout(()=>el.classList.remove('lpoint'),2600); }
 for(const w of SWITCHES){ const b=document.createElement('button'); b.type='button'; b.className='hled';
   b.innerHTML=`<span class="hdot" aria-hidden="true"></span><span class="hname">${w.name}</span>${HAND_ICO}`;
-  b.addEventListener('click',()=>{ audio.init(); if(w.hand()){ pointAt($(w.row).closest('.mvrow')); return; } w.tap(); handsRender(); });
+  b.addEventListener('click',()=>{ audio.init(); if(w.hand()&&cam.on){ pointAt($(w.row).closest('.mvrow')); return; } w.tap(); handsRender(); });
   w.el=b; $('swrow').appendChild(b); }
 // What else each hand plays: every knob whose hand menu is set to one of its movements, with a way to get to it
 const LEFT_IN=['lx'], MOVE_NAME={x:'Across',y:'Height',lean:'Lean',tilt:'Tilt',dist:'Push / pull',roll:'Palm roll',lx:'Across',speed:'Speed'};
@@ -169,10 +169,11 @@ function alsoPlays(box,left){
 function handsRender(){
   for(const m of MOVES){ const s=$(m.id), v=m.get(); if(s.value!==v&&document.activeElement!==s)s.value=v; }
   for(const id in NOW){ const t=NOW[id](); if($(id).textContent!==t)$(id).textContent=t; }
-  let n=0; for(const w of SWITCHES){ const hand=w.hand(); if(hand)n++;
-    w.el.classList.toggle('hand',hand); w.el.classList.toggle('on',!!w.lit()); w.el.setAttribute('aria-pressed',!!w.lit());
-    w.el.title=hand?`${w.name}: played by ${w.by}. Tap to see where`:`${w.name}: tap to switch`; }
-  $('swhint').textContent=n?'A switch with a hand is played by your hand: tap it to see which movement.':'';
+  // With the camera off a hand can't play anything, so every switch is yours to tap (the small hand still shows which ones it plays)
+  let n=0; for(const w of SWITCHES){ const hand=w.hand(), live=hand&&cam.on; if(hand)n++;
+    w.el.classList.toggle('hand',live); w.el.classList.toggle('owned',hand); w.el.classList.toggle('on',!!w.lit()); w.el.setAttribute('aria-pressed',!!w.lit());
+    w.el.title=live?`${w.name}: played by ${w.by}. Tap to see where`:hand?`${w.name}: tap to switch. With the camera on, ${w.by} plays it`:`${w.name}: tap to switch`; }
+  $('swhint').textContent=!n?'':cam.on?'A switch with a hand is played by your hand: tap it to see which movement.':'A switch with a hand is played by your hand once the camera is on. Until then, tap to switch.';
   $('invSel').disabled=st.handInv; $('invLab').classList.toggle('dim',st.handInv);
   alsoPlays($('alsoL'),true); alsoPlays($('alsoR'),false);
 }

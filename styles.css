@@ -703,7 +703,8 @@ body.full .gbar,body.full .tabsarea{display:none}
 .hval{flex:1;min-width:0;color:var(--patina);text-transform:none;letter-spacing:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .hico{display:none;width:15px;height:15px;flex:none;margin-left:auto;fill:none;stroke:var(--patina);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .hled.hand{border-style:dashed;cursor:default}
-.hled.hand .hico{display:block}
+.hled.hand .hico,.hled.owned .hico{display:block}
+.hled.owned:not(.hand) .hico{opacity:.45}
 .hled.hand:hover,.hled.fixed:hover{border-color:var(--line)}
 .hled.fixed{cursor:default;color:var(--muted)}
 .hsrchint{margin:0;font-size:.74rem}
