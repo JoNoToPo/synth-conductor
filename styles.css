@@ -650,6 +650,8 @@ body.full #loopCard{display:none}
 .chip:hover{border-color:var(--brass)}
 .chip[aria-pressed=true]{border-color:var(--brass);color:var(--brass)}
 .bpmchip{cursor:text}
+.sndchip{padding:0 4px 0 12px}
+.sndchip select{max-width:11em;min-height:30px;padding:0 4px;border:0;background:none;color:inherit;font:inherit;cursor:pointer}
 .bpmchip input{width:3.1em;padding:0;border:0;background:none;color:var(--patina);font:inherit;text-align:right;-moz-appearance:textfield}
 .bpmchip input::-webkit-inner-spin-button,.bpmchip input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
 .bpmchip span{color:var(--muted)}

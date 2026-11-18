@@ -92,7 +92,13 @@ function layoutChips(){
   $('keyChip').textContent=`${optText('keySel')} ${optText('modeSel').split(' (')[0].toLowerCase()}`;   // "C major", not "C major (ionian)"
   const q=$('bpmQuick'); if(document.activeElement!==q&&+q.value!==st.bpm)q.value=st.bpm;
   $('clickQuick').setAttribute('aria-pressed',!!st.click);
+  // Instrument: a copy of the Sound tab's menu, refilled when that one changes (a sound saved or deleted)
+  const ss=$('soundSel'), sq=$('soundQuick');
+  if(sq.dataset.fill!==ss.innerHTML){ sq.innerHTML=ss.innerHTML; sq.dataset.fill=ss.innerHTML; }
+  if(document.activeElement!==sq&&sq.value!==ss.value)sq.value=ss.value;
 }
+$('soundQuick').addEventListener('change',e=>{ audio.init(); const ss=$('soundSel'); ss.value=e.target.value; ss.dispatchEvent(new Event('change')); layoutChips(); });
+$('soundSel').addEventListener('change',()=>layoutChips());
 $('keyChip').addEventListener('click',()=>{ const k=document.querySelector('[data-fold="chord"]'); revealEl(k); k.scrollIntoView({block:'nearest',behavior:'smooth'}); $('keySel').focus({preventScroll:true}); });
 $('bpmQuick').addEventListener('change',e=>setBpm(+e.target.value));
 $('tapQuick').addEventListener('click',()=>{ $('tapBtn').click(); layoutChips(); });
