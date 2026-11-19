@@ -7,7 +7,7 @@ const SOUNDS={
   // The envelope drops quickly after the strike, then the strings' own long fades take over, the two-stage decay of a real piano
   piano:{label:'Grand piano',osc:[['sine',-1.2,1,.42,12],['sine',1.2,1,.36,14],['sine',0,2.002,.26,5],['triangle',0,3.006,.11,2],['sine',0,4.012,.07,.9],['sine',0,5.02,.04,.4]],
     a:.002,d:1.2,s:.35,r:.4,cut:5200,strike:true},
-  // The same piano with the hammer heard: a short felt knock and the key bottoming out at the start of each note
+  // The same piano with the hammer heard: a soft felt burst on the string and a low thud from the soundboard at the start of each note
   pianoh:{label:'Grand piano (hammer)',osc:[['sine',-1.2,1,.42,12],['sine',1.2,1,.36,14],['sine',0,2.002,.26,5],['triangle',0,3.006,.11,2],['sine',0,4.012,.07,.9],['sine',0,5.02,.04,.4]],
     a:.002,d:1.2,s:.35,r:.4,cut:5200,strike:true,thump:.9},
   organ:{label:'Drawbar organ',osc:[['sine',0,1,.5],['sine',0,2,.3],['sine',0,3,.18],['sine',0,.5,.3]],a:.015,d:.05,s:1,r:.12,cut:5000},
@@ -209,26 +209,33 @@ const audio={
     if(p.thump)this.thump(m,t,g,p.thump);
     return {g,oscs,p};
   },
-  // Hammer thump: a burst of felt noise tuned near the note plus a low knock from the key and action, gone in about 50ms.
-  // It goes through the note's own gain, so velocity, the envelope and the Low notes lift shape it like the strings
+  // Hammer: the felt striking the string, a soft unpitched burst a few milliseconds long, brighter and louder in the
+  // treble, plus a low thud from the soundboard and key, unpitched too and strongest in the bass. Both go through the
+  // note's own gain, so velocity, the envelope and the Low notes lift shape them like the strings.
+  // (The first version used a tuned 140→70 Hz knock and a click as loud as the string: chords sounded like a drum)
   thump(m,t,g,amt){
-    const c=this.ctx, f=440*Math.pow(2,(m-69)/12);
+    const c=this.ctx, f=440*Math.pow(2,(m-69)/12), hi=Math.min(1,Math.max(0,(m-36)/48));   // 0 at C2, 1 at C6
     if(!this.thumpBuf){ const n=Math.round(c.sampleRate*.08), b=c.createBuffer(1,n,c.sampleRate), d=b.getChannelData(0); for(let i=0;i<n;i++)d[i]=Math.random()*2-1; this.thumpBuf=b; }
+    // Felt: noise around the note's upper partials
     const s=c.createBufferSource(), bp=c.createBiquadFilter(), ng=c.createGain();
     s.buffer=this.thumpBuf; s.playbackRate.value=.9+Math.random()*.2;
-    bp.type='bandpass'; bp.frequency.value=Math.min(2600,Math.max(250,f*2.5)); bp.Q.value=1.2;
-    ng.gain.setValueAtTime(amt*1.1,t); ng.gain.setTargetAtTime(0,t,.012);
-    s.connect(bp); bp.connect(ng); ng.connect(g); s.start(t); s.stop(t+.08);
-    const k=c.createOscillator(), kg=c.createGain(); k.type='sine'; k.frequency.setValueAtTime(140,t); k.frequency.exponentialRampToValueAtTime(70,t+.05);
-    kg.gain.setValueAtTime(amt*.7,t); kg.gain.setTargetAtTime(0,t,.018); k.connect(kg); kg.connect(g); k.start(t); k.stop(t+.12);
+    bp.type='bandpass'; bp.frequency.value=Math.min(4500,Math.max(600,f*4)); bp.Q.value=.8;
+    ng.gain.setValueAtTime(0,t); ng.gain.linearRampToValueAtTime(amt*(.18+.22*hi),t+.001); ng.gain.setTargetAtTime(0,t+.001,.005+.004*(1-hi));
+    s.connect(bp); bp.connect(ng); ng.connect(g); s.start(t); s.stop(t+.06);
+    // Soundboard thud: low-passed noise, no pitch of its own
+    const s2=c.createBufferSource(), lp=c.createBiquadFilter(), tg=c.createGain();
+    s2.buffer=this.thumpBuf; s2.playbackRate.value=.6+Math.random()*.1;
+    lp.type='lowpass'; lp.frequency.value=220; lp.Q.value=.5;
+    tg.gain.setValueAtTime(0,t); tg.gain.linearRampToValueAtTime(amt*(.5-.3*hi),t+.002); tg.gain.setTargetAtTime(0,t+.002,.02);
+    s2.connect(lp); lp.connect(tg); tg.connect(g); s2.start(t); s2.stop(t+.12);
     s.onended=()=>{ try{s.disconnect();bp.disconnect();ng.disconnect()}catch(e){} };
-    k.onended=()=>{ try{k.disconnect();kg.disconnect()}catch(e){} };
+    s2.onended=()=>{ try{s2.disconnect();lp.disconnect();tg.disconnect()}catch(e){} };
   },
   noteOn(m,delay=0){
-    const t=this.ctx.currentTime+delay,{g,oscs}=this.build(m,t),e=env(),vel=midiOut.velocity();
+    const t=this.ctx.currentTime+delay; this.restrike(m,t); const {g,oscs}=this.build(m,t),e=env(),vel=midiOut.velocity();
     // Low notes are lifted (Low notes dial)
     const peak=.16*midiOut.level(vel)*lowGain(m); g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(peak,t+e.a); g.gain.setTargetAtTime(peak*e.s,t+e.a,e.d/3);
-    this.voices.set(m,{g,oscs,start:t}); midiOut.on(m,t,vel);
+    this.voices.set(m,{g,oscs,start:t,m}); midiOut.on(m,t,vel);
   },
   releasing:[],
   // Sustain pedal (piano damper): while it's down, released notes keep ringing and fade over the ring length
@@ -236,12 +243,27 @@ const audio={
     const now=this.ctx.currentTime,t=Math.max(now,v.start||0),R=this.ringSec;
     v.g.gain.cancelScheduledValues(t); v.g.gain.setValueAtTime(v.g.gain.value,t); v.g.gain.setTargetAtTime(0,t,R/5);
     v.end=t+R*1.2; v.oscs.forEach(o=>{try{o.stop(v.end)}catch(e){}});
-    this.sustained=this.sustained.filter(x=>x.end>now); this.sustained.push(v);
-    while(this.sustained.length>40){const old=this.sustained.shift(); this.fade(old,.02);}
+    this.keepRinging(v);
+  },
+  /* Notes ringing under the pedal share one budget of oscillators. Fast chord changes and pedalled arpeggios
+     used to pile up hundreds of them (a piano note is about eight), which overloaded the audio thread: the sound
+     cut out and stuttered. The same key struck again damps its earlier ring, as on a piano, and past the budget
+     the oldest (quietest) rings fade out quickly */
+  RING_OSCS:96,
+  keepRinging(v){ const now=this.ctx.currentTime;
+    this.sustained=this.sustained.filter(x=>x.end>now&&x!==v); this.sustained.push(v);
+    let n=0; for(const x of this.sustained)n+=x.oscs.length;
+    while(n>this.RING_OSCS&&this.sustained.length>1){ const old=this.sustained.shift(); n-=old.oscs.length; this.fade(old,.03); }
+  },
+  // A new note on a key that's still ringing (pedal or release tail) takes over from it
+  restrike(m,t){ const now=this.ctx.currentTime;
+    for(const list of [this.sustained,this.releasing]) for(const x of list)
+      if(x.m===m&&x.end>now&&!x.damped){ x.damped=true; const at=Math.max(now,t-.005); x.g.gain.cancelScheduledValues(at); x.g.gain.setTargetAtTime(0,at,.02);
+        x.end=at+.15; x.oscs.forEach(o=>{try{o.stop(x.end)}catch(e){}}); }
   },
   fade(v,tc){ const now=this.ctx.currentTime;
     v.g.gain.cancelScheduledValues(now); v.g.gain.setValueAtTime(v.g.gain.value,now); v.g.gain.setTargetAtTime(0,now,tc);
-    v.oscs.forEach(o=>{try{o.stop(now+tc*7)}catch(e){}}); },
+    v.end=Math.min(v.end??Infinity,now+tc*7); v.oscs.forEach(o=>{try{o.stop(now+tc*7)}catch(e){}}); },
   // A new ring length also reshapes notes already ringing, so moving the hand shortens or lengthens them
   setRing(R){ this.ringSec=R; if(!this.ctx||!this.pedal)return;
     if(this._ringAt&&Math.abs(R-this._ringAt)/this._ringAt<.1)return; this._ringAt=R;
@@ -263,7 +285,8 @@ const audio={
     v.end=t+r*1.6; v.oscs.forEach(o=>{try{o.stop(v.end)}catch(e){}});
     // Cap the release tails: fast chord changes otherwise stack up dozens of fading notes
     this.releasing=this.releasing.filter(x=>x.end>now); this.releasing.push(v);
-    while(this.releasing.length>24){const old=this.releasing.shift();
+    let ro=0; for(const x of this.releasing)ro+=x.oscs.length;
+    while(this.releasing.length>1&&(this.releasing.length>24||ro>this.RING_OSCS)){const old=this.releasing.shift(); ro-=old.oscs.length;
       old.g.gain.cancelScheduledValues(now); old.g.gain.setTargetAtTime(0,now,.01);
       old.oscs.forEach(o=>{try{o.stop(now+.06)}catch(e){}});}
   },
@@ -340,10 +363,10 @@ const audio={
   },
   shot(m,t,dur){
     // Arpeggio notes: attack is limited to a third of the step; release is capped so fast patterns stay clear
-    const {g,oscs}=this.build(m,t),e=env(),peak=.17*midiOut.level(midiOut.lastVel)*lowGain(m);
+    if(this.pedal)this.restrike(m,t); const {g,oscs}=this.build(m,t),e=env(),peak=.17*midiOut.level(midiOut.lastVel)*lowGain(m);
     const a=Math.min(e.a,dur*.3), end=t+dur, rel=Math.min(e.r,.6);
     g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(peak,t+a); g.gain.setTargetAtTime(peak*e.s,t+a,Math.max(.01,e.d/3));
-    if(this.pedal){ const R=this.ringSec; g.gain.setTargetAtTime(0,end,R/5); oscs.forEach(o=>o.stop(end+R*1.2)); this.sustained.push({g,oscs,end:end+R*1.2}); }
+    if(this.pedal){ const R=this.ringSec; g.gain.setTargetAtTime(0,end,R/5); oscs.forEach(o=>o.stop(end+R*1.2)); this.keepRinging({g,oscs,end:end+R*1.2,m}); }
     else { g.gain.setTargetAtTime(0,end,rel/4); oscs.forEach(o=>o.stop(end+rel*1.6+.05)); }
     this.pendingShots=this.pendingShots.filter(p=>p.t>this.ctx.currentTime-.05); this.pendingShots.push({t,g,oscs,midi:midiOut.shot(m,t,dur)});
   },
