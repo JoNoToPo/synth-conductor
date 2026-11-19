@@ -72,7 +72,6 @@ try{
   }
   const lc=localStorage.getItem('vh-leancolor');if(lc!==null)st.leanColor=lc==='1';
 }catch(e){}
-st.ctrl.arp.v=0; // arpeggio always starts off
 st.inVals={x:.6,y:.75,lean:0,tilt:.5,dist:.4,roll:1,lx:.5,speed:0};
 st.arp=0; st.arpLabel='Off';
 // Time signatures. The BPM always counts quarter notes; x/8 meters click on every eighth, grouped as listed
@@ -261,3 +260,4 @@ function showRouteVals0(){
     } else { const sl=$('cv-'+k);if(sl&&document.activeElement!==sl)sl.value=c.v; }
   }
 }
+setArp(st.ctrl.arp.v);   // the saved arpeggio, so its knob reads right before the sound starts
