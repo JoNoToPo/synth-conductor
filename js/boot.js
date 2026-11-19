@@ -370,6 +370,8 @@ function setFull(on){
   if(document.body.classList.contains('full')===on)return;
   document.body.classList.toggle('full',on);
   $('fullBtn').textContent=on?'Exit':'Full screen'; $('fullBtn').setAttribute('aria-pressed',on);
+  // The button sits with the chips, which full screen hides: it moves into the button row there, and back after
+  (on?document.querySelector('.stage>.row'):$('gbar')).appendChild($('fullBtn'));
   const el=document.documentElement, req=el.requestFullscreen||el.webkitRequestFullscreen;
   if(on&&req&&!document.fullscreenElement){ fullApi=true; Promise.resolve(req.call(el,{navigationUI:'hide'})).catch(()=>{fullApi=false}); }
   if(!on&&fullApi){ fullApi=false; const ex=document.exitFullscreen||document.webkitExitFullscreen; if(ex&&(document.fullscreenElement||document.webkitFullscreenElement))Promise.resolve(ex.call(document)).catch(()=>{}); }
