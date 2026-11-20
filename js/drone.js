@@ -70,7 +70,8 @@ function droneBuzzBuild(c){ const o=c.createOscillator(); o.type='sawtooth';
   const g=c.createGain(); g.gain.value=0; o.connect(sh); sh.connect(bp); bp.connect(am); am.connect(g); g.connect(dr.out);
   if(audio.wobble)audio.wobble.connect(o.detune); o.start(); lfo.start(); dr.buzz={o,lfo,g}; droneBuzzSet(); }
 function droneBuzzSet(){ const b=dr.buzz; if(!b||!audio.ctx)return; const v=effV('buzz'), t=audio.ctx.currentTime;
-  b.g.gain.setTargetAtTime(Math.pow(v,1.1)*4,t,.04);   // it goes through the drone's quiet output (about 0.05), so it starts big here b.lfo.frequency.setTargetAtTime(6+v*34,t,.05);   // faster crank, quicker rattle
+  b.g.gain.setTargetAtTime(Math.pow(v,1.1)*4,t,.04);   // it goes through the drone's quiet output (about 0.05), so it starts big here
+  b.lfo.frequency.setTargetAtTime(6+v*34,t,.05);   // faster crank, quicker rattle
   if(dr.base)b.o.frequency.setTargetAtTime(440*Math.pow(2,(dr.base+12-69)/12),t,.06); }
 function droneKill(){ for(const v of dr.voices)for(const o of v.oscs){ try{o.stop();o.disconnect()}catch(e){} } dr.voices=[]; dr.sig=''; dr.notes='';
   if(dr.buzz){ for(const o of [dr.buzz.o,dr.buzz.lfo]){ try{o.stop();o.disconnect()}catch(e){} } try{dr.buzz.g.disconnect()}catch(e){} dr.buzz=null; } }

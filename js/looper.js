@@ -8,7 +8,8 @@ const looper={
   pos:0, lastT:0, startAt:0, timer:null, clickWas:false, lastSnap:null,
   len(){ return this.bars*meterOf().bar; },
   snapshot(){ const on=st.sounding&&st.degree!==null;
-    return {deg:on?st.degree:null,flip:st.flip,alt7:null,s7:null,sevForce:null,   // s7 null: the 7th is live, your hand'sshift:shiftAmt(),inv:effInv(),
+    // s7 null: the 7th is live, your hand's
+    return {deg:on?st.degree:null,flip:st.flip,alt7:null,s7:null,sevForce:null,shift:shiftAmt(),inv:effInv(),
       roman:on?romanOf(st.degree):'',name:on?currentName():''}; },
   same(a,b){ return a&&b&&['deg','flip','alt7','s7','sevForce','shift','inv'].every(k=>a[k]===b[k]); },
   // Called after every chord change you play. While recording, it lands on the nearest snap step, but never past
@@ -19,7 +20,7 @@ const looper={
     this.events=this.events.filter(e=>Math.abs(e.beat-b)>1e-4); this.events.push({beat:b,...s}); this.events.sort((x,y)=>x.beat-y.beat);
     loopUI(); },
   apply(e){
-    st.loopOv={shift:e.shift,inv:e.inv,voicing:e.voicing||null}; st.flip=e.flip; loopSet7(e,this.mine);
+    st.loopOv={shift:e.shift??0,inv:e.inv??0,voicing:e.voicing||null}; st.flip=e.flip; loopSet7(e,this.mine);
     $('optFlip').checked=e.flip; $('optAlt7').checked=st.alt7; $('opt7').checked=st.s7;
     if(e.deg===null)play(null,{fromLoop:true}); else play(e.deg,{fromLoop:true,retrigger:st.degree===e.deg&&st.sounding});
   },
@@ -65,7 +66,7 @@ function loopMidi(times=1){
     for(let r=0;r<times;r++) ev.forEach((e,i)=>{ if(e.deg===null)return;
       // rings until the next change; the last one carries into the next time round, as it does when playing
       const end=i+1<ev.length?ev[i+1].beat+r*L:r<times-1?(r+1)*L+ev[0].beat:times*L;
-      st.loopOv={shift:e.shift,inv:e.inv,voicing:e.voicing||null}; st.flip=e.flip; loopSet7(e,keep);
+      st.loopOv={shift:e.shift??0,inv:e.inv??0,voicing:e.voicing||null}; st.flip=e.flip; loopSet7(e,keep);
       const n=realize(e.deg); st.upper=n.upper; st.bassNote=n.bass; st.degree=e.deg;   // so voice leading follows on
       const notes=[...(n.bass!==null?[[bch,n.bass]]:[]),...n.upper.map(m=>[ch,m])];
       const t0=Math.round((e.beat+r*L)*tpq), t1=Math.round(end*tpq);
@@ -182,7 +183,7 @@ function loopDeselect(){ loopSel=null; loopEditing=false; }
 // What a loop chord is called, worked out with that chord's own settings
 function loopChordName(e){ if(e.deg===null)return {roman:'',name:''};
   const keep={flip:st.flip,alt7:st.alt7,s7:st.s7,sevForce:st.sevForce,loopOv:st.loopOv,upper:st.upper.slice(),bassNote:st.bassNote,degree:st.degree};
-  try{ st.loopOv={shift:e.shift,inv:e.inv,voicing:e.voicing||null}; st.flip=!!e.flip; loopSet7(e,keep); st.degree=e.deg;
+  try{ st.loopOv={shift:e.shift??0,inv:e.inv??0,voicing:e.voicing||null}; st.flip=!!e.flip; loopSet7(e,keep); st.degree=e.deg;
     const r=realize(e.deg); st.upper=r.upper; st.bassNote=r.bass; return {roman:romanOf(e.deg),name:currentName()}; }
   finally{ Object.assign(st,keep); } }
 function lcSevenOf(e){ return loopLive7(e)?'live':e.s7?(e.alt7?"7c":"7"):(e.alt7?"add9":"tri"); }
